@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Coleções do Acervo | Memórias Vivas</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="index.html"><span class="brand-icon">⌂</span><span><strong>Memórias Vivas</strong><small>de Umuarama<br>Acervo histórico e cultural</small></span></a>
+    <nav class="main-nav"><a href="index.html">Início</a><a href="index.html#projeto">Projeto</a><a href="item.html">Acervo</a><a class="active" href="colecoes.html">Coleções</a><a href="index.html#contribua">Contribua</a><a href="#contato">Contato</a></nav>
+    <button class="search-button">⌕</button><button class="mobile-menu">☰</button>
+  </header>
+
+  <main>
+    <section class="page-hero">
+      <div>
+        <p class="breadcrumb">Início › Acervo › Coleções</p>
+        <h1>Coleções do acervo</h1>
+        <p>Explore coleções organizadas do acervo Memórias Vivas de Umuarama. Fotografias, documentos e registros que contam a história da nossa cidade e de sua gente.</p>
+      </div>
+    </section>
+
+    <section class="section-wrap browse-bar">
+      <div class="chips" role="list" aria-label="Filtros de coleção">
+        <button class="chip active" data-filter="all">Todas</button>
+        <button class="chip" data-filter="foto">Fotografias</button>
+        <button class="chip" data-filter="doc">Documentos</button>
+        <button class="chip" data-filter="evento">Eventos</button>
+        <button class="chip" data-filter="decada">Décadas</button>
+        <button class="chip" data-filter="local">Locais</button>
+      </div>
+      <label class="sort-control">Ordenar por
+        <select><option>Mais recentes</option><option>Mais antigas</option><option>Mais itens</option></select>
+      </label>
+    </section>
+
+    <section class="section-wrap collection-grid">
+      <article class="collection-card" data-category="foto decada"><div class="card-img img-street"></div><h2>Umuarama nos anos 80</h2><p>Fotografias que retratam o cotidiano, o comércio, pessoas e paisagens da década de 80.</p><footer>▤ 312 itens <span>1980–1989</span><a href="item.html">Ver coleção ›</a></footer></article>
+      <article class="collection-card" data-category="foto local"><div class="card-img img-construction"></div><h2>Construção da cidade</h2><p>Registros da fundação, do crescimento urbano e das grandes obras que transformaram Umuarama.</p><footer>▤ 268 itens <span>1960–1980</span><a href="item.html">Ver coleção ›</a></footer></article>
+      <article class="collection-card" data-category="doc"><div class="card-img img-school"></div><h2>Memória escolar</h2><p>Documentos, fotografias e histórias das escolas, professores e alunos de Umuarama.</p><footer>▤ 184 itens <span>1940–2000</span><a href="item.html">Ver coleção ›</a></footer></article>
+      <article class="collection-card" data-category="foto evento"><div class="card-img img-team"></div><h2>Esporte e lazer</h2><p>Momentos de esporte, clubes, campeonatos e atividades de lazer que marcaram gerações.</p><footer>▤ 156 itens <span>1945–2000</span><a href="item.html">Ver coleção ›</a></footer></article>
+      <article class="collection-card" data-category="evento"><div class="card-img img-civic"></div><h2>Eventos cívicos</h2><p>Desfiles, comemorações e eventos que fizeram parte da história do município.</p><footer>▤ 201 itens <span>1950–2000</span><a href="item.html">Ver coleção ›</a></footer></article>
+      <article class="collection-card" data-category="local"><div class="card-img img-building"></div><h2>Centro histórico</h2><p>Registros de prédios, praças e ruas que preservam a memória do coração de Umuarama.</p><footer>▤ 129 itens <span>1920–1980</span><a href="item.html">Ver coleção ›</a></footer></article>
+    </section>
+  </main>
+
+  <footer id="contato" class="site-footer">
+    <div><small>Realização</small><strong>IFPR</strong><p>Instituto Federal do Paraná<br>Campus Umuarama</p></div>
+    <div><small>Parceria</small><strong>Fundação Cultural<br>Vera Schubert</strong></div>
+    <div><small>Apoio</small><strong>Prefeitura de<br>Umuarama</strong></div>
+    <div><small>Contato</small><p>✉ memoriasvivas@umuarama.pr.gov.br<br>☎ (44) 3621-4141<br>⌖ Umuarama – PR</p></div>
+    <div><small>Siga-nos</small><p class="socials">f ◎ ▶</p></div>
+    <p class="copyright">© 2025 Memórias Vivas de Umuarama — Todos os direitos reservados.</p>
+  </footer>
+  <script src="assets/js/script.js"></script>
+</body>
+</html>
