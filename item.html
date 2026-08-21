@@ -3,77 +3,123 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Av. Paraná – Década de 1970 | Memórias Vivas</title>
+  <title>Praça Miguel Rossafa | Memórias Vivas de Umuarama</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/css/styles.css" />
 </head>
 <body>
   <header class="site-header">
-    <a class="brand" href="index.html"><span class="brand-icon">⌂</span><span><strong>Memórias Vivas</strong><small>de Umuarama<br>Acervo histórico e cultural</small></span></a>
-    <nav class="main-nav"><a href="index.html">Início</a><a href="index.html#projeto">Projeto</a><a class="active" href="item.html">Acervo</a><a href="colecoes.html">Coleções</a><a href="index.html#contribua">Contribua</a><a href="#contato">Contato</a></nav>
-    <button class="search-button">⌕</button><button class="mobile-menu">☰</button>
+    <a class="brand" href="index.html" aria-label="Memórias Vivas de Umuarama">
+      <span class="brand-mark">✦</span>
+      <span class="brand-text">Memórias Vivas<br>de Umuarama</span>
+    </a>
+
+    <nav class="main-nav" aria-label="Navegação principal">
+      <a href="index.html">Início</a>
+      <a class="active" href="colecoes.html">Catálogo</a>
+      <a href="index.html#projeto">Sobre nós</a>
+      <a href="index.html#contribua">Como colaborar</a>
+      <a href="#contato">Contato</a>
+    </nav>
+
+    <form class="search-form" role="search">
+      <label class="sr-only" for="site-search">Pesquisar</label>
+      <input id="site-search" type="search" placeholder="Pesquisar..." />
+      <button type="submit" aria-label="Pesquisar">⌕</button>
+    </form>
+    <button class="mobile-menu" aria-label="Abrir menu">☰</button>
   </header>
 
   <main class="section-wrap item-page">
-    <p class="breadcrumb">Início › Acervo › Av. Paraná – Década de 1970</p>
-    <h1><span class="title-icon">▧</span> Av. Paraná – Década de 1970</h1>
+    <a class="back-link" href="colecoes.html">‹ Voltar ao catálogo</a>
 
-    <section class="item-layout">
+    <section class="item-hero">
+      <div class="item-title-block">
+        <p class="item-kicker">Fotografia · Acervo histórico</p>
+        <h1>Praça Miguel Rossafa</h1>
+        <p>Registro da praça central de Umuarama em 1959, com a Igreja Matriz em destaque e o traçado urbano do entorno.</p>
+      </div>
+      <div class="item-code" aria-label="Código do item">MVU-1959-001</div>
+    </section>
+
+    <section class="item-layout detail-layout">
       <div>
-        <div class="photo-viewer">
-          <button class="viewer-nav left">‹</button>
-          <div class="viewer-photo img-street"></div>
-          <button class="viewer-nav right">›</button>
-          <div class="viewer-toolbar">▧ 1 / 1 <span>⌕</span></div>
-        </div>
-        <section class="description-box">
+        <figure class="photo-viewer detail-viewer">
+          <button class="viewer-nav left" type="button" aria-label="Imagem anterior">‹</button>
+          <div class="viewer-photo img-church" role="img" aria-label="Representação em preto e branco da Praça Miguel Rossafa"></div>
+          <button class="viewer-nav right" type="button" aria-label="Próxima imagem">›</button>
+          <figcaption class="viewer-toolbar">
+            <span>Imagem 1 de 1</span>
+            <span>Baixa resolução para preservação</span>
+          </figcaption>
+        </figure>
+
+        <section class="description-box item-panel">
           <h2>Descrição</h2>
-          <p>Registro da Avenida Paraná na década de 1970, período de intenso crescimento urbano e comercial de Umuarama. A via, principal eixo da cidade, concentrava lojas, serviços e o fluxo diário de veículos e pedestres, sendo cenário de importantes transformações que marcaram o desenvolvimento do município.</p>
+          <p>
+            A fotografia documenta a Praça Miguel Rossafa durante a consolidação do centro urbano de Umuarama.
+            O enquadramento evidencia a Igreja Matriz, a arborização inicial e a organização das vias ao redor,
+            elementos que ajudam a compreender o crescimento da cidade no fim da década de 1950.
+          </p>
         </section>
       </div>
 
-      <aside class="metadata-card">
+      <aside class="metadata-card item-sidebar">
         <h2>Informações do item</h2>
         <dl>
-          <div><dt>▣ Tipo:</dt><dd>Fotografia</dd></div>
-          <div><dt>▣ Data:</dt><dd>1970</dd></div>
-          <div><dt>⌖ Local atual:</dt><dd>Umuarama – PR, Brasil</dd></div>
-          <div><dt>⌖ Local da época:</dt><dd>Umuarama – PR, Brasil</dd></div>
-          <div><dt>♙ Autor:</dt><dd>Não identificado</dd></div>
-          <div><dt>◇ Categoria:</dt><dd>Cidades e espaços urbanos</dd></div>
-          <div><dt>⌑ Palavras-chave:</dt><dd>Avenida Paraná, Década de 1970, Comércio, Carros antigos, Centro</dd></div>
-          <div><dt>© Direitos de uso:</dt><dd>Uso não comercial permitido com citação da fonte.</dd></div>
+          <div><dt>Tipo</dt><dd>Fotografia</dd></div>
+          <div><dt>Ano</dt><dd>1959</dd></div>
+          <div><dt>Autor</dt><dd>Foto Studio Umuarama</dd></div>
+          <div><dt>Local</dt><dd>Praça Miguel Rossafa, Umuarama - PR</dd></div>
+          <div><dt>Coleção</dt><dd>Anos 50</dd></div>
+          <div><dt>Formato</dt><dd>Imagem digitalizada</dd></div>
+          <div><dt>Direitos</dt><dd>Uso não comercial permitido com citação da fonte.</dd></div>
         </dl>
-        <div class="download-note">🔒 A imagem está disponível em baixa resolução para preservação. <button disabled>Baixar</button></div>
-        <a href="colecoes.html" class="primary-button back-button">← Voltar ao acervo</a>
+
+        <div class="item-actions">
+          <a class="primary-button back-button" href="#">Solicitar imagem</a>
+          <a class="ghost-button" href="#">Compartilhar item</a>
+        </div>
       </aside>
     </section>
 
     <section class="related-section">
-      <div class="section-heading-row"><h2>Itens relacionados</h2><a href="colecoes.html">Ver todos ›</a></div>
+      <div class="section-heading-row">
+        <h2>Itens relacionados</h2>
+        <a href="colecoes.html">Ver catálogo ›</a>
+      </div>
       <div class="item-grid compact-grid">
-        <article class="archive-card"><div class="card-img img-church"></div><h3>Igreja Matriz São Francisco</h3><p>▣ Fotografia · 1962 · Centro</p></article>
-        <article class="archive-card"><div class="card-img img-team"></div><h3>Time de Futebol – 1978</h3><p>▣ Fotografia · 1978 · Esporte</p></article>
-        <article class="archive-card"><div class="card-img img-aerial"></div><h3>Vista aérea de Umuarama</h3><p>▣ Fotografia · 1985 · Centro</p></article>
-        <article class="archive-card"><div class="card-img img-construction"></div><h3>Construção da cidade</h3><p>▣ Fotografia · 1960 · Urbanismo</p></article>
+        <a class="archive-card" href="item.html"><div class="card-img img-street"></div><h3>Rua Arapongas</h3><p><span>▣</span> Ano: 1958</p></a>
+        <a class="archive-card" href="item.html"><div class="card-img img-construction"></div><h3>Construção do Edifício Capitólio</h3><p><span>▣</span> Ano: 1956</p></a>
+        <a class="archive-card" href="item.html"><div class="card-img img-obelisk"></div><h3>Obelisco de Umuarama</h3><p><span>▣</span> Ano: 1955</p></a>
+        <a class="archive-card" href="item.html"><div class="card-img img-aerial"></div><h3>Vista Aérea de Umuarama</h3><p><span>▣</span> Ano: 1953</p></a>
       </div>
     </section>
   </main>
 
-  <section class="contribute-band">
-    <div class="collage"></div><div class="contribute-icon">♡</div><div><h2>Contribua com o acervo</h2><p>Tem fotografias, documentos ou histórias sobre este tema? Sua colaboração enriquece a memória de Umuarama.</p></div><a class="primary-button" href="#">Enviar material</a>
+  <section class="footer-callout catalog-callout" aria-label="Mensagem do projeto">
+    <div class="quote-block">
+      <span>“</span>
+      <p>Preservar o passado<br>é valorizar nossa história<br>e construir o futuro.</p>
+    </div>
+    <span class="footer-mark">✦</span>
+    <div class="callout-brand">
+      <h2>Memórias Vivas<br>de Umuarama</h2>
+      <p>Histórias que nos conectam.</p>
+    </div>
   </section>
 
-  <footer id="contato" class="site-footer">
-    <div><small>Realização</small><strong>IFPR</strong><p>Instituto Federal do Paraná<br>Campus Umuarama</p></div>
-    <div><small>Parceria</small><strong>Fundação Cultural<br>Vera Schubert</strong></div>
-    <div><small>Apoio</small><strong>Prefeitura de<br>Umuarama</strong></div>
-    <div><small>Contato</small><p>✉ memoriasvivas@umuarama.pr.gov.br<br>☎ (44) 3621-4141<br>⌖ Umuarama – PR</p></div>
-    <div><small>Siga-nos</small><p class="socials">f ◎ ▶</p></div>
-    <p class="copyright">© 2025 Memórias Vivas de Umuarama — Todos os direitos reservados.</p>
+  <footer id="contato" class="site-footer compact-footer">
+    <p>© 2024 Memórias Vivas de Umuarama. Todos os direitos reservados.</p>
+    <div class="social-links" aria-label="Redes sociais">
+      <a href="#" aria-label="Facebook">f</a>
+      <a href="#" aria-label="Instagram">◎</a>
+      <a href="#" aria-label="E-mail">✉</a>
+    </div>
   </footer>
+
   <script src="assets/js/script.js"></script>
 </body>
 </html>
