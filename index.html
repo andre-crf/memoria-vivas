@@ -6,194 +6,77 @@
   <title>Memórias Vivas de Umuarama</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/css/styles.css" />
 </head>
 <body>
   <header class="site-header">
     <a class="brand" href="index.html" aria-label="Memórias Vivas de Umuarama">
-      <span class="brand-icon">⌂</span>
-      <span>
-        <strong>Memórias Vivas</strong>
-        <small>de Umuarama<br>Acervo histórico e cultural</small>
-      </span>
+      <span class="brand-mark">✦</span>
+      <span class="brand-text">Memórias Vivas<br>de Umuarama</span>
     </a>
 
     <nav class="main-nav" aria-label="Navegação principal">
       <a class="active" href="index.html">Início</a>
-      <a href="#projeto">Projeto</a>
-      <a href="item.html">Acervo</a>
-      <a href="colecoes.html">Coleções</a>
-      <a href="#contribua">Contribua</a>
+      <a href="colecoes.html">Catálogo</a>
+      <a href="#projeto">Sobre nós</a>
+      <a href="#contribua">Como colaborar</a>
       <a href="#contato">Contato</a>
     </nav>
 
-    <button class="search-button" aria-label="Pesquisar">⌕</button>
+    <form class="search-form" role="search">
+      <label class="sr-only" for="site-search">Pesquisar</label>
+      <input id="site-search" type="search" placeholder="Pesquisar..." />
+      <button type="submit" aria-label="Pesquisar">⌕</button>
+    </form>
     <button class="mobile-menu" aria-label="Abrir menu">☰</button>
   </header>
 
   <main>
-    <section class="hero home-hero">
-      <div class="hero-copy">
-        <p class="eyebrow">Acervo histórico e cultural</p>
-        <h1>Preservando a memória de Umuarama</h1>
-        <p>Um espaço dedicado à preservação, catalogação e compartilhamento da história de nossa cidade e de sua gente.</p>
-        <a class="primary-button" href="colecoes.html">▣ Explorar acervo</a>
+    <section class="memory-carousel" aria-label="Fotografias históricas em destaque">
+      <button class="memory-arrow memory-arrow-left" type="button" aria-label="Imagem anterior">‹</button>
+      <div class="memory-frame">
+        <article class="memory-slide side">
+          <div class="photo-img img-construction"></div>
+        </article>
+        <article class="memory-slide main">
+          <div class="photo-img img-church"></div>
+        </article>
+        <article class="memory-slide side">
+          <div class="photo-img img-street"></div>
+        </article>
       </div>
-      <div class="hero-photo" role="img" aria-label="Fotografia histórica de rua de Umuarama"></div>
+      <button class="memory-arrow memory-arrow-right" type="button" aria-label="Próxima imagem">›</button>
+      <div class="memory-dots" aria-hidden="true"><span class="active"></span><span></span><span></span><span></span><span></span></div>
     </section>
 
-    <section id="projeto" class="about-section section-wrap">
-      <div class="round-icon">▤</div>
-      <div>
-        <h2>Sobre o projeto</h2>
-        <p>
-          O Memórias Vivas de Umuarama é um projeto de extensão voltado à preservação da memória local.
-          A plataforma reunirá fotografias, documentos, objetos e relatos históricos, tornando o acervo
-          mais acessível para estudantes, pesquisadores e comunidade.
-        </p>
-      </div>
-      <div class="sketch-card" aria-hidden="true"></div>
+    <section id="projeto" class="project-intro section-wrap">
+      <div class="section-kicker"><span></span>Projeto<span></span></div>
+      <h1>Memórias Vivas<br><em>de Umuarama</em></h1>
+      <p>Nosso projeto tem como objetivo catalogar, preservar e disponibilizar documentos e imagens históricas de Umuarama, mantendo vivas as memórias que construíram nossa cidade.</p>
+      <a class="primary-button" href="colecoes.html">▱ Conheça nosso catálogo</a>
     </section>
 
-    <section class="section-wrap">
-      <div class="section-title">
-        <span></span>
-        <h2>▧ Coleções em destaque</h2>
-        <span></span>
+    <section id="contribua" class="footer-callout" aria-label="Mensagem do projeto">
+      <div class="quote-block">
+        <span>“</span>
+        <p>Preservar o passado<br>é valorizar nossa história<br>e construir o futuro.</p>
       </div>
-
-      <div class="featured-carousel" aria-label="Carrossel de coleções em destaque">
-        <button class="carousel-control prev" type="button" aria-label="Coleção anterior">‹</button>
-
-        <div class="carousel-viewport">
-          <div class="featured-collections carousel-track">
-            <article class="collection-banner photo-1 carousel-slide">
-              <div>
-                <h3>Umuarama nos anos 80</h3>
-                <p>Fotografias que retratam o cotidiano, o comércio, pessoas e paisagens da década de 80.</p>
-              </div>
-              <a href="colecoes.html" aria-label="Ver coleção Umuarama nos anos 80">›</a>
-            </article>
-
-            <article class="collection-banner photo-2 carousel-slide">
-              <div>
-                <h3>Construção da cidade</h3>
-                <p>Registros da fundação, do crescimento urbano e das grandes obras que transformaram Umuarama.</p>
-              </div>
-              <a href="colecoes.html" aria-label="Ver coleção Construção da cidade">›</a>
-            </article>
-
-            <article class="collection-banner photo-3 carousel-slide">
-              <div>
-                <h3>Eventos históricos</h3>
-                <p>Fatos marcantes, comemorações e momentos que fizeram parte da história do município.</p>
-              </div>
-              <a href="colecoes.html" aria-label="Ver coleção Eventos históricos">›</a>
-            </article>
-
-            <article class="collection-banner photo-4 carousel-slide">
-              <div>
-                <h3>Memória escolar</h3>
-                <p>Registros de escolas, professores, estudantes e momentos importantes da educação local.</p>
-              </div>
-              <a href="colecoes.html" aria-label="Ver coleção Memória escolar">›</a>
-            </article>
-
-            <article class="collection-banner photo-5 carousel-slide">
-              <div>
-                <h3>Esporte e lazer</h3>
-                <p>Fotografias de clubes, equipes, campeonatos e atividades que marcaram gerações.</p>
-              </div>
-              <a href="colecoes.html" aria-label="Ver coleção Esporte e lazer">›</a>
-            </article>
-          </div>
-        </div>
-
-        <button class="carousel-control next" type="button" aria-label="Próxima coleção">›</button>
-
-        <div class="carousel-dots" aria-label="Indicadores do carrossel"></div>
+      <span class="footer-mark">✦</span>
+      <div class="callout-brand">
+        <h2>Memórias Vivas<br>de Umuarama</h2>
+        <p>Histórias que nos conectam.</p>
       </div>
-    </section>
-
-    <section class="section-wrap">
-      <div class="section-heading-row">
-        <h2>▧ Itens do acervo em destaque</h2>
-        <a href="item.html">Ver todos ›</a>
-      </div>
-
-      <div class="item-grid compact-grid">
-        <article class="archive-card">
-          <div class="card-img img-street"></div>
-          <h3>Av. Paraná – Década de 1970</h3>
-          <p>▣ Fotografia · 1970 · Rua</p>
-        </article>
-
-        <article class="archive-card">
-          <div class="card-img img-church"></div>
-          <h3>Igreja Matriz São Francisco</h3>
-          <p>▣ Fotografia · 1962 · Centro</p>
-        </article>
-
-        <article class="archive-card">
-          <div class="card-img img-aerial"></div>
-          <h3>Vista aérea de Umuarama</h3>
-          <p>▣ Fotografia · 1985 · Centro</p>
-        </article>
-
-        <article class="archive-card">
-          <div class="card-img img-doc"></div>
-          <h3>Ata da Câmara Municipal</h3>
-          <p>▣ Documento · 1967 · Política</p>
-        </article>
-
-        <article class="archive-card">
-          <div class="card-img img-team"></div>
-          <h3>Time de Futebol – 1978</h3>
-          <p>▣ Fotografia · 1978 · Esporte</p>
-        </article>
-      </div>
-    </section>
-
-    <section id="contribua" class="contribute-band">
-      <div class="collage"></div>
-      <div class="contribute-icon">♡</div>
-      <div>
-        <h2>Contribua com o acervo</h2>
-        <p>Sua colaboração é essencial para manter viva a história de Umuarama. Compartilhe fotografias, documentos, objetos ou relatos.</p>
-      </div>
-      <a class="primary-button" href="#">Enviar material</a>
     </section>
   </main>
 
-  <footer id="contato" class="site-footer">
-    <div>
-      <small>Realização</small>
-      <strong>IFPR</strong>
-      <p>Instituto Federal do Paraná<br>Campus Umuarama</p>
+  <footer id="contato" class="site-footer compact-footer">
+    <p>© 2024 Memórias Vivas de Umuarama. Todos os direitos reservados.</p>
+    <div class="social-links" aria-label="Redes sociais">
+      <a href="#" aria-label="Facebook">f</a>
+      <a href="#" aria-label="Instagram">◎</a>
+      <a href="#" aria-label="E-mail">✉</a>
     </div>
-
-    <div>
-      <small>Parceria</small>
-      <strong>Fundação Cultural<br>Vera Schubert</strong>
-    </div>
-
-    <div>
-      <small>Apoio</small>
-      <strong>Prefeitura de<br>Umuarama</strong>
-    </div>
-
-    <div>
-      <small>Contato</small>
-      <p>✉ memoriasvivas@umuarama.pr.gov.br<br>☎ (44) 3621-4141<br>⌖ Umuarama – PR</p>
-    </div>
-
-    <div>
-      <small>Siga-nos</small>
-      <p class="socials">f ◎ ▶</p>
-    </div>
-
-    <p class="copyright">© 2025 Memórias Vivas de Umuarama — Todos os direitos reservados.</p>
   </footer>
 
   <script src="assets/js/script.js"></script>
