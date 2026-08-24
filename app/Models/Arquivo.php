@@ -4,10 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 #[Fillable([
-    'item_acervo_id',
     'nome_original',
     'provider',
     'external_file_id',
@@ -18,11 +16,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 ])]
 class Arquivo extends Model
 {
-    public function itemAcervo(): BelongsTo
-    {
-        return $this->belongsTo(ItemAcervo::class);
-    }
-
     public function isImagem(): bool
     {
         return str_starts_with($this->mime_type, 'image/');

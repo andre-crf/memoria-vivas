@@ -13,7 +13,6 @@ return new class extends Migration
     {
         Schema::create('arquivos', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('item_acervo_id')->constrained('item_acervos')->cascadeOnDelete();
             $table->string('nome_original');
             $table->enum('provider', ['local', 'externo'])->default('local');
             $table->string('external_file_id')->nullable();
