@@ -27,8 +27,8 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('arquivos', function (Blueprint $table) {
-            $table->dropConstrainedForeignId('item_acervo_id');
             $table->dropUnique(['item_acervo_id', 'versao_arquivo']);
+            $table->dropConstrainedForeignId('item_acervo_id');
             $table->dropColumn(['versao_arquivo', 'width', 'height']);
         });
     }

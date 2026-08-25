@@ -7,6 +7,7 @@ use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -30,6 +31,26 @@ class User extends Authenticatable
     public function ativo(): bool
     {
         return $this->status === 'ativo';
+    }
+
+    public function itensCriados(): HasMany
+    {
+        return $this->hasMany(ItemAcervo::class, 'created_by_user_id');
+    }
+
+    public function itensAtualizados(): HasMany
+    {
+        return $this->hasMany(ItemAcervo::class, 'updated_by_user_id');
+    }
+
+    public function itensExcluidos(): HasMany
+    {
+        return $this->hasMany(ItemAcervo::class, 'deleted_by_user_id');
+    }
+
+    public function passwordResets(): HasMany
+    {
+        return $this->hasMany(PasswordReset::class);
     }
 
     /**

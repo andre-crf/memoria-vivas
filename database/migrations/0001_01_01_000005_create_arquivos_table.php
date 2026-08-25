@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('arquivos', function (Blueprint $table) {
             $table->id();
             $table->string('nome_original');
-            $table->enum('provider', ['local', 'externo'])->default('local');
+            $table->enum('provider', ['local', 's3', 'google_drive', 'outro'])->default('local');
             $table->string('external_file_id')->nullable();
             $table->string('storage_path');
             $table->string('mime_type');

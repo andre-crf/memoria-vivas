@@ -39,7 +39,7 @@ return new class extends Migration
             $table->enum('status', ['rascunho', 'em_revisao', 'publicado', 'arquivado'])
                 ->default('rascunho');
             $table->foreignId('autor_id')->nullable()->constrained('autores')->nullOnDelete();
-            $table->enum('visibilidade', ['publico', 'restrito'])->default('restrito');
+            $table->enum('visibilidade', ['publico', 'restrito', 'privado'])->default('restrito');
             $table->foreignId('created_by_user_id')->nullable()->constrained('users')->nullOnDelete();
             $table->foreignId('updated_by_user_id')->nullable()->constrained('users')->nullOnDelete();
             $table->foreignId('deleted_by_user_id')->nullable()->constrained('users')->nullOnDelete();
