@@ -33,4 +33,11 @@ class ItemAcervoObserver
         $item->deleted_by_user_id = Auth::id();
         $item->saveQuietly();
     }
+
+    public function restoring(ItemAcervo $item): void
+    {
+        // O item deixou de estar excluído: quem o excluiu não é mais informação
+        // corrente. O `updating` do próprio restore registra quem restaurou.
+        $item->deleted_by_user_id = null;
+    }
 }

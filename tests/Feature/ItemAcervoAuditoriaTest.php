@@ -74,6 +74,29 @@ class ItemAcervoAuditoriaTest extends TestCase
         $this->assertSame($autor->id, $item->created_by_user_id);
     }
 
+    public function test_restauracao_limpa_quem_excluiu_e_registra_quem_restaurou(): void
+    {
+        $autor = User::factory()->create();
+        $excluidor = User::factory()->create();
+        $restaurador = User::factory()->create();
+
+        $this->actingAs($autor);
+        $item = $this->criarItem();
+
+        $this->actingAs($excluidor);
+        $item->delete();
+
+        $this->actingAs($restaurador);
+        $item->restore();
+        $item->refresh();
+
+        $this->assertNull($item->deleted_at);
+        $this->assertNull($item->deleted_by_user_id);
+        $this->assertNull($item->excluidoPor);
+        $this->assertSame($autor->id, $item->created_by_user_id);
+        $this->assertSame($restaurador->id, $item->updated_by_user_id);
+    }
+
     public function test_campos_de_auditoria_no_payload_sao_ignorados(): void
     {
         $user = User::factory()->create();
