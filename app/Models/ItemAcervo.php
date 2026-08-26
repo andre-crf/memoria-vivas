@@ -2,7 +2,12 @@
 
 namespace App\Models;
 
+use App\Enums\TipoData;
+use App\Enums\Visibilidade;
+use App\Observers\ItemAcervoObserver;
+use App\Support\DataHistorica;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -26,10 +31,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
     'status',
     'autor_id',
     'visibilidade',
-    'created_by_user_id',
-    'updated_by_user_id',
-    'deleted_by_user_id',
 ])]
+#[ObservedBy(ItemAcervoObserver::class)]
 class ItemAcervo extends Model
 {
     use SoftDeletes;
@@ -97,6 +100,11 @@ class ItemAcervo extends Model
         return $this->hasMany(RegistroDownload::class);
     }
 
+    public function dataHistorica(): DataHistorica
+    {
+        return DataHistorica::deArray($this->only(['tipo_data', 'dia', 'mes', 'ano', 'decada']));
+    }
+
     public function isPublicado(): bool
     {
         return $this->status === 'publicado';
@@ -104,7 +112,7 @@ class ItemAcervo extends Model
 
     public function isPublico(): bool
     {
-        return $this->visibilidade === 'publico';
+        return $this->visibilidade === Visibilidade::Publico;
     }
 
     public function podeSerExibidoPublicamente(): bool
@@ -123,6 +131,8 @@ class ItemAcervo extends Model
             'dia' => 'integer',
             'mes' => 'integer',
             'ano' => 'integer',
+            'tipo_data' => TipoData::class,
+            'visibilidade' => Visibilidade::class,
         ];
     }
 }

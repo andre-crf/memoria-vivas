@@ -2,14 +2,18 @@
 
 namespace Tests\Feature;
 
+use App\Enums\Visibilidade;
 use App\Models\Arquivo;
 use App\Models\Assunto;
 use App\Models\Autor;
 use App\Models\Categoria;
 use App\Models\Colecao;
 use App\Models\ConjuntoContextual;
+use App\Models\Estado;
 use App\Models\ItemAcervo;
 use App\Models\MotivoDownload;
+use App\Models\Municipio;
+use App\Models\Pais;
 use App\Models\PalavraChave;
 use App\Models\PerfilDownload;
 use App\Models\Pessoa;
@@ -25,6 +29,8 @@ class AcervoModelTest extends TestCase
     public function test_item_acervo_relations_match_catalog_schema(): void
     {
         $user = User::factory()->create(['role' => 'admin']);
+        $this->actingAs($user);
+
         $autor = Autor::create(['nome' => 'Fundacao Cultural', 'tipo' => 'instituicao']);
 
         $item = ItemAcervo::create([
@@ -33,10 +39,8 @@ class AcervoModelTest extends TestCase
             'tipo_data' => 'ano',
             'ano' => 1980,
             'status' => 'publicado',
-            'visibilidade' => 'publico',
+            'visibilidade' => Visibilidade::Publico,
             'autor_id' => $autor->id,
-            'created_by_user_id' => $user->id,
-            'updated_by_user_id' => $user->id,
         ]);
 
         $categoria = Categoria::create(['titulo' => 'Fotografia']);
@@ -69,13 +73,21 @@ class AcervoModelTest extends TestCase
         $motivo = MotivoDownload::create(['titulo' => 'Pesquisa academica']);
         $perfil = PerfilDownload::create(['titulo' => 'Estudante']);
 
+        $brasil = Pais::create(['codigo' => 'BR', 'nome' => 'Brasil']);
+        $parana = Estado::create(['codigo_ibge' => '41', 'sigla' => 'PR', 'nome' => 'Parana']);
+        $umuarama = Municipio::create([
+            'codigo_ibge' => '4128104',
+            'estado_id' => $parana->id,
+            'nome' => 'Umuarama',
+        ]);
+
         RegistroDownload::create([
             'item_acervo_id' => $item->id,
             'motivo_download_id' => $motivo->id,
             'perfil_download_id' => $perfil->id,
-            'pais' => 'Brasil',
-            'estado' => 'PR',
-            'cidade' => 'Umuarama',
+            'pais_id' => $brasil->id,
+            'estado_id' => $parana->id,
+            'municipio_id' => $umuarama->id,
             'created_at' => now(),
         ]);
 
@@ -91,6 +103,32 @@ class AcervoModelTest extends TestCase
         $this->assertSame('Morador identificado', $item->pessoas->first()->nome);
         $this->assertSame('Umuarama nos anos 80', $item->colecoes->first()->titulo);
         $this->assertSame(1, $item->conjuntosContextuais->first()->pivot->ordem);
-        $this->assertSame('Pesquisa academica', $item->registroDownloads->first()->motivoDownload->titulo);
+        $registro = $item->registroDownloads->first();
+
+        $this->assertSame('Pesquisa academica', $registro->motivoDownload->titulo);
+        $this->assertSame('Brasil', $registro->pais->nome);
+        $this->assertSame('PR', $registro->estado->sigla);
+        $this->assertSame('Umuarama', $registro->municipio->nome);
+        $this->assertSame('PR', $registro->municipio->estado->sigla);
+        $this->assertSame(Visibilidade::Publico, $item->visibilidade);
+        $this->assertTrue($item->isPublico());
+        $this->assertSame($user->id, $item->criadoPor->id);
+        $this->assertSame($user->id, $item->atualizadoPor->id);
+    }
+
+    public function test_item_acervo_nasce_privado_por_padrao(): void
+    {
+        $item = ItemAcervo::create([
+            'titulo' => 'Documento sem visibilidade definida',
+            'tipo_item' => 'documento',
+            'tipo_data' => 'desconhecida',
+            'status' => 'publicado',
+        ]);
+
+        $item->refresh();
+
+        $this->assertSame(Visibilidade::Privado, $item->visibilidade);
+        $this->assertFalse($item->isPublico());
+        $this->assertFalse($item->podeSerExibidoPublicamente());
     }
 }

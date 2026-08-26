@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
     'mime_type',
     'file_size',
     'tipo_arquivo',
+    'sha256',
     'versao_arquivo',
     'width',
     'height',

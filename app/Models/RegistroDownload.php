@@ -10,9 +10,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
     'item_acervo_id',
     'motivo_download_id',
     'perfil_download_id',
-    'pais',
-    'estado',
-    'cidade',
+    'pais_id',
+    'estado_id',
+    'municipio_id',
     'created_at',
 ])]
 class RegistroDownload extends Model
@@ -32,6 +32,21 @@ class RegistroDownload extends Model
     public function perfilDownload(): BelongsTo
     {
         return $this->belongsTo(PerfilDownload::class);
+    }
+
+    public function pais(): BelongsTo
+    {
+        return $this->belongsTo(Pais::class);
+    }
+
+    public function estado(): BelongsTo
+    {
+        return $this->belongsTo(Estado::class);
+    }
+
+    public function municipio(): BelongsTo
+    {
+        return $this->belongsTo(Municipio::class);
     }
 
     protected function casts(): array

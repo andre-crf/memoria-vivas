@@ -18,6 +18,18 @@ return [
         'key' => env('POSTMARK_API_KEY'),
     ],
 
+    /*
+     * API pública de localidades do IBGE. Usada apenas pelo comando
+     * `localidades:sync`; a aplicação em si nunca consulta o IBGE.
+     */
+    'ibge' => [
+        'base_url' => env('IBGE_BASE_URL', 'https://servicodados.ibge.gov.br/api/v1/localidades'),
+        'timeout' => (int) env('IBGE_TIMEOUT', 20),
+        'connect_timeout' => (int) env('IBGE_CONNECT_TIMEOUT', 10),
+        'tentativas' => (int) env('IBGE_TENTATIVAS', 3),
+        'intervalo_retry' => (int) env('IBGE_INTERVALO_RETRY', 500),
+    ],
+
     'resend' => [
         'key' => env('RESEND_API_KEY'),
     ],

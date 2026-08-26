@@ -39,10 +39,11 @@ return new class extends Migration
             $table->enum('status', ['rascunho', 'em_revisao', 'publicado', 'arquivado'])
                 ->default('rascunho');
             $table->foreignId('autor_id')->nullable()->constrained('autores')->nullOnDelete();
-            $table->enum('visibilidade', ['publico', 'restrito', 'privado'])->default('restrito');
-            $table->foreignId('created_by_user_id')->nullable()->constrained('users')->nullOnDelete();
-            $table->foreignId('updated_by_user_id')->nullable()->constrained('users')->nullOnDelete();
-            $table->foreignId('deleted_by_user_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->enum('visibilidade', ['publico', 'privado'])->default('privado');
+            // Auditoria: usuário com histórico não é apagado, é marcado como inativo.
+            $table->foreignId('created_by_user_id')->nullable()->constrained('users')->restrictOnDelete();
+            $table->foreignId('updated_by_user_id')->nullable()->constrained('users')->restrictOnDelete();
+            $table->foreignId('deleted_by_user_id')->nullable()->constrained('users')->restrictOnDelete();
             $table->timestamps();
             $table->softDeletes();
 
@@ -81,7 +82,9 @@ return new class extends Migration
             $table->id();
             $table->string('titulo');
             $table->text('descricao')->nullable();
-            $table->string('imagem_capa')->nullable();
+            // A capa é um item do acervo, não um caminho de arquivo: a aplicação
+            // escolhe depois qual versão (medium, large) exibir em cada contexto.
+            $table->foreignId('item_capa_id')->nullable()->constrained('item_acervos')->nullOnDelete();
             $table->enum('status', ['rascunho', 'publicada', 'arquivada'])->default('rascunho');
             $table->timestamps();
         });
@@ -148,6 +151,11 @@ return new class extends Migration
             $table->unsignedInteger('ordem')->nullable();
 
             $table->primary(['conjunto_contextual_id', 'item_acervo_id']);
+
+            // Duas posições iguais no mesmo conjunto não podem coexistir.
+            // `ordem` continua opcional: MySQL e SQLite aceitam vários NULL no índice único.
+            // Nome explícito: o gerado automaticamente passa dos 64 caracteres do MySQL.
+            $table->unique(['conjunto_contextual_id', 'ordem'], 'conjunto_ctx_item_ordem_unique');
         });
 
         Schema::create('registro_downloads', function (Blueprint $table) {
@@ -155,9 +163,10 @@ return new class extends Migration
             $table->foreignId('item_acervo_id')->constrained('item_acervos')->cascadeOnDelete();
             $table->foreignId('motivo_download_id')->constrained('motivos_download')->restrictOnDelete();
             $table->foreignId('perfil_download_id')->nullable()->constrained('perfis_download')->nullOnDelete();
-            $table->string('pais')->nullable();
-            $table->string('estado')->nullable();
-            $table->string('cidade')->nullable();
+            // Localização normalizada: estado e município só se aplicam ao Brasil.
+            $table->foreignId('pais_id')->constrained('paises')->restrictOnDelete();
+            $table->foreignId('estado_id')->nullable()->constrained('estados')->restrictOnDelete();
+            $table->foreignId('municipio_id')->nullable()->constrained('municipios')->restrictOnDelete();
             $table->timestamp('created_at')->nullable();
 
             $table->index('created_at');
