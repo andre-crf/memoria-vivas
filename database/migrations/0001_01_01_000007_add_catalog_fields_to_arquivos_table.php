@@ -12,7 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('arquivos', function (Blueprint $table) {
-            $table->foreignId('item_acervo_id')->nullable()->constrained('item_acervos')->nullOnDelete();
+            // Arquivo não existe solto: o forceDelete do item leva junto os
+            // registros técnicos. O soft delete do item não dispara o cascade.
+            $table->foreignId('item_acervo_id')->constrained('item_acervos')->cascadeOnDelete();
             $table->enum('versao_arquivo', ['original', 'thumbnail', 'medium', 'large'])->default('original');
             $table->unsignedInteger('width')->nullable();
             $table->unsignedInteger('height')->nullable();

@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Enums\Visibilidade;
 use App\Models\Arquivo;
 use App\Models\Assunto;
 use App\Models\Autor;
@@ -25,6 +26,8 @@ class AcervoModelTest extends TestCase
     public function test_item_acervo_relations_match_catalog_schema(): void
     {
         $user = User::factory()->create(['role' => 'admin']);
+        $this->actingAs($user);
+
         $autor = Autor::create(['nome' => 'Fundacao Cultural', 'tipo' => 'instituicao']);
 
         $item = ItemAcervo::create([
@@ -33,10 +36,8 @@ class AcervoModelTest extends TestCase
             'tipo_data' => 'ano',
             'ano' => 1980,
             'status' => 'publicado',
-            'visibilidade' => 'publico',
+            'visibilidade' => Visibilidade::Publico,
             'autor_id' => $autor->id,
-            'created_by_user_id' => $user->id,
-            'updated_by_user_id' => $user->id,
         ]);
 
         $categoria = Categoria::create(['titulo' => 'Fotografia']);
@@ -92,5 +93,25 @@ class AcervoModelTest extends TestCase
         $this->assertSame('Umuarama nos anos 80', $item->colecoes->first()->titulo);
         $this->assertSame(1, $item->conjuntosContextuais->first()->pivot->ordem);
         $this->assertSame('Pesquisa academica', $item->registroDownloads->first()->motivoDownload->titulo);
+        $this->assertSame(Visibilidade::Publico, $item->visibilidade);
+        $this->assertTrue($item->isPublico());
+        $this->assertSame($user->id, $item->criadoPor->id);
+        $this->assertSame($user->id, $item->atualizadoPor->id);
+    }
+
+    public function test_item_acervo_nasce_privado_por_padrao(): void
+    {
+        $item = ItemAcervo::create([
+            'titulo' => 'Documento sem visibilidade definida',
+            'tipo_item' => 'documento',
+            'tipo_data' => 'desconhecida',
+            'status' => 'publicado',
+        ]);
+
+        $item->refresh();
+
+        $this->assertSame(Visibilidade::Privado, $item->visibilidade);
+        $this->assertFalse($item->isPublico());
+        $this->assertFalse($item->podeSerExibidoPublicamente());
     }
 }

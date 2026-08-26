@@ -39,10 +39,11 @@ return new class extends Migration
             $table->enum('status', ['rascunho', 'em_revisao', 'publicado', 'arquivado'])
                 ->default('rascunho');
             $table->foreignId('autor_id')->nullable()->constrained('autores')->nullOnDelete();
-            $table->enum('visibilidade', ['publico', 'restrito', 'privado'])->default('restrito');
-            $table->foreignId('created_by_user_id')->nullable()->constrained('users')->nullOnDelete();
-            $table->foreignId('updated_by_user_id')->nullable()->constrained('users')->nullOnDelete();
-            $table->foreignId('deleted_by_user_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->enum('visibilidade', ['publico', 'privado'])->default('privado');
+            // Auditoria: usuário com histórico não é apagado, é marcado como inativo.
+            $table->foreignId('created_by_user_id')->nullable()->constrained('users')->restrictOnDelete();
+            $table->foreignId('updated_by_user_id')->nullable()->constrained('users')->restrictOnDelete();
+            $table->foreignId('deleted_by_user_id')->nullable()->constrained('users')->restrictOnDelete();
             $table->timestamps();
             $table->softDeletes();
 
@@ -148,6 +149,10 @@ return new class extends Migration
             $table->unsignedInteger('ordem')->nullable();
 
             $table->primary(['conjunto_contextual_id', 'item_acervo_id']);
+
+            // Duas posições iguais no mesmo conjunto não podem coexistir.
+            // `ordem` continua opcional: MySQL e SQLite aceitam vários NULL no índice único.
+            $table->unique(['conjunto_contextual_id', 'ordem']);
         });
 
         Schema::create('registro_downloads', function (Blueprint $table) {

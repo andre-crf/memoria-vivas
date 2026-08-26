@@ -13,13 +13,18 @@ return new class extends Migration
     {
         Schema::create('arquivos', function (Blueprint $table) {
             $table->id();
-            $table->string('nome_original');
+            // Obrigatório apenas para a versão original; derivações (thumbnail,
+            // medium, large) não têm nome de origem. A regra fica na aplicação.
+            $table->string('nome_original')->nullable();
             $table->enum('provider', ['local', 's3', 'google_drive', 'outro'])->default('local');
             $table->string('external_file_id')->nullable();
             $table->string('storage_path');
             $table->string('mime_type');
             $table->unsignedBigInteger('file_size');
             $table->enum('tipo_arquivo', ['imagem', 'documento', 'audio', 'video', 'outro'])->default('outro');
+            // Hash do conteúdo, calculado no upload com hash_file('sha256', ...).
+            // Índice comum, não único: duplicatas devem ser detectadas, não bloqueadas.
+            $table->char('sha256', 64)->nullable()->index();
             $table->timestamps();
         });
     }
