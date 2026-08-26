@@ -48,11 +48,6 @@ class User extends Authenticatable
         return $this->hasMany(ItemAcervo::class, 'deleted_by_user_id');
     }
 
-    public function passwordResets(): HasMany
-    {
-        return $this->hasMany(PasswordReset::class);
-    }
-
     /**
      * Get the attributes that should be cast.
      *
