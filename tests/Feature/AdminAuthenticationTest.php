@@ -66,6 +66,33 @@ class AdminAuthenticationTest extends TestCase
             ->assertSee('Administração do acervo');
     }
 
+    public function test_active_operator_can_access_admin_dashboard(): void
+    {
+        $user = User::factory()->create([
+            'role' => 'operador',
+            'status' => 'ativo',
+        ]);
+
+        $this
+            ->actingAs($user)
+            ->get('/admin')
+            ->assertOk()
+            ->assertSee('Administração do acervo');
+    }
+
+    public function test_authenticated_user_without_internal_role_cannot_access_admin_dashboard(): void
+    {
+        $user = User::factory()->make([
+            'role' => 'visitante',
+            'status' => 'ativo',
+        ]);
+
+        $this
+            ->actingAs($user)
+            ->get('/admin')
+            ->assertForbidden();
+    }
+
     public function test_inactive_user_cannot_authenticate(): void
     {
         User::factory()->create([
@@ -107,5 +134,19 @@ class AdminAuthenticationTest extends TestCase
 
         $response->assertRedirect(route('login'));
         $this->assertTrue(Auth::guest());
+    }
+
+    public function test_admin_area_redirects_to_login_after_logout(): void
+    {
+        $user = User::factory()->create();
+
+        $this
+            ->actingAs($user)
+            ->post('/logout')
+            ->assertRedirect(route('login'));
+
+        $this
+            ->get('/admin')
+            ->assertRedirect('/login');
     }
 }

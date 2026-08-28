@@ -20,7 +20,7 @@ Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])
     ->middleware('auth')
     ->name('logout');
 
-Route::middleware(['auth', 'active.user'])
+Route::middleware(['auth', 'admin.access'])
     ->prefix('admin')
     ->name('admin.')
     ->group(function (): void {
