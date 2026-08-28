@@ -7,11 +7,13 @@
 
     <title>{{ $title ?? 'Memórias Vivas' }}</title>
 
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @if (file_exists(public_path('build/manifest.json')) || file_exists(public_path('hot')))
+        @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @endif
     @livewireStyles
 </head>
 
-<body>
+<body class="min-h-screen bg-stone-50 text-stone-950 antialiased">
 
     {{ $slot }}
 
