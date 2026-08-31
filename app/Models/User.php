@@ -28,9 +28,19 @@ class User extends Authenticatable
         return $this->role === 'operador';
     }
 
+    public function isPerfilInterno(): bool
+    {
+        return $this->isAdmin() || $this->isOperador();
+    }
+
     public function ativo(): bool
     {
         return $this->status === 'ativo';
+    }
+
+    public function canAccessAdminArea(): bool
+    {
+        return $this->ativo() && $this->isPerfilInterno();
     }
 
     public function itensCriados(): HasMany

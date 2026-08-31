@@ -27,7 +27,7 @@ class EnsureUserCanAccessAdminArea
                 ->withErrors(['email' => 'Este usuário está inativo.']);
         }
 
-        abort_unless($user->isAdmin() || $user->isOperador(), Response::HTTP_FORBIDDEN);
+        abort_unless($user->isPerfilInterno(), Response::HTTP_FORBIDDEN);
 
         return $next($request);
     }
