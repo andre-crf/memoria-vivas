@@ -121,6 +121,17 @@ final class DataHistorica
         return $valores;
     }
 
+    public function label(): string
+    {
+        return match ($this->tipoData) {
+            TipoData::DataExata => sprintf('%02d/%02d/%d', $this->dia, $this->mes, $this->ano),
+            TipoData::MesAno => sprintf('%02d/%d', $this->mes, $this->ano),
+            TipoData::Ano => (string) $this->ano,
+            TipoData::Decada => "Década de {$this->decada}",
+            TipoData::Desconhecida => 'Data desconhecida',
+        };
+    }
+
     /**
      * @return array<string, string>
      */

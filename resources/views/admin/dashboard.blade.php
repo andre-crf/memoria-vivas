@@ -8,6 +8,22 @@
                 </div>
 
                 <div class="flex items-center gap-4">
+                    <nav class="hidden items-center gap-2 md:flex" aria-label="Navegação administrativa">
+                        <a
+                            href="{{ route('admin.dashboard') }}"
+                            aria-current="page"
+                            class="rounded-md bg-[#173F35] px-3 py-2 text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-[#173F35] focus:ring-offset-2"
+                        >
+                            Painel
+                        </a>
+                        <a
+                            href="{{ route('admin.fotografias.index') }}"
+                            class="rounded-md px-3 py-2 text-sm font-medium text-stone-600 transition hover:bg-stone-100 hover:text-stone-950 focus:outline-none focus:ring-2 focus:ring-[#173F35] focus:ring-offset-2"
+                        >
+                            Fotografias
+                        </a>
+                    </nav>
+
                     <div class="hidden text-right sm:block">
                         <p class="text-sm font-medium text-stone-900">{{ auth()->user()->nome }}</p>
                         <p class="text-xs uppercase tracking-[0.12em] text-stone-500">{{ auth()->user()->role }}</p>
@@ -57,10 +73,16 @@
             </section>
 
             <section class="mt-8 rounded-lg border border-dashed border-stone-300 bg-white p-6">
-                <h3 class="text-base font-semibold text-stone-950">Próximo módulo</h3>
+                <h3 class="text-base font-semibold text-stone-950">Fotografias</h3>
                 <p class="mt-2 text-sm leading-6 text-stone-600">
-                    O próximo passo é conectar este painel aos cadastros de autores, categorias, assuntos e itens do acervo.
+                    Acesse a listagem principal de fotografias cadastradas no acervo.
                 </p>
+                <a
+                    href="{{ route('admin.fotografias.index') }}"
+                    class="mt-4 inline-flex items-center justify-center rounded-md bg-[#173F35] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#0f2b24] focus:outline-none focus:ring-2 focus:ring-[#173F35] focus:ring-offset-2"
+                >
+                    Abrir fotografias
+                </a>
             </section>
         </main>
     </div>

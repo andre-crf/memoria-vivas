@@ -126,6 +126,36 @@ class DataHistoricaTest extends TestCase
         ], $data->paraPersistencia());
     }
 
+    public function test_formata_data_historica_para_exibicao(): void
+    {
+        $this->assertSame('15/03/1980', DataHistorica::deArray([
+            'tipo_data' => 'data_exata',
+            'dia' => 15,
+            'mes' => 3,
+            'ano' => 1980,
+        ])->label());
+
+        $this->assertSame('03/1980', DataHistorica::deArray([
+            'tipo_data' => 'mes_ano',
+            'mes' => 3,
+            'ano' => 1980,
+        ])->label());
+
+        $this->assertSame('1980', DataHistorica::deArray([
+            'tipo_data' => 'ano',
+            'ano' => 1980,
+        ])->label());
+
+        $this->assertSame('Década de 1980', DataHistorica::deArray([
+            'tipo_data' => 'decada',
+            'decada' => '1980',
+        ])->label());
+
+        $this->assertSame('Data desconhecida', DataHistorica::deArray([
+            'tipo_data' => 'desconhecida',
+        ])->label());
+    }
+
     public function test_campos_obrigatorios_e_proibidos_sao_complementares(): void
     {
         $esperado = TipoData::campos();
