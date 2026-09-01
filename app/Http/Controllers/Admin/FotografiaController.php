@@ -9,6 +9,7 @@ use App\Http\Requests\Admin\StoreFotografiaRequest;
 use App\Models\ItemAcervo;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Gate;
 
 class FotografiaController extends Controller
@@ -47,4 +48,45 @@ class FotografiaController extends Controller
             ->route('admin.fotografias.index')
             ->with('success', 'Fotografia cadastrada com sucesso.');
     }
+
+    public function show(ItemAcervo $fotografia): View
+    {
+        $this->ensurePhotograph($fotografia);
+        Gate::authorize('view', $fotografia);
+
+        $fotografia->load([
+            'arquivos',
+            'assuntos',
+            'autor',
+            'categorias',
+            'colecoes',
+            'conjuntosContextuais',
+            'criadoPor',
+            'atualizadoPor',
+            'palavrasChave',
+            'pessoas',
+        ]);
+
+        return view('admin.fotografias.show', [
+            'fotografia' => $fotografia,
+        ]);
+    }
+
+    public function destroy(ItemAcervo $fotografia): RedirectResponse
+    {
+        $this->ensurePhotograph($fotografia);
+        Gate::authorize('delete', $fotografia);
+
+        $fotografia->delete();
+
+        return redirect()
+            ->route('admin.fotografias.index')
+            ->with('success', 'Fotografia excluída com sucesso.');
+    }
+
+    private function ensurePhotograph(ItemAcervo $fotografia): void
+    {
+        abort_unless($fotografia->tipo_item === 'fotografia', Response::HTTP_NOT_FOUND);
+    }
+
 }

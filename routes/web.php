@@ -29,4 +29,6 @@ Route::middleware(['auth', 'admin.access'])
         Route::get('/fotografias/create', [FotografiaController::class, 'create'])->name('fotografias.create');
         Route::post('/fotografias', [FotografiaController::class, 'store'])->name('fotografias.store');
         Route::get('/fotografias', [FotografiaController::class, 'index'])->name('fotografias.index');
+        Route::get('/fotografias/{fotografia}', [FotografiaController::class, 'show'])->name('fotografias.show');
+        Route::delete('/fotografias/{fotografia}', [FotografiaController::class, 'destroy'])->name('fotografias.destroy');
     });
