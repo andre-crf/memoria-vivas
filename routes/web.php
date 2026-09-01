@@ -26,5 +26,7 @@ Route::middleware(['auth', 'admin.access'])
     ->name('admin.')
     ->group(function (): void {
         Route::get('/', DashboardController::class)->name('dashboard');
+        Route::get('/fotografias/create', [FotografiaController::class, 'create'])->name('fotografias.create');
+        Route::post('/fotografias', [FotografiaController::class, 'store'])->name('fotografias.store');
         Route::get('/fotografias', [FotografiaController::class, 'index'])->name('fotografias.index');
     });

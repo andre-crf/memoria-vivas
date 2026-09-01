@@ -43,7 +43,7 @@
         </header>
 
         <main class="mx-auto max-w-7xl px-6 py-8">
-            <section class="mb-6">
+            <section class="mb-6 flex flex-col justify-between gap-4 md:flex-row md:items-end">
                 <div>
                     <p class="text-sm font-medium text-[#6B5E2E]">Acervo</p>
                     <h2 class="mt-1 text-2xl font-semibold text-stone-950">Fotografias cadastradas</h2>
@@ -51,7 +51,20 @@
                         Lista administrativa das fotografias ativas cadastradas no acervo.
                     </p>
                 </div>
+
+                <a
+                    href="{{ route('admin.fotografias.create') }}"
+                    class="inline-flex items-center justify-center rounded-md bg-[#173F35] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#0f2b24] focus:outline-none focus:ring-2 focus:ring-[#173F35] focus:ring-offset-2"
+                >
+                    Nova fotografia
+                </a>
             </section>
+
+            @if (session('success'))
+                <div class="mb-6 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm font-medium text-green-800">
+                    {{ session('success') }}
+                </div>
+            @endif
 
             <section class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm">
                 @if ($fotografias->isEmpty())
@@ -75,16 +88,6 @@
                             </thead>
                             <tbody class="divide-y divide-stone-200 bg-white">
                                 @foreach ($fotografias as $fotografia)
-                                    @php
-                                        $statusLabel = match ($fotografia->status) {
-                                            'rascunho' => 'Rascunho',
-                                            'em_revisao' => 'Em revisão',
-                                            'publicado' => 'Publicado',
-                                            'arquivado' => 'Arquivado',
-                                            default => ucfirst((string) $fotografia->status),
-                                        };
-                                    @endphp
-
                                     <tr id="fotografia-{{ $fotografia->id }}" class="hover:bg-stone-50">
                                         <td class="max-w-md px-5 py-4">
                                             <p class="truncate text-sm font-semibold text-stone-950">{{ $fotografia->titulo }}</p>
@@ -95,7 +98,7 @@
                                         </td>
                                         <td class="whitespace-nowrap px-5 py-4">
                                             <span class="inline-flex rounded-full bg-stone-100 px-2.5 py-1 text-xs font-medium text-stone-700">
-                                                {{ $statusLabel }}
+                                                {{ $fotografia->statusLabel() }}
                                             </span>
                                         </td>
                                         <td class="whitespace-nowrap px-5 py-4">

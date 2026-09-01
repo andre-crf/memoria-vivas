@@ -37,6 +37,22 @@ class ItemAcervo extends Model
 {
     use SoftDeletes;
 
+    public const ESTADOS_CONSERVACAO = [
+        'excelente' => 'Excelente',
+        'bom' => 'Bom',
+        'regular' => 'Regular',
+        'ruim' => 'Ruim',
+        'critico' => 'Crítico',
+        'desconhecido' => 'Desconhecido',
+    ];
+
+    public const STATUS = [
+        'rascunho' => 'Rascunho',
+        'em_revisao' => 'Em revisão',
+        'publicado' => 'Publicado',
+        'arquivado' => 'Arquivado',
+    ];
+
     protected $table = 'item_acervos';
 
     public function autor(): BelongsTo
@@ -108,6 +124,16 @@ class ItemAcervo extends Model
     public function isPublicado(): bool
     {
         return $this->status === 'publicado';
+    }
+
+    public function statusLabel(): string
+    {
+        return self::STATUS[$this->status] ?? ucfirst((string) $this->status);
+    }
+
+    public function estadoConservacaoLabel(): string
+    {
+        return self::ESTADOS_CONSERVACAO[$this->estado_conservacao] ?? ucfirst((string) $this->estado_conservacao);
     }
 
     public function isPublico(): bool
