@@ -72,7 +72,7 @@
                                                 Visualizar
                                             </a>
                                             <a
-                                                href="#fotografia-{{ $fotografia->id }}"
+                                                href="{{ route('admin.fotografias.edit', $fotografia) }}"
                                                 class="rounded-md border border-[#D8E2EF] px-3 py-2 text-sm font-medium text-[#173F7A] transition hover:bg-[#F4F8FC] focus:outline-none focus:ring-2 focus:ring-[#173F7A] focus:ring-offset-2"
                                             >
                                                 Editar

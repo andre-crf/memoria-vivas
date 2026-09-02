@@ -23,7 +23,7 @@
             <div class="flex flex-wrap gap-2">
                 @can('update', $fotografia)
                     <a
-                        href="#edicao"
+                        href="{{ route('admin.fotografias.edit', $fotografia) }}"
                         class="inline-flex items-center justify-center rounded-md border border-[#D8E2EF] px-4 py-2 text-sm font-semibold text-[#173F7A] transition hover:bg-[#F4F8FC] focus:outline-none focus:ring-2 focus:ring-[#173F7A] focus:ring-offset-2"
                     >
                         Editar
@@ -44,6 +44,12 @@
                 @endcan
             </div>
         </section>
+
+        @if (session('success'))
+            <div class="mb-6 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm font-medium text-green-800">
+                {{ session('success') }}
+            </div>
+        @endif
 
         <div class="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(320px,1fr)]">
             <div class="space-y-6">

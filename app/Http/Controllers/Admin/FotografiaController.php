@@ -6,6 +6,7 @@ use App\Enums\TipoData;
 use App\Enums\Visibilidade;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreFotografiaRequest;
+use App\Http\Requests\Admin\UpdateFotografiaRequest;
 use App\Models\ItemAcervo;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -72,6 +73,31 @@ class FotografiaController extends Controller
         ]);
     }
 
+    public function edit(ItemAcervo $fotografia): View
+    {
+        $this->ensurePhotograph($fotografia);
+        Gate::authorize('update', $fotografia);
+
+        return view('admin.fotografias.edit', [
+            'fotografia' => $fotografia,
+            'tipoDataOptions' => TipoData::cases(),
+            'estadoConservacaoOptions' => ItemAcervo::ESTADOS_CONSERVACAO,
+            'statusOptions' => ItemAcervo::STATUS,
+            'visibilidadeOptions' => Visibilidade::cases(),
+        ]);
+    }
+
+    public function update(UpdateFotografiaRequest $request, ItemAcervo $fotografia): RedirectResponse
+    {
+        $this->ensurePhotograph($fotografia);
+
+        $fotografia->update($request->payload());
+
+        return redirect()
+            ->route('admin.fotografias.show', $fotografia)
+            ->with('success', 'Fotografia atualizada com sucesso.');
+    }
+
     public function destroy(ItemAcervo $fotografia): RedirectResponse
     {
         $this->ensurePhotograph($fotografia);
@@ -88,5 +114,4 @@ class FotografiaController extends Controller
     {
         abort_unless($fotografia->tipo_item === 'fotografia', Response::HTTP_NOT_FOUND);
     }
-
 }
