@@ -53,19 +53,11 @@ class CategoriaController extends Controller
     }
 
     /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
-
-    /**
      * Show the form for editing the specified resource.
      */
     public function edit(Categoria $categoria): View
     {
-        Gate::authorize('update', Categoria::class);
+        Gate::authorize('update', $categoria);
 
         return view('admin.categorias.edit', [
             'categoria' => $categoria,
@@ -89,7 +81,7 @@ class CategoriaController extends Controller
      */
     public function destroy(Categoria $categoria): RedirectResponse
     {
-        Gate::authorize('delete', Categoria::class);
+        Gate::authorize('delete', $categoria);
 
         $categoria->delete();
 
