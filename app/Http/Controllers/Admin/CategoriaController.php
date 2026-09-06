@@ -87,8 +87,14 @@ class CategoriaController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(Categoria $categoria): RedirectResponse
     {
-        //
+        Gate::authorize('delete', Categoria::class);
+
+        $categoria->delete();
+
+        return redirect()
+            ->route('admin.categorias.index')
+            ->with('success', 'Categoria excluída com sucesso.');
     }
 }

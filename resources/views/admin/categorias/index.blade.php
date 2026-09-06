@@ -172,12 +172,20 @@
                                                     Editar
                                                 </a>
 
-                                                <button
-                                                    type="button"
-                                                    class="rounded-md border border-red-200 px-3 py-2 text-sm font-medium text-red-700 transition hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-700 focus:ring-offset-2"
+                                                <form 
+                                                    method="POST" 
+                                                    action="{{ route('admin.categorias.destroy', $categoria) }}"
+                                                    onsubmit="return confirm('Tem certeza que deseja excluir esta categoria? As associações com os itens do acervo serão removidas.')"
                                                 >
-                                                    Excluir
-                                                </button>
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button
+                                                        type="submit"
+                                                        class="rounded-md border border-red-200 px-3 py-2 text-xs font-medium text-red-700 hover:bg-red-50"
+                                                    >
+                                                        Excluir
+                                                    </button>
+                                                </form>
                                             </div>
                                         </td>
                                     </tr>
