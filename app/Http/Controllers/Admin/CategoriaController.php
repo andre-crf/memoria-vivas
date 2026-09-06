@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreCategoriaRequest;
+use App\Http\Requests\Admin\UpdateCategoriaRequest;
 use App\Models\Categoria;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -62,17 +63,25 @@ class CategoriaController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
+    public function edit(Categoria $categoria): View
     {
-        //
+        Gate::authorize('update', Categoria::class);
+
+        return view('admin.categorias.edit', [
+            'categoria' => $categoria,
+        ]);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(UpdateCategoriaRequest $request, Categoria $categoria): RedirectResponse
     {
-        //
+        $categoria->update($request->validated());
+
+        return redirect()
+            ->route('admin.categorias.index')
+            ->with('success', 'Categoria atualizada com sucesso.');
     }
 
     /**

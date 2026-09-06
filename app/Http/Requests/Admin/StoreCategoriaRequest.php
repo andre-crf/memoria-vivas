@@ -32,7 +32,7 @@ class StoreCategoriaRequest extends FormRequest
     }
 
     #[Override]
-    public function attributes()
+    public function attributes(): array
     {
         return [
             'titulo' => 'título',
