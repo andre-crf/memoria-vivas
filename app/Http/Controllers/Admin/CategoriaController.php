@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\StoreCategoriaRequest;
 use App\Models\Categoria;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
@@ -32,15 +34,21 @@ class CategoriaController extends Controller
      */
     public function create()
     {
-        //
+        Gate::authorize('create', Categoria::class);
+
+        return view('admin.categorias.create');
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StoreCategoriaRequest $request): RedirectResponse
     {
-        //
+        Categoria::create($request->validated());
+
+        return redirect()
+            ->route('admin.categorias.index')
+            ->with('success', 'Categoria cadastrada com sucesso.');
     }
 
     /**
