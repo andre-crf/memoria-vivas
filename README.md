@@ -56,3 +56,19 @@ If you discover a security vulnerability within Laravel, please send an e-mail t
 ## License
 
 The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+
+
+
+
+
+
+
+
+=====================================================================================================================================
+
+PARA RODA USE:
+
+$override = Join-Path $env:TEMP 'memorias-vivas-compose-test-ports.yaml'
+docker compose -f compose.yaml -f $override up -d
+
+=====================================================================================================================================
