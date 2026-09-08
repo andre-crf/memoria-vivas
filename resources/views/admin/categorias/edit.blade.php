@@ -34,6 +34,13 @@
                         >
                             Categorias
                         </a>
+
+                        <a
+                            href="{{ route('admin.assuntos.index') }}"
+                            class="rounded-md px-3 py-2 text-sm font-medium text-stone-600 hover:bg-stone-100 hover:text-stone-900"
+                        >
+                            Assuntos
+                        </a>
                     </nav>
 
                     <div class="hidden text-right sm:block">
