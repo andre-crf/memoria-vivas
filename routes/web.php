@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\AssuntoController;
 use App\Http\Controllers\Admin\CategoriaController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\FotografiaController;
+use App\Http\Controllers\Admin\PalavraChaveController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
@@ -59,5 +60,16 @@ Route::middleware(['auth', 'admin.access'])
                 Route::get('/{assunto}/edit', [AssuntoController::class, 'edit'])->name('edit');
                 Route::put('/{assunto}', [AssuntoController::class, 'update'])->name('update');
                 Route::delete('/{assunto}', [AssuntoController::class, 'destroy'])->name('destroy');
+            });
+
+        Route::prefix('palavras-chave')
+            ->name('palavras-chave.')
+            ->group(function (): void {
+                Route::get('/', [PalavraChaveController::class, 'index'])->name('index');
+                Route::get('/create', [PalavraChaveController::class, 'create'])->name('create');
+                Route::post('/', [PalavraChaveController::class, 'store'])->name('store');
+                Route::get('/{palavraChave}/edit', [PalavraChaveController::class, 'edit'])->name('edit');
+                Route::put('/{palavraChave}', [PalavraChaveController::class, 'update'])->name('update');
+                Route::delete('/{palavraChave}', [PalavraChaveController::class, 'destroy'])->name('destroy');
             });
     });

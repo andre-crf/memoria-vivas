@@ -34,6 +34,12 @@
                         >
                             Assuntos
                         </a>
+                        <a
+                            href="{{ route('admin.palavras-chave.index') }}"
+                            class="rounded-md px-3 py-2 text-sm font-medium text-stone-600 transition hover:bg-stone-100 hover:text-stone-950 focus:outline-none focus:ring-2 focus:ring-[#173F35] focus:ring-offset-2"
+                        >
+                            Palavras-chave
+                        </a>
                     </nav>
 
                     <div class="hidden text-right sm:block">
