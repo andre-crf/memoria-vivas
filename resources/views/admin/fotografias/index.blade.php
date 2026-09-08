@@ -78,7 +78,7 @@
                                                 Editar
                                             </a>
                                             @can('delete', $fotografia)
-                                                <form method="POST" action="{{ route('admin.fotografias.destroy', $fotografia) }}">
+                                                <form method="POST" action="{{ route('admin.fotografias.destroy', $fotografia) }}" onsubmit="return confirm('Excluir esta fotografia?')">
                                                     @csrf
                                                     @method('DELETE')
                                                     <button
