@@ -29,6 +29,22 @@ class FotografiaController extends Controller
         ]);
     }
 
+    public function trashed(): View
+    {
+        Gate::authorize('restore', new ItemAcervo);
+
+        $fotografias = ItemAcervo::query()
+            ->onlyTrashed()
+            ->where('tipo_item', 'fotografia')
+            ->with('excluidoPor')
+            ->latest('deleted_at')
+            ->paginate(15);
+
+        return view('admin.fotografias.trashed', [
+            'fotografias' => $fotografias,
+        ]);
+    }
+
     public function create(): View
     {
         Gate::authorize('create', ItemAcervo::class);
@@ -108,6 +124,23 @@ class FotografiaController extends Controller
         return redirect()
             ->route('admin.fotografias.index')
             ->with('success', 'Fotografia excluída com sucesso.');
+    }
+
+    public function restore(string $fotografia): RedirectResponse
+    {
+        $fotografia = ItemAcervo::query()
+            ->onlyTrashed()
+            ->whereKey($fotografia)
+            ->firstOrFail();
+
+        $this->ensurePhotograph($fotografia);
+        Gate::authorize('restore', $fotografia);
+
+        $fotografia->restore();
+
+        return redirect()
+            ->route('admin.fotografias.trashed')
+            ->with('success', 'Fotografia restaurada com sucesso.');
     }
 
     private function ensurePhotograph(ItemAcervo $fotografia): void

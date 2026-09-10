@@ -29,8 +29,10 @@ Route::middleware(['auth', 'admin.access'])
         Route::get('/fotografias/create', [FotografiaController::class, 'create'])->name('fotografias.create');
         Route::post('/fotografias', [FotografiaController::class, 'store'])->name('fotografias.store');
         Route::get('/fotografias', [FotografiaController::class, 'index'])->name('fotografias.index');
+        Route::get('/fotografias/lixeira', [FotografiaController::class, 'trashed'])->name('fotografias.trashed');
         Route::get('/fotografias/{fotografia}/edit', [FotografiaController::class, 'edit'])->name('fotografias.edit');
         Route::put('/fotografias/{fotografia}', [FotografiaController::class, 'update'])->name('fotografias.update');
+        Route::patch('/fotografias/{fotografia}/restore', [FotografiaController::class, 'restore'])->name('fotografias.restore');
         Route::get('/fotografias/{fotografia}', [FotografiaController::class, 'show'])->name('fotografias.show');
         Route::delete('/fotografias/{fotografia}', [FotografiaController::class, 'destroy'])->name('fotografias.destroy');
     });

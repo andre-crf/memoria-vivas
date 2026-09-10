@@ -1,29 +1,18 @@
-<x-layouts.admin title="Fotografias | Memórias Vivas" active="fotografias">
+<x-layouts.admin title="Lixeira de fotografias | Memórias Vivas" active="fotografias">
     <div class="mx-auto max-w-7xl">
         <section class="mb-6 flex flex-col justify-between gap-4 md:flex-row md:items-end">
             <div>
-                <p class="text-sm font-medium text-[#3F7E94]">Acervo</p>
-                <h1 class="mt-2 font-serif text-3xl font-semibold text-[#173F7A]">Fotografias cadastradas</h1>
-                <p class="mt-2 max-w-2xl text-sm leading-6 text-[#55709B]">
-                    Lista administrativa das fotografias ativas cadastradas no acervo.
-                </p>
-            </div>
-
-            <div class="flex flex-wrap gap-2">
-                @can('restore', new \App\Models\ItemAcervo)
-                    <a
-                        href="{{ route('admin.fotografias.trashed') }}"
-                        class="inline-flex items-center justify-center rounded-md border border-[#D8E2EF] px-4 py-2 text-sm font-semibold text-[#173F7A] transition hover:bg-[#F4F8FC] focus:outline-none focus:ring-2 focus:ring-[#173F7A] focus:ring-offset-2"
-                    >
-                        Lixeira
-                    </a>
-                @endcan
                 <a
-                    href="{{ route('admin.fotografias.create') }}"
-                    class="inline-flex items-center justify-center rounded-md bg-[#173F7A] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#0E2A52] focus:outline-none focus:ring-2 focus:ring-[#173F7A] focus:ring-offset-2"
+                    href="{{ route('admin.fotografias.index') }}"
+                    class="text-sm font-semibold text-[#173F7A] hover:text-[#0E2A52]"
                 >
-                    Nova fotografia
+                    Voltar para fotografias
                 </a>
+                <p class="mt-4 text-sm font-medium text-[#3F7E94]">Acervo</p>
+                <h1 class="mt-2 font-serif text-3xl font-semibold text-[#173F7A]">Lixeira de fotografias</h1>
+                <p class="mt-2 max-w-2xl text-sm leading-6 text-[#55709B]">
+                    Fotografias excluídas logicamente e disponíveis para restauração administrativa.
+                </p>
             </div>
         </section>
 
@@ -36,9 +25,9 @@
         <section class="overflow-hidden rounded-lg border border-[#D8E2EF] bg-white shadow-sm shadow-[#173F7A]/5">
             @if ($fotografias->isEmpty())
                 <div class="px-6 py-16 text-center">
-                    <h2 class="font-serif text-xl font-semibold text-[#173F7A]">Nenhuma fotografia cadastrada</h2>
+                    <h2 class="font-serif text-xl font-semibold text-[#173F7A]">Nenhuma fotografia na lixeira</h2>
                     <p class="mx-auto mt-2 max-w-md text-sm leading-6 text-[#55709B]">
-                        Quando houver fotografias ativas no acervo, elas aparecerão nesta listagem.
+                        Quando uma fotografia for excluída logicamente, ela aparecerá aqui para possível restauração.
                     </p>
                 </div>
             @else
@@ -50,12 +39,13 @@
                                 <th scope="col" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-[0.12em] text-[#55709B]">Data</th>
                                 <th scope="col" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-[0.12em] text-[#55709B]">Status</th>
                                 <th scope="col" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-[0.12em] text-[#55709B]">Visibilidade</th>
+                                <th scope="col" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-[0.12em] text-[#55709B]">Exclusão</th>
                                 <th scope="col" class="px-5 py-3 text-right text-xs font-semibold uppercase tracking-[0.12em] text-[#55709B]">Ações</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-[#D8E2EF] bg-white">
                             @foreach ($fotografias as $fotografia)
-                                <tr id="fotografia-{{ $fotografia->id }}" class="hover:bg-[#F8FBFE]">
+                                <tr id="fotografia-excluida-{{ $fotografia->id }}" class="hover:bg-[#F8FBFE]">
                                     <td class="max-w-md px-5 py-4">
                                         <p class="truncate text-sm font-semibold text-[#173F7A]">{{ $fotografia->titulo }}</p>
                                         <p class="mt-1 text-xs text-[#7A8DA8]">#{{ $fotografia->id }}</p>
@@ -73,29 +63,21 @@
                                             {{ $fotografia->visibilidade->label() }}
                                         </span>
                                     </td>
+                                    <td class="whitespace-nowrap px-5 py-4 text-sm text-[#294B77]">
+                                        <p>{{ $fotografia->deleted_at?->format('d/m/Y H:i') ?: 'Não registrada' }}</p>
+                                        <p class="mt-1 text-xs text-[#7A8DA8]">{{ $fotografia->excluidoPor?->nome ?: 'Usuário não registrado' }}</p>
+                                    </td>
                                     <td class="px-5 py-4">
-                                        <div class="flex justify-end gap-2">
-                                            <a
-                                                href="{{ route('admin.fotografias.show', $fotografia) }}"
-                                                class="rounded-md border border-[#D8E2EF] px-3 py-2 text-sm font-medium text-[#173F7A] transition hover:bg-[#F4F8FC] focus:outline-none focus:ring-2 focus:ring-[#173F7A] focus:ring-offset-2"
-                                            >
-                                                Visualizar
-                                            </a>
-                                            <a
-                                                href="{{ route('admin.fotografias.edit', $fotografia) }}"
-                                                class="rounded-md border border-[#D8E2EF] px-3 py-2 text-sm font-medium text-[#173F7A] transition hover:bg-[#F4F8FC] focus:outline-none focus:ring-2 focus:ring-[#173F7A] focus:ring-offset-2"
-                                            >
-                                                Editar
-                                            </a>
-                                            @can('delete', $fotografia)
-                                                <form method="POST" action="{{ route('admin.fotografias.destroy', $fotografia) }}" onsubmit="return confirm('Excluir esta fotografia?')">
+                                        <div class="flex justify-end">
+                                            @can('restore', $fotografia)
+                                                <form method="POST" action="{{ route('admin.fotografias.restore', $fotografia->id) }}" onsubmit="return confirm('Restaurar esta fotografia?')">
                                                     @csrf
-                                                    @method('DELETE')
+                                                    @method('PATCH')
                                                     <button
                                                         type="submit"
-                                                        class="rounded-md border border-red-200 px-3 py-2 text-sm font-medium text-red-700 transition hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-700 focus:ring-offset-2"
+                                                        class="rounded-md border border-[#2F8F6F]/30 px-3 py-2 text-sm font-medium text-[#1F6F55] transition hover:bg-[#E7F5EF] focus:outline-none focus:ring-2 focus:ring-[#1F6F55] focus:ring-offset-2"
                                                     >
-                                                        Excluir
+                                                        Restaurar
                                                     </button>
                                                 </form>
                                             @endcan
