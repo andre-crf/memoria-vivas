@@ -33,6 +33,7 @@ Route::middleware(['auth', 'admin.access'])
         Route::get('/fotografias/{fotografia}/edit', [FotografiaController::class, 'edit'])->name('fotografias.edit');
         Route::put('/fotografias/{fotografia}', [FotografiaController::class, 'update'])->name('fotografias.update');
         Route::patch('/fotografias/{fotografia}/restore', [FotografiaController::class, 'restore'])->name('fotografias.restore');
+        Route::delete('/fotografias/{fotografia}/force', [FotografiaController::class, 'forceDestroy'])->name('fotografias.force-destroy');
         Route::get('/fotografias/{fotografia}', [FotografiaController::class, 'show'])->name('fotografias.show');
         Route::delete('/fotografias/{fotografia}', [FotografiaController::class, 'destroy'])->name('fotografias.destroy');
     });

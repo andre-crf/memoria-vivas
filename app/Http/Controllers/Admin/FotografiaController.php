@@ -143,6 +143,23 @@ class FotografiaController extends Controller
             ->with('success', 'Fotografia restaurada com sucesso.');
     }
 
+    public function forceDestroy(string $fotografia): RedirectResponse
+    {
+        $fotografia = ItemAcervo::query()
+            ->onlyTrashed()
+            ->whereKey($fotografia)
+            ->firstOrFail();
+
+        $this->ensurePhotograph($fotografia);
+        Gate::authorize('forceDelete', $fotografia);
+
+        $fotografia->forceDelete();
+
+        return redirect()
+            ->route('admin.fotografias.trashed')
+            ->with('success', 'Fotografia excluída permanentemente.');
+    }
+
     private function ensurePhotograph(ItemAcervo $fotografia): void
     {
         abort_unless($fotografia->tipo_item === 'fotografia', Response::HTTP_NOT_FOUND);

@@ -22,6 +22,11 @@
             </div>
         @endif
 
+        <div class="mb-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm leading-6 text-red-800">
+            <strong class="font-semibold">Atenção:</strong>
+            a exclusão permanente remove o registro e seus vínculos definitivamente. Essa operação é irreversível.
+        </div>
+
         <section class="overflow-hidden rounded-lg border border-[#D8E2EF] bg-white shadow-sm shadow-[#173F7A]/5">
             @if ($fotografias->isEmpty())
                 <div class="px-6 py-16 text-center">
@@ -68,7 +73,7 @@
                                         <p class="mt-1 text-xs text-[#7A8DA8]">{{ $fotografia->excluidoPor?->nome ?: 'Usuário não registrado' }}</p>
                                     </td>
                                     <td class="px-5 py-4">
-                                        <div class="flex justify-end">
+                                        <div class="flex justify-end gap-2">
                                             @can('restore', $fotografia)
                                                 <form method="POST" action="{{ route('admin.fotografias.restore', $fotografia->id) }}" onsubmit="return confirm('Restaurar esta fotografia?')">
                                                     @csrf
@@ -78,6 +83,19 @@
                                                         class="rounded-md border border-[#2F8F6F]/30 px-3 py-2 text-sm font-medium text-[#1F6F55] transition hover:bg-[#E7F5EF] focus:outline-none focus:ring-2 focus:ring-[#1F6F55] focus:ring-offset-2"
                                                     >
                                                         Restaurar
+                                                    </button>
+                                                </form>
+                                            @endcan
+
+                                            @can('forceDelete', $fotografia)
+                                                <form method="POST" action="{{ route('admin.fotografias.force-destroy', $fotografia->id) }}" onsubmit="return confirm('Excluir permanentemente esta fotografia? Esta operação é irreversível.')">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button
+                                                        type="submit"
+                                                        class="rounded-md border border-red-200 px-3 py-2 text-sm font-medium text-red-700 transition hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-700 focus:ring-offset-2"
+                                                    >
+                                                        Excluir permanentemente
                                                     </button>
                                                 </form>
                                             @endcan
