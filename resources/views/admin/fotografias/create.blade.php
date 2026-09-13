@@ -1,66 +1,5 @@
-<x-layouts.app title="Cadastrar fotografia | Memórias Vivas">
-    <div class="min-h-screen bg-stone-50">
-        <header class="border-b border-stone-200 bg-white">
-            <div class="mx-auto flex max-w-7xl items-center justify-between gap-4 px-6 py-4">
-                <div>
-                    <p class="text-xs font-semibold uppercase tracking-[0.18em] text-[#6B5E2E]">Memórias Vivas</p>
-                    <h1 class="mt-1 text-xl font-semibold text-stone-950">Administração do acervo</h1>
-                </div>
-
-                <div class="flex items-center gap-4">
-                    <nav class="hidden items-center gap-2 md:flex" aria-label="Navegação administrativa">
-                        <a
-                            href="{{ route('admin.dashboard') }}"
-                            class="rounded-md px-3 py-2 text-sm font-medium text-stone-600 transition hover:bg-stone-100 hover:text-stone-950 focus:outline-none focus:ring-2 focus:ring-[#173F35] focus:ring-offset-2"
-                        >
-                            Painel
-                        </a>
-                        <a
-                            href="{{ route('admin.fotografias.index') }}"
-                            aria-current="page"
-                            class="rounded-md bg-[#173F35] px-3 py-2 text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-[#173F35] focus:ring-offset-2"
-                        >
-                            Fotografias
-                        </a>
-                        <a
-                            href="{{ route('admin.categorias.index') }}"
-                            class="rounded-md px-3 py-2 text-sm font-medium text-stone-600 transition hover:bg-stone-100 hover:text-stone-950 focus:outline-none focus:ring-2 focus:ring-[#173F35] focus:ring-offset-2"
-                        >
-                            Categorias
-                        </a>
-                        <a
-                            href="{{ route('admin.assuntos.index') }}"
-                            class="rounded-md px-3 py-2 text-sm font-medium text-stone-600 transition hover:bg-stone-100 hover:text-stone-950 focus:outline-none focus:ring-2 focus:ring-[#173F35] focus:ring-offset-2"
-                        >
-                            Assuntos
-                        </a>
-                        <a
-                            href="{{ route('admin.palavras-chave.index') }}"
-                            class="rounded-md px-3 py-2 text-sm font-medium text-stone-600 transition hover:bg-stone-100 hover:text-stone-950 focus:outline-none focus:ring-2 focus:ring-[#173F35] focus:ring-offset-2"
-                        >
-                            Palavras-chave
-                        </a>
-                    </nav>
-
-                    <div class="hidden text-right sm:block">
-                        <p class="text-sm font-medium text-stone-900">{{ auth()->user()->nome }}</p>
-                        <p class="text-xs uppercase tracking-[0.12em] text-stone-500">{{ auth()->user()->role }}</p>
-                    </div>
-
-                    <form method="POST" action="{{ route('logout') }}">
-                        @csrf
-                        <button
-                            type="submit"
-                            class="rounded-md border border-stone-300 px-3 py-2 text-sm font-medium text-stone-700 transition hover:bg-stone-100 focus:outline-none focus:ring-2 focus:ring-[#173F35] focus:ring-offset-2"
-                        >
-                            Sair
-                        </button>
-                    </form>
-                </div>
-            </div>
-        </header>
-
-        <main class="mx-auto max-w-5xl px-6 py-8">
+<x-layouts.admin title="Cadastrar fotografia | Memórias Vivas">
+    <div class="mx-auto max-w-5xl px-6 py-8">
             <section class="mb-6">
                 <a
                     href="{{ route('admin.fotografias.index') }}"
@@ -335,7 +274,6 @@
                     </button>
                 </div>
             </form>
-        </main>
     </div>
 
     <script>
@@ -366,4 +304,4 @@
             updateDateFields();
         })();
     </script>
-</x-layouts.app>
+</x-layouts.admin>

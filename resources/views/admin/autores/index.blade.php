@@ -1,57 +1,4 @@
-<x-layouts.app>
-    <x-slot name="header">
-        <div class="flex items-center justify-between">
-            <div>
-                <h1 class="text-xl font-semibold text-stone-800">
-                    Administração do acervo
-                </h1>
-
-                <nav class="mt-2 flex flex-wrap gap-4 text-sm">
-                    <a
-                        href="{{ route('admin.dashboard') }}"
-                        class="text-stone-600 hover:text-stone-900"
-                    >
-                        Painel
-                    </a>
-
-                    <a
-                        href="{{ route('admin.fotografias.index') }}"
-                        class="text-stone-600 hover:text-stone-900"
-                    >
-                        Fotografias
-                    </a>
-
-                    <a
-                        href="{{ route('admin.categorias.index') }}"
-                        class="text-stone-600 hover:text-stone-900"
-                    >
-                        Categorias
-                    </a>
-
-                    <a
-                        href="{{ route('admin.assuntos.index') }}"
-                        class="text-stone-600 hover:text-stone-900"
-                    >
-                        Assuntos
-                    </a>
-
-                    <a
-                        href="{{ route('admin.palavras-chave.index') }}"
-                        class="text-stone-600 hover:text-stone-900"
-                    >
-                        Palavras-chave
-                    </a>
-
-                    <a
-                        href="{{ route('admin.autores.index') }}"
-                        class="font-medium text-emerald-800"
-                    >
-                        Autores
-                    </a>
-                </nav>
-            </div>
-        </div>
-    </x-slot>
+<x-layouts.admin title="Autores | Memórias Vivas">
 
     <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div class="flex items-center justify-between">
@@ -160,4 +107,4 @@
             </div>
         @endif
     </div>
-</x-layouts.app>
+</x-layouts.admin>

@@ -1,55 +1,4 @@
-<x-layouts.app>
-    <x-slot name="header">
-        <div>
-            <h1 class="text-xl font-semibold text-stone-800">
-                Administração do acervo
-            </h1>
-
-            <nav class="mt-2 flex flex-wrap gap-4 text-sm">
-                <a
-                    href="{{ route('admin.dashboard') }}"
-                    class="text-stone-600 hover:text-stone-900"
-                >
-                    Painel
-                </a>
-
-                <a
-                    href="{{ route('admin.fotografias.index') }}"
-                    class="text-stone-600 hover:text-stone-900"
-                >
-                    Fotografias
-                </a>
-
-                <a
-                    href="{{ route('admin.categorias.index') }}"
-                    class="text-stone-600 hover:text-stone-900"
-                >
-                    Categorias
-                </a>
-
-                <a
-                    href="{{ route('admin.assuntos.index') }}"
-                    class="text-stone-600 hover:text-stone-900"
-                >
-                    Assuntos
-                </a>
-
-                <a
-                    href="{{ route('admin.palavras-chave.index') }}"
-                    class="text-stone-600 hover:text-stone-900"
-                >
-                    Palavras-chave
-                </a>
-
-                <a
-                    href="{{ route('admin.autores.index') }}"
-                    class="font-medium text-emerald-800"
-                >
-                    Autores
-                </a>
-            </nav>
-        </div>
-    </x-slot>
+<x-layouts.admin title="Novo autor | Memórias Vivas">
 
     <div class="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:px-8">
         <div>
@@ -117,12 +66,14 @@
                     class="mt-2 block w-full rounded-md border-stone-300 shadow-sm focus:border-emerald-700 focus:ring-emerald-700"
                 >
                     <option value="">Selecione</option>
+
                     <option
                         value="pessoa"
                         @selected(old('tipo') === 'pessoa')
                     >
                         Pessoa
                     </option>
+
                     <option
                         value="instituicao"
                         @selected(old('tipo') === 'instituicao')
@@ -165,4 +116,5 @@
             </div>
         </form>
     </div>
-</x-layouts.app>
+
+</x-layouts.admin>
