@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\AssuntoController;
+use App\Http\Controllers\Admin\AutorController;
 use App\Http\Controllers\Admin\CategoriaController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\FotografiaController;
@@ -71,5 +72,16 @@ Route::middleware(['auth', 'admin.access'])
                 Route::get('/{palavraChave}/edit', [PalavraChaveController::class, 'edit'])->name('edit');
                 Route::put('/{palavraChave}', [PalavraChaveController::class, 'update'])->name('update');
                 Route::delete('/{palavraChave}', [PalavraChaveController::class, 'destroy'])->name('destroy');
+            });
+
+        Route::prefix('autores')
+            ->name('autores.')
+            ->group(function (): void {
+                Route::get('/', [AutorController::class, 'index'])->name('index');
+                Route::get('/create', [AutorController::class, 'create'])->name('create');
+                Route::post('/', [AutorController::class, 'store'])->name('store');
+                Route::get('/{autor}/edit', [AutorController::class, 'edit'])->name('edit');
+                Route::put('/{autor}', [AutorController::class, 'update'])->name('update');
+                Route::delete('/{autor}', [AutorController::class, 'destroy'])->name('destroy');
             });
     });
