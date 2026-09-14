@@ -6,6 +6,7 @@
     $selectedEstadoConservacao = old('estado_conservacao', $fotografia?->estado_conservacao ?? 'desconhecido');
     $selectedStatus = old('status', $fotografia?->status ?? 'rascunho');
     $selectedVisibilidade = old('visibilidade', $fotografia?->visibilidade?->value ?? 'privado');
+    $selectedAutor = old('autor_id', $fotografia?->autor_id);
 @endphp
 
 <form method="POST" action="{{ $action }}" class="rounded-lg border border-stone-200 bg-white p-6 shadow-sm" data-date-form>
@@ -109,6 +110,25 @@
                     @enderror
                 </div>
             @endforeach
+        </div>
+
+        <div>
+            <label for="autor_id" class="block text-sm font-medium text-stone-900">Autor</label>
+            <select
+                id="autor_id"
+                name="autor_id"
+                class="mt-2 block w-full rounded-md border border-stone-300 bg-white px-3 py-2 text-sm text-stone-900 shadow-sm focus:border-[#173F35] focus:outline-none focus:ring-2 focus:ring-[#173F35]/20"
+            >
+                <option value="">Sem autor associado</option>
+                @foreach ($autorOptions as $autor)
+                    <option value="{{ $autor->id }}" @selected((string) $selectedAutor === (string) $autor->id)>
+                        {{ $autor->nome }} · {{ $autor->tipo === 'instituicao' ? 'Instituição' : 'Pessoa' }}
+                    </option>
+                @endforeach
+            </select>
+            @error('autor_id')
+                <p class="mt-2 text-sm text-red-700">{{ $message }}</p>
+            @enderror
         </div>
 
         <div class="grid gap-4 md:grid-cols-3">

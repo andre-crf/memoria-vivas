@@ -7,6 +7,7 @@ use App\Enums\Visibilidade;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreFotografiaRequest;
 use App\Http\Requests\Admin\UpdateFotografiaRequest;
+use App\Models\Autor;
 use App\Models\ItemAcervo;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -50,6 +51,7 @@ class FotografiaController extends Controller
         Gate::authorize('create', ItemAcervo::class);
 
         return view('admin.fotografias.create', [
+            'autorOptions' => $this->autorOptions(),
             'tipoDataOptions' => TipoData::cases(),
             'estadoConservacaoOptions' => ItemAcervo::ESTADOS_CONSERVACAO,
             'statusOptions' => ItemAcervo::STATUS,
@@ -96,6 +98,7 @@ class FotografiaController extends Controller
 
         return view('admin.fotografias.edit', [
             'fotografia' => $fotografia,
+            'autorOptions' => $this->autorOptions(),
             'tipoDataOptions' => TipoData::cases(),
             'estadoConservacaoOptions' => ItemAcervo::ESTADOS_CONSERVACAO,
             'statusOptions' => ItemAcervo::STATUS,
@@ -163,5 +166,15 @@ class FotografiaController extends Controller
     private function ensurePhotograph(ItemAcervo $fotografia): void
     {
         abort_unless($fotografia->tipo_item === 'fotografia', Response::HTTP_NOT_FOUND);
+    }
+
+    /**
+     * @return \Illuminate\Support\Collection<int, \App\Models\Autor>
+     */
+    private function autorOptions()
+    {
+        return Autor::query()
+            ->orderBy('nome')
+            ->get(['id', 'nome', 'tipo']);
     }
 }

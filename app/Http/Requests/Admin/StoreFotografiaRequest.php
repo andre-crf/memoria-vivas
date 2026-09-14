@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Admin;
 
 use App\Enums\Visibilidade;
+use App\Models\Autor;
 use App\Models\ItemAcervo;
 use App\Support\DataHistorica;
 use Illuminate\Foundation\Http\FormRequest;
@@ -28,6 +29,7 @@ class StoreFotografiaRequest extends FormRequest
             'local_epoca' => ['nullable', 'string', 'max:255'],
             'evento' => ['nullable', 'string', 'max:255'],
             'cedente' => ['nullable', 'string', 'max:255'],
+            'autor_id' => ['nullable', Rule::exists(Autor::class, 'id')],
             'estado_conservacao' => ['required', Rule::in(array_keys(ItemAcervo::ESTADOS_CONSERVACAO))],
             'status' => ['required', Rule::in(array_keys(ItemAcervo::STATUS))],
             'visibilidade' => ['required', Rule::enum(Visibilidade::class)],
@@ -46,6 +48,7 @@ class StoreFotografiaRequest extends FormRequest
             'tipo_data' => 'nível de precisão da data',
             'local_atual' => 'local atual',
             'local_epoca' => 'local na época',
+            'autor_id' => 'autor',
             'estado_conservacao' => 'estado de conservação',
         ];
     }
@@ -64,6 +67,7 @@ class StoreFotografiaRequest extends FormRequest
             'local_epoca',
             'evento',
             'cedente',
+            'autor_id',
         ]);
 
         return [
