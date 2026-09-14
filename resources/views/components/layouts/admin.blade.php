@@ -30,6 +30,11 @@
             'route' => 'admin.autores.index',
             'active' => 'admin.autores.*',
         ],
+        [
+            'label' => 'Pessoas',
+            'route' => 'admin.pessoas.index',
+            'active' => 'admin.pessoas.*',
+        ],
     ];
 @endphp
 

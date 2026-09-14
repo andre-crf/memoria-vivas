@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\CategoriaController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\FotografiaController;
 use App\Http\Controllers\Admin\PalavraChaveController;
+use App\Http\Controllers\Admin\PessoaController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
@@ -90,5 +91,16 @@ Route::middleware(['auth', 'admin.access'])
                 Route::get('/{autor}/edit', [AutorController::class, 'edit'])->name('edit');
                 Route::put('/{autor}', [AutorController::class, 'update'])->name('update');
                 Route::delete('/{autor}', [AutorController::class, 'destroy'])->name('destroy');
+            });
+
+        Route::prefix('pessoas')
+            ->name('pessoas.')
+            ->group(function (): void {
+                Route::get('/', [PessoaController::class, 'index'])->name('index');
+                Route::get('/create', [PessoaController::class, 'create'])->name('create');
+                Route::post('/', [PessoaController::class, 'store'])->name('store');
+                Route::get('/{pessoa}/edit', [PessoaController::class, 'edit'])->name('edit');
+                Route::put('/{pessoa}', [PessoaController::class, 'update'])->name('update');
+                Route::delete('/{pessoa}', [PessoaController::class, 'destroy'])->name('destroy');
             });
     });
