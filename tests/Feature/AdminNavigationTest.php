@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Assunto;
 use App\Models\Categoria;
 use App\Models\PalavraChave;
+use App\Models\Pessoa;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -22,6 +23,7 @@ class AdminNavigationTest extends TestCase
         $categoria = Categoria::create(['titulo' => 'Arquitetura']);
         $assunto = Assunto::create(['titulo' => 'Patrimônio histórico']);
         $palavraChave = PalavraChave::create(['termo' => 'centro']);
+        $pessoa = Pessoa::create(['nome' => 'Maria Souza']);
 
         $routes = [
             route('admin.dashboard'),
@@ -36,6 +38,9 @@ class AdminNavigationTest extends TestCase
             route('admin.palavras-chave.index'),
             route('admin.palavras-chave.create'),
             route('admin.palavras-chave.edit', $palavraChave),
+            route('admin.pessoas.index'),
+            route('admin.pessoas.create'),
+            route('admin.pessoas.edit', $pessoa),
         ];
 
         foreach ($routes as $route) {
@@ -47,7 +52,9 @@ class AdminNavigationTest extends TestCase
                 ->assertSee(route('admin.assuntos.index'))
                 ->assertSee('Assuntos')
                 ->assertSee(route('admin.palavras-chave.index'))
-                ->assertSee('Palavras-chave');
+                ->assertSee('Palavras-chave')
+                ->assertSee(route('admin.pessoas.index'))
+                ->assertSee('Pessoas');
         }
     }
 }
