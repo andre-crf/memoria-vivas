@@ -1,16 +1,16 @@
-<x-layouts.admin title="Lixeira de fotografias | Memórias Vivas" active="fotografias">
-    <div class="mx-auto max-w-7xl">
+<x-layouts.admin title="Lixeira de fotografias | Memórias Vivas">
+    <div class="mx-auto max-w-7xl px-6 py-8">
         <section class="mb-6 flex flex-col justify-between gap-4 md:flex-row md:items-end">
             <div>
                 <a
                     href="{{ route('admin.fotografias.index') }}"
-                    class="text-sm font-semibold text-[#173F7A] hover:text-[#0E2A52]"
+                    class="text-sm font-semibold text-[#173F35] hover:text-[#0f2b24]"
                 >
                     Voltar para fotografias
                 </a>
-                <p class="mt-4 text-sm font-medium text-[#3F7E94]">Acervo</p>
-                <h1 class="mt-2 font-serif text-3xl font-semibold text-[#173F7A]">Lixeira de fotografias</h1>
-                <p class="mt-2 max-w-2xl text-sm leading-6 text-[#55709B]">
+                <p class="mt-4 text-sm font-medium text-[#6B5E2E]">Acervo</p>
+                <h1 class="mt-2 text-3xl font-semibold text-stone-950">Lixeira de fotografias</h1>
+                <p class="mt-2 max-w-2xl text-sm leading-6 text-stone-600">
                     Fotografias excluídas logicamente e disponíveis para restauração administrativa.
                 </p>
             </div>
@@ -27,50 +27,50 @@
             a exclusão permanente remove o registro e seus vínculos definitivamente. Essa operação é irreversível.
         </div>
 
-        <section class="overflow-hidden rounded-lg border border-[#D8E2EF] bg-white shadow-sm shadow-[#173F7A]/5">
+        <section class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm">
             @if ($fotografias->isEmpty())
                 <div class="px-6 py-16 text-center">
-                    <h2 class="font-serif text-xl font-semibold text-[#173F7A]">Nenhuma fotografia na lixeira</h2>
-                    <p class="mx-auto mt-2 max-w-md text-sm leading-6 text-[#55709B]">
+                    <h2 class="text-xl font-semibold text-stone-950">Nenhuma fotografia na lixeira</h2>
+                    <p class="mx-auto mt-2 max-w-md text-sm leading-6 text-stone-600">
                         Quando uma fotografia for excluída logicamente, ela aparecerá aqui para possível restauração.
                     </p>
                 </div>
             @else
                 <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-[#D8E2EF]">
-                        <thead class="bg-[#F4F8FC]">
+                    <table class="min-w-full divide-y divide-stone-200">
+                        <thead class="bg-stone-100">
                             <tr>
-                                <th scope="col" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-[0.12em] text-[#55709B]">Título</th>
-                                <th scope="col" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-[0.12em] text-[#55709B]">Data</th>
-                                <th scope="col" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-[0.12em] text-[#55709B]">Status</th>
-                                <th scope="col" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-[0.12em] text-[#55709B]">Visibilidade</th>
-                                <th scope="col" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-[0.12em] text-[#55709B]">Exclusão</th>
-                                <th scope="col" class="px-5 py-3 text-right text-xs font-semibold uppercase tracking-[0.12em] text-[#55709B]">Ações</th>
+                                <th scope="col" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-[0.12em] text-stone-600">Título</th>
+                                <th scope="col" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-[0.12em] text-stone-600">Data</th>
+                                <th scope="col" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-[0.12em] text-stone-600">Status</th>
+                                <th scope="col" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-[0.12em] text-stone-600">Visibilidade</th>
+                                <th scope="col" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-[0.12em] text-stone-600">Exclusão</th>
+                                <th scope="col" class="px-5 py-3 text-right text-xs font-semibold uppercase tracking-[0.12em] text-stone-600">Ações</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-[#D8E2EF] bg-white">
+                        <tbody class="divide-y divide-stone-200 bg-white">
                             @foreach ($fotografias as $fotografia)
-                                <tr id="fotografia-excluida-{{ $fotografia->id }}" class="hover:bg-[#F8FBFE]">
+                                <tr id="fotografia-excluida-{{ $fotografia->id }}" class="hover:bg-stone-50">
                                     <td class="max-w-md px-5 py-4">
-                                        <p class="truncate text-sm font-semibold text-[#173F7A]">{{ $fotografia->titulo }}</p>
-                                        <p class="mt-1 text-xs text-[#7A8DA8]">#{{ $fotografia->id }}</p>
+                                        <p class="truncate text-sm font-semibold text-stone-950">{{ $fotografia->titulo }}</p>
+                                        <p class="mt-1 text-xs text-stone-500">#{{ $fotografia->id }}</p>
                                     </td>
-                                    <td class="whitespace-nowrap px-5 py-4 text-sm text-[#294B77]">
+                                    <td class="whitespace-nowrap px-5 py-4 text-sm text-stone-700">
                                         {{ $fotografia->dataHistorica()->label() }}
                                     </td>
                                     <td class="whitespace-nowrap px-5 py-4">
-                                        <span class="inline-flex rounded-full bg-[#E8EEF6] px-2.5 py-1 text-xs font-medium text-[#294B77]">
+                                        <span class="inline-flex rounded-full bg-stone-100 px-2.5 py-1 text-xs font-medium text-stone-700">
                                             {{ $fotografia->statusLabel() }}
                                         </span>
                                     </td>
                                     <td class="whitespace-nowrap px-5 py-4">
-                                        <span class="inline-flex rounded-full bg-[#DCEEEF] px-2.5 py-1 text-xs font-medium text-[#287C7C]">
+                                        <span class="inline-flex rounded-full bg-[#E8E2C9] px-2.5 py-1 text-xs font-medium text-[#4A3F18]">
                                             {{ $fotografia->visibilidade->label() }}
                                         </span>
                                     </td>
-                                    <td class="whitespace-nowrap px-5 py-4 text-sm text-[#294B77]">
+                                    <td class="whitespace-nowrap px-5 py-4 text-sm text-stone-700">
                                         <p>{{ $fotografia->deleted_at?->format('d/m/Y H:i') ?: 'Não registrada' }}</p>
-                                        <p class="mt-1 text-xs text-[#7A8DA8]">{{ $fotografia->excluidoPor?->nome ?: 'Usuário não registrado' }}</p>
+                                        <p class="mt-1 text-xs text-stone-500">{{ $fotografia->excluidoPor?->nome ?: 'Usuário não registrado' }}</p>
                                     </td>
                                     <td class="px-5 py-4">
                                         <div class="flex justify-end gap-2">
@@ -107,7 +107,7 @@
                     </table>
                 </div>
 
-                <div class="border-t border-[#D8E2EF] px-5 py-4">
+                <div class="border-t border-stone-200 px-5 py-4">
                     {{ $fotografias->links() }}
                 </div>
             @endif

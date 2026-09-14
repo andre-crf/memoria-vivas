@@ -1,14 +1,16 @@
-<x-layouts.admin title="Editar fotografia | Memórias Vivas" active="fotografias">
-    <div class="mx-auto max-w-5xl">
+<x-layouts.admin title="Editar fotografia | Memórias Vivas">
+    <div class="mx-auto max-w-5xl px-6 py-8">
         <section class="mb-6">
             <a
                 href="{{ route('admin.fotografias.show', $fotografia) }}"
-                class="text-sm font-semibold text-[#173F7A] hover:text-[#0E2A52]"
+                class="text-sm font-semibold text-[#173F35] hover:text-[#0f2b24]"
             >
                 Voltar para detalhes
             </a>
-            <h1 class="mt-3 font-serif text-3xl font-semibold text-[#173F7A]">Editar fotografia</h1>
-            <p class="mt-2 max-w-2xl text-sm leading-6 text-[#55709B]">
+
+            <p class="mt-4 text-sm font-medium text-[#6B5E2E]">Acervo</p>
+            <h1 class="mt-1 text-2xl font-semibold text-stone-950">Editar fotografia</h1>
+            <p class="mt-2 max-w-2xl text-sm leading-6 text-stone-600">
                 Atualize as informações de catalogação da fotografia selecionada.
             </p>
         </section>

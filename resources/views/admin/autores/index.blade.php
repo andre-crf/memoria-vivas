@@ -1,27 +1,29 @@
 <x-layouts.admin title="Autores | Memórias Vivas">
 
     <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        <div class="flex items-center justify-between">
+        <div class="flex flex-col justify-between gap-4 md:flex-row md:items-end">
             <div>
-                <h2 class="text-2xl font-semibold text-stone-900">
+                <p class="text-sm font-medium text-[#6B5E2E]">Catalogação</p>
+
+                <h2 class="mt-1 text-2xl font-semibold text-stone-950">
                     Autores
                 </h2>
 
-                <p class="mt-1 text-sm text-stone-600">
+                <p class="mt-2 text-sm leading-6 text-stone-600">
                     Gerencie os autores associados às fotografias do acervo.
                 </p>
             </div>
 
             <a
                 href="{{ route('admin.autores.create') }}"
-                class="rounded-md bg-emerald-800 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-900"
+                class="inline-flex items-center justify-center rounded-md bg-[#173F35] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#0f2b24] focus:outline-none focus:ring-2 focus:ring-[#173F35] focus:ring-offset-2"
             >
                 Novo autor
             </a>
         </div>
 
         @if (session('success'))
-            <div class="mt-6 rounded-md border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+            <div class="mt-6 rounded-md border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">
                 {{ session('success') }}
             </div>
         @endif

@@ -8,7 +8,7 @@
     $selectedVisibilidade = old('visibilidade', $fotografia?->visibilidade?->value ?? 'privado');
 @endphp
 
-<form method="POST" action="{{ $action }}" class="rounded-lg border border-[#D8E2EF] bg-white p-6 shadow-sm shadow-[#173F7A]/5" data-date-form>
+<form method="POST" action="{{ $action }}" class="rounded-lg border border-stone-200 bg-white p-6 shadow-sm" data-date-form>
     @csrf
     @isset($method)
         @method($method)
@@ -16,7 +16,7 @@
 
     <div class="grid gap-6">
         <div>
-            <label for="titulo" class="block text-sm font-semibold text-[#173F7A]">Título</label>
+            <label for="titulo" class="block text-sm font-medium text-stone-900">Título</label>
             <input
                 id="titulo"
                 name="titulo"
@@ -24,7 +24,7 @@
                 value="{{ $value('titulo') }}"
                 required
                 maxlength="255"
-                class="mt-2 block w-full rounded-md border border-[#C8D6E8] bg-white px-3 py-2 text-sm text-[#173F7A] shadow-sm focus:border-[#173F7A] focus:outline-none focus:ring-2 focus:ring-[#173F7A]/20"
+                class="mt-2 block w-full rounded-md border border-stone-300 bg-white px-3 py-2 text-sm text-stone-900 shadow-sm focus:border-[#173F35] focus:outline-none focus:ring-2 focus:ring-[#173F35]/20"
             >
             @error('titulo')
                 <p class="mt-2 text-sm text-red-700">{{ $message }}</p>
@@ -32,12 +32,12 @@
         </div>
 
         <div>
-            <label for="legenda" class="block text-sm font-semibold text-[#173F7A]">Legenda/descrição</label>
+            <label for="legenda" class="block text-sm font-medium text-stone-900">Legenda/descrição</label>
             <textarea
                 id="legenda"
                 name="legenda"
                 rows="4"
-                class="mt-2 block w-full rounded-md border border-[#C8D6E8] bg-white px-3 py-2 text-sm text-[#173F7A] shadow-sm focus:border-[#173F7A] focus:outline-none focus:ring-2 focus:ring-[#173F7A]/20"
+                class="mt-2 block w-full rounded-md border border-stone-300 bg-white px-3 py-2 text-sm text-stone-900 shadow-sm focus:border-[#173F35] focus:outline-none focus:ring-2 focus:ring-[#173F35]/20"
             >{{ $value('legenda') }}</textarea>
             @error('legenda')
                 <p class="mt-2 text-sm text-red-700">{{ $message }}</p>
@@ -46,12 +46,12 @@
 
         <div class="grid gap-4 lg:grid-cols-[minmax(220px,0.8fr)_minmax(0,1.2fr)]">
             <div>
-                <label for="tipo_data" class="block text-sm font-semibold text-[#173F7A]">Precisão da data</label>
+                <label for="tipo_data" class="block text-sm font-medium text-stone-900">Precisão da data</label>
                 <select
                     id="tipo_data"
                     name="tipo_data"
                     required
-                    class="mt-2 block w-full rounded-md border border-[#C8D6E8] bg-white px-3 py-2 text-sm text-[#173F7A] shadow-sm focus:border-[#173F7A] focus:outline-none focus:ring-2 focus:ring-[#173F7A]/20"
+                    class="mt-2 block w-full rounded-md border border-stone-300 bg-white px-3 py-2 text-sm text-stone-900 shadow-sm focus:border-[#173F35] focus:outline-none focus:ring-2 focus:ring-[#173F35]/20"
                 >
                     @foreach ($tipoDataOptions as $tipoData)
                         <option value="{{ $tipoData->value }}" @selected($selectedTipoData === $tipoData->value)>
@@ -67,7 +67,7 @@
             <div class="grid gap-4 sm:grid-cols-4">
                 @foreach (['dia' => 'Dia', 'mes' => 'Mês', 'ano' => 'Ano', 'decada' => 'Década'] as $field => $label)
                     <div data-date-for="{{ $field }}">
-                        <label for="{{ $field }}" class="block text-sm font-semibold text-[#173F7A]">{{ $label }}</label>
+                        <label for="{{ $field }}" class="block text-sm font-medium text-stone-900">{{ $label }}</label>
                         <input
                             id="{{ $field }}"
                             name="{{ $field }}"
@@ -77,7 +77,7 @@
                             @if ($field === 'mes') min="1" max="12" @endif
                             @if ($field === 'ano') min="1000" max="{{ date('Y') }}" @endif
                             @if ($field === 'decada') inputmode="numeric" maxlength="4" @endif
-                            class="mt-2 block w-full rounded-md border border-[#C8D6E8] bg-white px-3 py-2 text-sm text-[#173F7A] shadow-sm focus:border-[#173F7A] focus:outline-none focus:ring-2 focus:ring-[#173F7A]/20"
+                            class="mt-2 block w-full rounded-md border border-stone-300 bg-white px-3 py-2 text-sm text-stone-900 shadow-sm focus:border-[#173F35] focus:outline-none focus:ring-2 focus:ring-[#173F35]/20"
                         >
                         @error($field)
                             <p class="mt-2 text-sm text-red-700">{{ $message }}</p>
@@ -95,14 +95,14 @@
                 'cedente' => 'Cedente',
             ] as $field => $label)
                 <div>
-                    <label for="{{ $field }}" class="block text-sm font-semibold text-[#173F7A]">{{ $label }}</label>
+                    <label for="{{ $field }}" class="block text-sm font-medium text-stone-900">{{ $label }}</label>
                     <input
                         id="{{ $field }}"
                         name="{{ $field }}"
                         type="text"
                         value="{{ $value($field) }}"
                         maxlength="255"
-                        class="mt-2 block w-full rounded-md border border-[#C8D6E8] bg-white px-3 py-2 text-sm text-[#173F7A] shadow-sm focus:border-[#173F7A] focus:outline-none focus:ring-2 focus:ring-[#173F7A]/20"
+                        class="mt-2 block w-full rounded-md border border-stone-300 bg-white px-3 py-2 text-sm text-stone-900 shadow-sm focus:border-[#173F35] focus:outline-none focus:ring-2 focus:ring-[#173F35]/20"
                     >
                     @error($field)
                         <p class="mt-2 text-sm text-red-700">{{ $message }}</p>
@@ -113,12 +113,12 @@
 
         <div class="grid gap-4 md:grid-cols-3">
             <div>
-                <label for="estado_conservacao" class="block text-sm font-semibold text-[#173F7A]">Estado de conservação</label>
+                <label for="estado_conservacao" class="block text-sm font-medium text-stone-900">Estado de conservação</label>
                 <select
                     id="estado_conservacao"
                     name="estado_conservacao"
                     required
-                    class="mt-2 block w-full rounded-md border border-[#C8D6E8] bg-white px-3 py-2 text-sm text-[#173F7A] shadow-sm focus:border-[#173F7A] focus:outline-none focus:ring-2 focus:ring-[#173F7A]/20"
+                    class="mt-2 block w-full rounded-md border border-stone-300 bg-white px-3 py-2 text-sm text-stone-900 shadow-sm focus:border-[#173F35] focus:outline-none focus:ring-2 focus:ring-[#173F35]/20"
                 >
                     @foreach ($estadoConservacaoOptions as $optionValue => $label)
                         <option value="{{ $optionValue }}" @selected($selectedEstadoConservacao === $optionValue)>{{ $label }}</option>
@@ -130,12 +130,12 @@
             </div>
 
             <div>
-                <label for="status" class="block text-sm font-semibold text-[#173F7A]">Status</label>
+                <label for="status" class="block text-sm font-medium text-stone-900">Status</label>
                 <select
                     id="status"
                     name="status"
                     required
-                    class="mt-2 block w-full rounded-md border border-[#C8D6E8] bg-white px-3 py-2 text-sm text-[#173F7A] shadow-sm focus:border-[#173F7A] focus:outline-none focus:ring-2 focus:ring-[#173F7A]/20"
+                    class="mt-2 block w-full rounded-md border border-stone-300 bg-white px-3 py-2 text-sm text-stone-900 shadow-sm focus:border-[#173F35] focus:outline-none focus:ring-2 focus:ring-[#173F35]/20"
                 >
                     @foreach ($statusOptions as $optionValue => $label)
                         <option value="{{ $optionValue }}" @selected($selectedStatus === $optionValue)>{{ $label }}</option>
@@ -147,12 +147,12 @@
             </div>
 
             <div>
-                <label for="visibilidade" class="block text-sm font-semibold text-[#173F7A]">Visibilidade</label>
+                <label for="visibilidade" class="block text-sm font-medium text-stone-900">Visibilidade</label>
                 <select
                     id="visibilidade"
                     name="visibilidade"
                     required
-                    class="mt-2 block w-full rounded-md border border-[#C8D6E8] bg-white px-3 py-2 text-sm text-[#173F7A] shadow-sm focus:border-[#173F7A] focus:outline-none focus:ring-2 focus:ring-[#173F7A]/20"
+                    class="mt-2 block w-full rounded-md border border-stone-300 bg-white px-3 py-2 text-sm text-stone-900 shadow-sm focus:border-[#173F35] focus:outline-none focus:ring-2 focus:ring-[#173F35]/20"
                 >
                     @foreach ($visibilidadeOptions as $visibilidade)
                         <option value="{{ $visibilidade->value }}" @selected($selectedVisibilidade === $visibilidade->value)>
@@ -167,16 +167,16 @@
         </div>
     </div>
 
-    <div class="mt-8 flex flex-col-reverse gap-3 border-t border-[#D8E2EF] pt-6 sm:flex-row sm:justify-end">
+    <div class="mt-8 flex flex-col-reverse gap-3 border-t border-stone-200 pt-6 sm:flex-row sm:justify-end">
         <a
             href="{{ $cancelUrl }}"
-            class="inline-flex items-center justify-center rounded-md border border-[#D8E2EF] px-4 py-2 text-sm font-semibold text-[#173F7A] transition hover:bg-[#F4F8FC] focus:outline-none focus:ring-2 focus:ring-[#173F7A] focus:ring-offset-2"
+            class="inline-flex items-center justify-center rounded-md border border-stone-300 px-4 py-2 text-sm font-medium text-stone-700 transition hover:bg-stone-100 focus:outline-none focus:ring-2 focus:ring-[#173F35] focus:ring-offset-2"
         >
             Cancelar
         </a>
         <button
             type="submit"
-            class="inline-flex items-center justify-center rounded-md bg-[#173F7A] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#0E2A52] focus:outline-none focus:ring-2 focus:ring-[#173F7A] focus:ring-offset-2"
+            class="inline-flex items-center justify-center rounded-md bg-[#173F35] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#0f2b24] focus:outline-none focus:ring-2 focus:ring-[#173F35] focus:ring-offset-2"
         >
             {{ $submitLabel }}
         </button>
