@@ -1,108 +1,102 @@
-@props([
-    'title' => 'Admin | Memórias Vivas',
-    'active' => 'dashboard',
-])
-
 @php
-    $user = auth()->user();
-
-    $mainNav = [
-        ['label' => 'Dashboard', 'route' => 'admin.dashboard', 'active' => 'dashboard'],
-        ['label' => 'Fotografias', 'route' => 'admin.fotografias.index', 'active' => 'fotografias'],
+    $navigation = [
+        [
+            'label' => 'Painel',
+            'route' => 'admin.dashboard',
+            'active' => 'admin.dashboard',
+        ],
+        [
+            'label' => 'Fotografias',
+            'route' => 'admin.fotografias.index',
+            'active' => 'admin.fotografias.*',
+        ],
+        [
+            'label' => 'Categorias',
+            'route' => 'admin.categorias.index',
+            'active' => 'admin.categorias.*',
+        ],
+        [
+            'label' => 'Assuntos',
+            'route' => 'admin.assuntos.index',
+            'active' => 'admin.assuntos.*',
+        ],
+        [
+            'label' => 'Palavras-chave',
+            'route' => 'admin.palavras-chave.index',
+            'active' => 'admin.palavras-chave.*',
+        ],
+        [
+            'label' => 'Autores',
+            'route' => 'admin.autores.index',
+            'active' => 'admin.autores.*',
+        ],
     ];
-
-    $futureNav = ['Usuários', 'Arquivos digitais', 'Categorias', 'Coleções', 'Autores'];
 @endphp
 
-<x-layouts.app :title="$title">
-    <div class="min-h-screen bg-[#F4F8FC] text-[#12366A]">
-        <aside class="fixed inset-y-0 left-0 z-30 hidden w-72 flex-col bg-[#183D70] text-white shadow-2xl lg:flex">
-            <div class="flex h-24 items-center gap-3 border-b border-white/10 px-6">
-                <div class="grid h-12 w-12 place-items-center rounded-full border border-white/60 text-base font-semibold">
-                    MV
-                </div>
+<x-layouts.app :title="$title ?? 'Administração | Memórias Vivas'">
+    <div class="min-h-screen bg-stone-50">
+        <header class="border-b border-stone-200 bg-white">
+            <div class="mx-auto flex max-w-7xl items-center justify-between gap-4 px-6 py-4">
                 <div>
-                    <p class="font-serif text-lg font-semibold leading-tight">Memórias Vivas</p>
-                    <p class="text-xs uppercase tracking-[0.18em] text-blue-100">de Umuarama</p>
-                </div>
-            </div>
+                    <p class="text-xs font-semibold uppercase tracking-[0.18em] text-[#6B5E2E]">
+                        Memórias Vivas
+                    </p>
 
-            <nav class="flex-1 px-5 py-5" aria-label="Menu administrativo">
-                <div class="space-y-2">
-                    @foreach ($mainNav as $item)
-                        <a
-                            href="{{ route($item['route']) }}"
-                            @if ($active === $item['active']) aria-current="page" @endif
-                            class="flex items-center gap-3 rounded-md px-4 py-2.5 text-sm font-semibold transition {{ $active === $item['active'] ? 'bg-[#3FA39B] text-white shadow-lg shadow-black/10' : 'text-blue-50 hover:bg-white/10' }}"
-                        >
-                            <span class="grid h-7 w-7 place-items-center rounded-md bg-white/10 text-xs">{{ strtoupper(substr($item['label'], 0, 1)) }}</span>
-                            {{ $item['label'] }}
-                        </a>
-                    @endforeach
+                    <h1 class="mt-1 text-xl font-semibold text-stone-950">
+                        Administração do acervo
+                    </h1>
                 </div>
 
-                <div class="mt-8">
-                    <p class="px-4 text-xs font-semibold uppercase tracking-[0.16em] text-blue-200">Próximos módulos</p>
-                    <div class="mt-3 space-y-1">
-                        @foreach ($futureNav as $label)
-                            <span class="flex items-center gap-3 rounded-md px-4 py-2.5 text-sm font-medium text-blue-100/65">
-                                <span class="grid h-7 w-7 place-items-center rounded-md border border-white/10 text-xs">{{ strtoupper(substr($label, 0, 1)) }}</span>
-                                {{ $label }}
-                            </span>
-                        @endforeach
-                    </div>
-                </div>
-            </nav>
-
-            <div class="border-t border-white/10 p-4">
-                <form method="POST" action="{{ route('logout') }}">
-                    @csrf
-                    <button
-                        type="submit"
-                        class="flex w-full items-center justify-center rounded-md border border-white/20 px-4 py-3 text-sm font-semibold text-white transition hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-[#183D70]"
+                <div class="flex items-center gap-4">
+                    <nav
+                        class="hidden items-center gap-2 md:flex"
+                        aria-label="Navegação administrativa"
                     >
-                        Sair do sistema
-                    </button>
-                </form>
+                        @foreach ($navigation as $item)
+                            @php
+                                $isActive = request()->routeIs($item['active']);
+                            @endphp
+
+                            <a
+                                href="{{ route($item['route']) }}"
+                                @if ($isActive)
+                                    aria-current="page"
+                                @endif
+                                class="{{ $isActive
+                                    ? 'rounded-md bg-[#173F35] px-3 py-2 text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-[#173F35] focus:ring-offset-2'
+                                    : 'rounded-md px-3 py-2 text-sm font-medium text-stone-600 transition hover:bg-stone-100 hover:text-stone-950 focus:outline-none focus:ring-2 focus:ring-[#173F35] focus:ring-offset-2' }}"
+                            >
+                                {{ $item['label'] }}
+                            </a>
+                        @endforeach
+                    </nav>
+
+                    <div class="hidden text-right sm:block">
+                        <p class="text-sm font-medium text-stone-900">
+                            {{ auth()->user()->nome }}
+                        </p>
+
+                        <p class="text-xs uppercase tracking-[0.12em] text-stone-500">
+                            {{ auth()->user()->role }}
+                        </p>
+                    </div>
+
+                    <form method="POST" action="{{ route('logout') }}">
+                        @csrf
+
+                        <button
+                            type="submit"
+                            class="rounded-md border border-stone-300 px-3 py-2 text-sm font-medium text-stone-700 transition hover:bg-stone-100 focus:outline-none focus:ring-2 focus:ring-[#173F35] focus:ring-offset-2"
+                        >
+                            Sair
+                        </button>
+                    </form>
+                </div>
             </div>
-        </aside>
+        </header>
 
-        <div class="lg:pl-72">
-            <header class="sticky top-0 z-20 border-b border-[#D8E2EF] bg-white/90 backdrop-blur">
-                <div class="flex h-20 items-center justify-between gap-4 px-5 py-4 sm:px-8">
-                    <div class="lg:hidden">
-                        <p class="font-serif text-lg font-semibold text-[#173F7A]">Memórias Vivas</p>
-                        <p class="text-xs uppercase tracking-[0.16em] text-[#55709B]">Administração</p>
-                    </div>
-
-                    <div class="hidden items-center gap-3 lg:flex">
-                        <span class="h-px w-7 bg-[#173F7A]"></span>
-                        <span class="h-px w-5 bg-[#173F7A]"></span>
-                        <span class="text-sm font-semibold text-[#173F7A]">Administração do acervo</span>
-                    </div>
-
-                    <div class="flex items-center gap-4">
-                        <div class="hidden text-right sm:block">
-                            <p class="text-sm font-semibold text-[#173F7A]">{{ $user?->nome }}</p>
-                            <p class="text-xs capitalize text-[#55709B]">{{ $user?->role }}</p>
-                        </div>
-                        <div class="grid h-11 w-11 place-items-center rounded-full bg-[#244D86] text-sm font-bold text-white">
-                            {{ strtoupper(substr((string) $user?->nome, 0, 1)) }}
-                        </div>
-                    </div>
-                </div>
-            </header>
-
-            <main class="px-5 py-8 sm:px-8">
-                {{ $slot }}
-            </main>
-
-            <footer class="border-t border-[#D8E2EF] px-5 py-6 text-xs text-[#55709B] sm:px-8">
-                <div class="mx-auto flex max-w-7xl flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                    <p>&copy; {{ date('Y') }} Memórias Vivas de Umuarama.</p>
-                    <p>Versão 1.0.0</p>
-                </div>
-            </footer>
-        </div>
+        <main>
+            {{ $slot }}
+        </main>
     </div>
 </x-layouts.app>

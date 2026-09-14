@@ -1,13 +1,13 @@
-<x-layouts.admin title="Fotografias | Memórias Vivas" active="fotografias">
-    <div class="mx-auto max-w-7xl">
-        <section class="mb-6 flex flex-col justify-between gap-4 md:flex-row md:items-end">
-            <div>
-                <p class="text-sm font-medium text-[#3F7E94]">Acervo</p>
-                <h1 class="mt-2 font-serif text-3xl font-semibold text-[#173F7A]">Fotografias cadastradas</h1>
-                <p class="mt-2 max-w-2xl text-sm leading-6 text-[#55709B]">
-                    Lista administrativa das fotografias ativas cadastradas no acervo.
-                </p>
-            </div>
+<x-layouts.admin title="Fotografias | Memórias Vivas">
+    <div class="mx-auto max-w-7xl px-6 py-8">
+            <section class="mb-6 flex flex-col justify-between gap-4 md:flex-row md:items-end">
+                <div>
+                    <p class="text-sm font-medium text-[#6B5E2E]">Acervo</p>
+                    <h2 class="mt-1 text-2xl font-semibold text-stone-950">Fotografias cadastradas</h2>
+                    <p class="mt-2 max-w-2xl text-sm leading-6 text-stone-600">
+                        Lista administrativa das fotografias ativas cadastradas no acervo.
+                    </p>
+                </div>
 
             <div class="flex flex-wrap gap-2">
                 @can('restore', new \App\Models\ItemAcervo)
@@ -107,10 +107,10 @@
                     </table>
                 </div>
 
-                <div class="border-t border-[#D8E2EF] px-5 py-4">
-                    {{ $fotografias->links() }}
-                </div>
-            @endif
-        </section>
+                    <div class="border-t border-stone-200 px-5 py-4">
+                        {{ $fotografias->links() }}
+                    </div>
+                @endif
+            </section>
     </div>
 </x-layouts.admin>

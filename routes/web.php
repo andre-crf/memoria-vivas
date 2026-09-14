@@ -1,13 +1,18 @@
 <?php
 
+use App\Http\Controllers\Admin\AssuntoController;
+use App\Http\Controllers\Admin\AutorController;
+use App\Http\Controllers\Admin\CategoriaController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\FotografiaController;
+use App\Http\Controllers\Admin\PalavraChaveController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function (): RedirectResponse {
-    return auth()->check()
+    return Auth::check()
         ? redirect()->route('admin.dashboard')
         : redirect()->route('login');
 });
@@ -25,15 +30,65 @@ Route::middleware(['auth', 'admin.access'])
     ->prefix('admin')
     ->name('admin.')
     ->group(function (): void {
+
         Route::get('/', DashboardController::class)->name('dashboard');
-        Route::get('/fotografias/create', [FotografiaController::class, 'create'])->name('fotografias.create');
-        Route::post('/fotografias', [FotografiaController::class, 'store'])->name('fotografias.store');
-        Route::get('/fotografias', [FotografiaController::class, 'index'])->name('fotografias.index');
-        Route::get('/fotografias/lixeira', [FotografiaController::class, 'trashed'])->name('fotografias.trashed');
-        Route::get('/fotografias/{fotografia}/edit', [FotografiaController::class, 'edit'])->name('fotografias.edit');
-        Route::put('/fotografias/{fotografia}', [FotografiaController::class, 'update'])->name('fotografias.update');
-        Route::patch('/fotografias/{fotografia}/restore', [FotografiaController::class, 'restore'])->name('fotografias.restore');
-        Route::delete('/fotografias/{fotografia}/force', [FotografiaController::class, 'forceDestroy'])->name('fotografias.force-destroy');
-        Route::get('/fotografias/{fotografia}', [FotografiaController::class, 'show'])->name('fotografias.show');
-        Route::delete('/fotografias/{fotografia}', [FotografiaController::class, 'destroy'])->name('fotografias.destroy');
+
+        Route::prefix('fotografias')
+            ->name('fotografias.')
+            ->group(function (): void {
+                Route::get('/create', [FotografiaController::class, 'create'])->name('create');
+                Route::post('/', [FotografiaController::class, 'store'])->name('store');
+                Route::get('/', [FotografiaController::class, 'index'])->name('index');
+                Route::get('/lixeira', [FotografiaController::class, 'trashed'])->name('trashed');
+                Route::get('/{fotografia}/edit', [FotografiaController::class, 'edit'])->name('edit');
+                Route::put('/{fotografia}', [FotografiaController::class, 'update'])->name('update');
+                Route::patch('/{fotografia}/restore', [FotografiaController::class, 'restore'])->name('restore');
+                Route::delete('/{fotografia}/force', [FotografiaController::class, 'forceDestroy'])->name('force-destroy');
+                Route::get('/{fotografia}', [FotografiaController::class, 'show'])->name('show');
+                Route::delete('/{fotografia}', [FotografiaController::class, 'destroy'])->name('destroy');
+            });
+
+        Route::prefix('categorias')
+            ->name('categorias.')
+            ->group(function (): void {
+                Route::get('/', [CategoriaController::class, 'index'])->name('index');
+                Route::get('/create', [CategoriaController::class, 'create'])->name('create');
+                Route::post('/', [CategoriaController::class, 'store'])->name('store');
+                Route::get('/{categoria}/edit', [CategoriaController::class, 'edit'])->name('edit');
+                Route::put('/{categoria}', [CategoriaController::class, 'update'])->name('update');
+                Route::delete('/{categoria}', [CategoriaController::class, 'destroy'])->name('destroy');
+            });
+
+        Route::prefix('assuntos')
+            ->name('assuntos.')
+            ->group(function (): void {
+                Route::get('/', [AssuntoController::class, 'index'])->name('index');
+                Route::get('/create', [AssuntoController::class, 'create'])->name('create');
+                Route::post('/', [AssuntoController::class, 'store'])->name('store');
+                Route::get('/{assunto}/edit', [AssuntoController::class, 'edit'])->name('edit');
+                Route::put('/{assunto}', [AssuntoController::class, 'update'])->name('update');
+                Route::delete('/{assunto}', [AssuntoController::class, 'destroy'])->name('destroy');
+            });
+
+        Route::prefix('palavras-chave')
+            ->name('palavras-chave.')
+            ->group(function (): void {
+                Route::get('/', [PalavraChaveController::class, 'index'])->name('index');
+                Route::get('/create', [PalavraChaveController::class, 'create'])->name('create');
+                Route::post('/', [PalavraChaveController::class, 'store'])->name('store');
+                Route::get('/{palavraChave}/edit', [PalavraChaveController::class, 'edit'])->name('edit');
+                Route::put('/{palavraChave}', [PalavraChaveController::class, 'update'])->name('update');
+                Route::delete('/{palavraChave}', [PalavraChaveController::class, 'destroy'])->name('destroy');
+            });
+
+        Route::prefix('autores')
+            ->name('autores.')
+            ->group(function (): void {
+                Route::get('/', [AutorController::class, 'index'])->name('index');
+                Route::get('/create', [AutorController::class, 'create'])->name('create');
+                Route::post('/', [AutorController::class, 'store'])->name('store');
+                Route::get('/{autor}/edit', [AutorController::class, 'edit'])->name('edit');
+                Route::put('/{autor}', [AutorController::class, 'update'])->name('update');
+                Route::delete('/{autor}', [AutorController::class, 'destroy'])->name('destroy');
+            });
     });
