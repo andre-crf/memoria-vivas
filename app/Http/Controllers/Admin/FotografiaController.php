@@ -6,9 +6,11 @@ use App\Enums\TipoData;
 use App\Enums\Visibilidade;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreFotografiaRequest;
+use App\Http\Requests\Admin\UpdateFotografiaRequest;
 use App\Models\ItemAcervo;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Gate;
 
 class FotografiaController extends Controller
@@ -23,6 +25,22 @@ class FotografiaController extends Controller
             ->paginate(15);
 
         return view('admin.fotografias.index', [
+            'fotografias' => $fotografias,
+        ]);
+    }
+
+    public function trashed(): View
+    {
+        Gate::authorize('restore', new ItemAcervo);
+
+        $fotografias = ItemAcervo::query()
+            ->onlyTrashed()
+            ->where('tipo_item', 'fotografia')
+            ->with('excluidoPor')
+            ->latest('deleted_at')
+            ->paginate(15);
+
+        return view('admin.fotografias.trashed', [
             'fotografias' => $fotografias,
         ]);
     }
@@ -46,5 +64,104 @@ class FotografiaController extends Controller
         return redirect()
             ->route('admin.fotografias.index')
             ->with('success', 'Fotografia cadastrada com sucesso.');
+    }
+
+    public function show(ItemAcervo $fotografia): View
+    {
+        $this->ensurePhotograph($fotografia);
+        Gate::authorize('view', $fotografia);
+
+        $fotografia->load([
+            'arquivos',
+            'assuntos',
+            'autor',
+            'categorias',
+            'colecoes',
+            'conjuntosContextuais',
+            'criadoPor',
+            'atualizadoPor',
+            'palavrasChave',
+            'pessoas',
+        ]);
+
+        return view('admin.fotografias.show', [
+            'fotografia' => $fotografia,
+        ]);
+    }
+
+    public function edit(ItemAcervo $fotografia): View
+    {
+        $this->ensurePhotograph($fotografia);
+        Gate::authorize('update', $fotografia);
+
+        return view('admin.fotografias.edit', [
+            'fotografia' => $fotografia,
+            'tipoDataOptions' => TipoData::cases(),
+            'estadoConservacaoOptions' => ItemAcervo::ESTADOS_CONSERVACAO,
+            'statusOptions' => ItemAcervo::STATUS,
+            'visibilidadeOptions' => Visibilidade::cases(),
+        ]);
+    }
+
+    public function update(UpdateFotografiaRequest $request, ItemAcervo $fotografia): RedirectResponse
+    {
+        $this->ensurePhotograph($fotografia);
+
+        $fotografia->update($request->payload());
+
+        return redirect()
+            ->route('admin.fotografias.show', $fotografia)
+            ->with('success', 'Fotografia atualizada com sucesso.');
+    }
+
+    public function destroy(ItemAcervo $fotografia): RedirectResponse
+    {
+        $this->ensurePhotograph($fotografia);
+        Gate::authorize('delete', $fotografia);
+
+        $fotografia->delete();
+
+        return redirect()
+            ->route('admin.fotografias.index')
+            ->with('success', 'Fotografia excluída com sucesso.');
+    }
+
+    public function restore(string $fotografia): RedirectResponse
+    {
+        $fotografia = ItemAcervo::query()
+            ->onlyTrashed()
+            ->whereKey($fotografia)
+            ->firstOrFail();
+
+        $this->ensurePhotograph($fotografia);
+        Gate::authorize('restore', $fotografia);
+
+        $fotografia->restore();
+
+        return redirect()
+            ->route('admin.fotografias.trashed')
+            ->with('success', 'Fotografia restaurada com sucesso.');
+    }
+
+    public function forceDestroy(string $fotografia): RedirectResponse
+    {
+        $fotografia = ItemAcervo::query()
+            ->onlyTrashed()
+            ->whereKey($fotografia)
+            ->firstOrFail();
+
+        $this->ensurePhotograph($fotografia);
+        Gate::authorize('forceDelete', $fotografia);
+
+        $fotografia->forceDelete();
+
+        return redirect()
+            ->route('admin.fotografias.trashed')
+            ->with('success', 'Fotografia excluída permanentemente.');
+    }
+
+    private function ensurePhotograph(ItemAcervo $fotografia): void
+    {
+        abort_unless($fotografia->tipo_item === 'fotografia', Response::HTTP_NOT_FOUND);
     }
 }

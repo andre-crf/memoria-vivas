@@ -39,6 +39,13 @@ Route::middleware(['auth', 'admin.access'])
                 Route::get('/create', [FotografiaController::class, 'create'])->name('create');
                 Route::post('/', [FotografiaController::class, 'store'])->name('store');
                 Route::get('/', [FotografiaController::class, 'index'])->name('index');
+                Route::get('/lixeira', [FotografiaController::class, 'trashed'])->name('trashed');
+                Route::get('/{fotografia}/edit', [FotografiaController::class, 'edit'])->name('edit');
+                Route::put('/{fotografia}', [FotografiaController::class, 'update'])->name('update');
+                Route::patch('/{fotografia}/restore', [FotografiaController::class, 'restore'])->name('restore');
+                Route::delete('/{fotografia}/force', [FotografiaController::class, 'forceDestroy'])->name('force-destroy');
+                Route::get('/{fotografia}', [FotografiaController::class, 'show'])->name('show');
+                Route::delete('/{fotografia}', [FotografiaController::class, 'destroy'])->name('destroy');
             });
 
         Route::prefix('categorias')

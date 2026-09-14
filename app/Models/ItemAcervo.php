@@ -143,7 +143,7 @@ class ItemAcervo extends Model
 
     public function podeSerExibidoPublicamente(): bool
     {
-        return $this->isPublicado() && $this->isPublico();
+        return ! $this->trashed() && $this->isPublicado() && $this->isPublico();
     }
 
     /**
