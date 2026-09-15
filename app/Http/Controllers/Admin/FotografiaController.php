@@ -12,6 +12,7 @@ use App\Models\Autor;
 use App\Models\Categoria;
 use App\Models\ItemAcervo;
 use App\Models\PalavraChave;
+use App\Models\Pessoa;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Response;
@@ -58,6 +59,7 @@ class FotografiaController extends Controller
             'categoriaOptions' => $this->categoriaOptions(),
             'assuntoOptions' => $this->assuntoOptions(),
             'palavraChaveOptions' => $this->palavraChaveOptions(),
+            'pessoaOptions' => $this->pessoaOptions(),
             'tipoDataOptions' => TipoData::cases(),
             'estadoConservacaoOptions' => ItemAcervo::ESTADOS_CONSERVACAO,
             'statusOptions' => ItemAcervo::STATUS,
@@ -103,7 +105,7 @@ class FotografiaController extends Controller
         $this->ensurePhotograph($fotografia);
         Gate::authorize('update', $fotografia);
 
-        $fotografia->load(['categorias', 'assuntos', 'palavrasChave']);
+        $fotografia->load(['categorias', 'assuntos', 'palavrasChave', 'pessoas']);
 
         return view('admin.fotografias.edit', [
             'fotografia' => $fotografia,
@@ -111,6 +113,7 @@ class FotografiaController extends Controller
             'categoriaOptions' => $this->categoriaOptions(),
             'assuntoOptions' => $this->assuntoOptions(),
             'palavraChaveOptions' => $this->palavraChaveOptions(),
+            'pessoaOptions' => $this->pessoaOptions(),
             'tipoDataOptions' => TipoData::cases(),
             'estadoConservacaoOptions' => ItemAcervo::ESTADOS_CONSERVACAO,
             'statusOptions' => ItemAcervo::STATUS,
@@ -222,12 +225,23 @@ class FotografiaController extends Controller
     }
 
     /**
-     * @param  array{categoria_ids: array<int, int>, assunto_ids: array<int, int>, palavra_chave_ids: array<int, int>}  $classifications
+     * @return \Illuminate\Support\Collection<int, \App\Models\Pessoa>
+     */
+    private function pessoaOptions()
+    {
+        return Pessoa::query()
+            ->orderBy('nome')
+            ->get(['id', 'nome']);
+    }
+
+    /**
+     * @param  array{categoria_ids: array<int, int>, assunto_ids: array<int, int>, palavra_chave_ids: array<int, int>, pessoa_ids: array<int, int>}  $classifications
      */
     private function syncClassifications(ItemAcervo $fotografia, array $classifications): void
     {
         $fotografia->categorias()->sync($classifications['categoria_ids']);
         $fotografia->assuntos()->sync($classifications['assunto_ids']);
         $fotografia->palavrasChave()->sync($classifications['palavra_chave_ids']);
+        $fotografia->pessoas()->sync($classifications['pessoa_ids']);
     }
 }

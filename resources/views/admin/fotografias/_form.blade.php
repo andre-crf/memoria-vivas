@@ -10,6 +10,7 @@
     $selectedCategorias = collect(old('categoria_ids', $fotografia?->categorias?->pluck('id')->all() ?? []))->map(fn ($id) => (string) $id)->all();
     $selectedAssuntos = collect(old('assunto_ids', $fotografia?->assuntos?->pluck('id')->all() ?? []))->map(fn ($id) => (string) $id)->all();
     $selectedPalavrasChave = collect(old('palavra_chave_ids', $fotografia?->palavrasChave?->pluck('id')->all() ?? []))->map(fn ($id) => (string) $id)->all();
+    $selectedPessoas = collect(old('pessoa_ids', $fotografia?->pessoas?->pluck('id')->all() ?? []))->map(fn ($id) => (string) $id)->all();
 @endphp
 
 <form method="POST" action="{{ $action }}" class="rounded-lg border border-stone-200 bg-white p-6 shadow-sm" data-date-form>
@@ -133,6 +134,36 @@
                 <p class="mt-2 text-sm text-red-700">{{ $message }}</p>
             @enderror
         </div>
+
+        <section class="rounded-lg border border-stone-200 bg-stone-50 p-4">
+            <h2 class="text-base font-semibold text-stone-950">Pessoas identificadas</h2>
+            <p class="mt-1 text-sm leading-6 text-stone-600">
+                Vincule uma ou mais pessoas cadastradas quando elas forem identificadas na fotografia.
+            </p>
+
+            <div class="mt-3 max-h-56 space-y-2 overflow-y-auto rounded-md border border-stone-200 bg-white p-3">
+                @forelse ($pessoaOptions as $pessoa)
+                    <label class="flex items-start gap-2 text-sm text-stone-700">
+                        <input
+                            type="checkbox"
+                            name="pessoa_ids[]"
+                            value="{{ $pessoa->id }}"
+                            @checked(in_array((string) $pessoa->id, $selectedPessoas, true))
+                            class="mt-0.5 rounded border-stone-300 text-[#173F35] focus:ring-[#173F35]"
+                        >
+                        <span>{{ $pessoa->nome }}</span>
+                    </label>
+                @empty
+                    <p class="text-sm text-stone-500">Nenhuma pessoa cadastrada.</p>
+                @endforelse
+            </div>
+            @error('pessoa_ids')
+                <p class="mt-2 text-sm text-red-700">{{ $message }}</p>
+            @enderror
+            @error('pessoa_ids.*')
+                <p class="mt-2 text-sm text-red-700">{{ $message }}</p>
+            @enderror
+        </section>
 
         <section class="rounded-lg border border-stone-200 bg-stone-50 p-4">
             <h2 class="text-base font-semibold text-stone-950">Classificações</h2>
