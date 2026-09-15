@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\FotografiaController;
 use App\Http\Controllers\Admin\PalavraChaveController;
 use App\Http\Controllers\Admin\PessoaController;
+use App\Http\Controllers\Admin\UsuarioController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
@@ -102,5 +103,15 @@ Route::middleware(['auth', 'admin.access'])
                 Route::get('/{pessoa}/edit', [PessoaController::class, 'edit'])->name('edit');
                 Route::put('/{pessoa}', [PessoaController::class, 'update'])->name('update');
                 Route::delete('/{pessoa}', [PessoaController::class, 'destroy'])->name('destroy');
+            });
+
+        Route::prefix('usuarios')
+            ->name('usuarios.')
+            ->group(function (): void {
+                Route::get('/', [UsuarioController::class, 'index'])->name('index');
+                Route::get('/create', [UsuarioController::class, 'create'])->name('create');
+                Route::post('/', [UsuarioController::class, 'store'])->name('store');
+                Route::get('/{usuario}/edit', [UsuarioController::class, 'edit'])->name('edit');
+                Route::put('/{usuario}', [UsuarioController::class, 'update'])->name('update');
             });
     });

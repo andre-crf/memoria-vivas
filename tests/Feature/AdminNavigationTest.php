@@ -54,7 +54,30 @@ class AdminNavigationTest extends TestCase
                 ->assertSee(route('admin.palavras-chave.index'))
                 ->assertSee('Palavras-chave')
                 ->assertSee(route('admin.pessoas.index'))
-                ->assertSee('Pessoas');
+                ->assertSee('Pessoas')
+                ->assertSee('Mais opções')
+                ->assertSee('<details', false)
+                ->assertSee(route('admin.dashboard'))
+                ->assertSee(route('admin.fotografias.index'));
         }
+    }
+
+    public function test_dropdown_highlights_the_current_section_and_hides_users_from_operators(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin', 'status' => 'ativo']);
+        $operator = User::factory()->create(['role' => 'operador', 'status' => 'ativo']);
+
+        $this->actingAs($admin)
+            ->get(route('admin.categorias.index'))
+            ->assertOk()
+            ->assertSee('aria-current="page"', false)
+            ->assertSee('rounded-md bg-[#173F35] px-3 py-2 text-sm font-medium text-white', false)
+            ->assertSee(route('admin.usuarios.index'));
+
+        $this->actingAs($operator)
+            ->get(route('admin.categorias.index'))
+            ->assertOk()
+            ->assertSee('Mais opções')
+            ->assertDontSee(route('admin.usuarios.index'));
     }
 }
