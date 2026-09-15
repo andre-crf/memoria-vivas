@@ -7,8 +7,11 @@ use App\Enums\Visibilidade;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreFotografiaRequest;
 use App\Http\Requests\Admin\UpdateFotografiaRequest;
+use App\Models\Assunto;
 use App\Models\Autor;
+use App\Models\Categoria;
 use App\Models\ItemAcervo;
+use App\Models\PalavraChave;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Response;
@@ -52,6 +55,9 @@ class FotografiaController extends Controller
 
         return view('admin.fotografias.create', [
             'autorOptions' => $this->autorOptions(),
+            'categoriaOptions' => $this->categoriaOptions(),
+            'assuntoOptions' => $this->assuntoOptions(),
+            'palavraChaveOptions' => $this->palavraChaveOptions(),
             'tipoDataOptions' => TipoData::cases(),
             'estadoConservacaoOptions' => ItemAcervo::ESTADOS_CONSERVACAO,
             'statusOptions' => ItemAcervo::STATUS,
@@ -61,7 +67,8 @@ class FotografiaController extends Controller
 
     public function store(StoreFotografiaRequest $request): RedirectResponse
     {
-        ItemAcervo::create($request->payload());
+        $fotografia = ItemAcervo::create($request->payload());
+        $this->syncClassifications($fotografia, $request->classificationPayload());
 
         return redirect()
             ->route('admin.fotografias.index')
@@ -96,9 +103,14 @@ class FotografiaController extends Controller
         $this->ensurePhotograph($fotografia);
         Gate::authorize('update', $fotografia);
 
+        $fotografia->load(['categorias', 'assuntos', 'palavrasChave']);
+
         return view('admin.fotografias.edit', [
             'fotografia' => $fotografia,
             'autorOptions' => $this->autorOptions(),
+            'categoriaOptions' => $this->categoriaOptions(),
+            'assuntoOptions' => $this->assuntoOptions(),
+            'palavraChaveOptions' => $this->palavraChaveOptions(),
             'tipoDataOptions' => TipoData::cases(),
             'estadoConservacaoOptions' => ItemAcervo::ESTADOS_CONSERVACAO,
             'statusOptions' => ItemAcervo::STATUS,
@@ -111,6 +123,7 @@ class FotografiaController extends Controller
         $this->ensurePhotograph($fotografia);
 
         $fotografia->update($request->payload());
+        $this->syncClassifications($fotografia, $request->classificationPayload());
 
         return redirect()
             ->route('admin.fotografias.show', $fotografia)
@@ -176,5 +189,45 @@ class FotografiaController extends Controller
         return Autor::query()
             ->orderBy('nome')
             ->get(['id', 'nome', 'tipo']);
+    }
+
+    /**
+     * @return \Illuminate\Support\Collection<int, \App\Models\Categoria>
+     */
+    private function categoriaOptions()
+    {
+        return Categoria::query()
+            ->orderBy('titulo')
+            ->get(['id', 'titulo']);
+    }
+
+    /**
+     * @return \Illuminate\Support\Collection<int, \App\Models\Assunto>
+     */
+    private function assuntoOptions()
+    {
+        return Assunto::query()
+            ->orderBy('titulo')
+            ->get(['id', 'titulo']);
+    }
+
+    /**
+     * @return \Illuminate\Support\Collection<int, \App\Models\PalavraChave>
+     */
+    private function palavraChaveOptions()
+    {
+        return PalavraChave::query()
+            ->orderBy('termo')
+            ->get(['id', 'termo']);
+    }
+
+    /**
+     * @param  array{categoria_ids: array<int, int>, assunto_ids: array<int, int>, palavra_chave_ids: array<int, int>}  $classifications
+     */
+    private function syncClassifications(ItemAcervo $fotografia, array $classifications): void
+    {
+        $fotografia->categorias()->sync($classifications['categoria_ids']);
+        $fotografia->assuntos()->sync($classifications['assunto_ids']);
+        $fotografia->palavrasChave()->sync($classifications['palavra_chave_ids']);
     }
 }

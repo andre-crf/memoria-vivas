@@ -7,6 +7,9 @@
     $selectedStatus = old('status', $fotografia?->status ?? 'rascunho');
     $selectedVisibilidade = old('visibilidade', $fotografia?->visibilidade?->value ?? 'privado');
     $selectedAutor = old('autor_id', $fotografia?->autor_id);
+    $selectedCategorias = collect(old('categoria_ids', $fotografia?->categorias?->pluck('id')->all() ?? []))->map(fn ($id) => (string) $id)->all();
+    $selectedAssuntos = collect(old('assunto_ids', $fotografia?->assuntos?->pluck('id')->all() ?? []))->map(fn ($id) => (string) $id)->all();
+    $selectedPalavrasChave = collect(old('palavra_chave_ids', $fotografia?->palavrasChave?->pluck('id')->all() ?? []))->map(fn ($id) => (string) $id)->all();
 @endphp
 
 <form method="POST" action="{{ $action }}" class="rounded-lg border border-stone-200 bg-white p-6 shadow-sm" data-date-form>
@@ -130,6 +133,93 @@
                 <p class="mt-2 text-sm text-red-700">{{ $message }}</p>
             @enderror
         </div>
+
+        <section class="rounded-lg border border-stone-200 bg-stone-50 p-4">
+            <h2 class="text-base font-semibold text-stone-950">Classificações</h2>
+            <p class="mt-1 text-sm leading-6 text-stone-600">
+                Selecione os vocabulários cadastrados que classificam esta fotografia.
+            </p>
+
+            <div class="mt-5 grid gap-5 lg:grid-cols-3">
+                <div>
+                    <h3 class="text-sm font-medium text-stone-900">Categorias</h3>
+                    <div class="mt-3 max-h-56 space-y-2 overflow-y-auto rounded-md border border-stone-200 bg-white p-3">
+                        @forelse ($categoriaOptions as $categoria)
+                            <label class="flex items-start gap-2 text-sm text-stone-700">
+                                <input
+                                    type="checkbox"
+                                    name="categoria_ids[]"
+                                    value="{{ $categoria->id }}"
+                                    @checked(in_array((string) $categoria->id, $selectedCategorias, true))
+                                    class="mt-0.5 rounded border-stone-300 text-[#173F35] focus:ring-[#173F35]"
+                                >
+                                <span>{{ $categoria->titulo }}</span>
+                            </label>
+                        @empty
+                            <p class="text-sm text-stone-500">Nenhuma categoria cadastrada.</p>
+                        @endforelse
+                    </div>
+                    @error('categoria_ids')
+                        <p class="mt-2 text-sm text-red-700">{{ $message }}</p>
+                    @enderror
+                    @error('categoria_ids.*')
+                        <p class="mt-2 text-sm text-red-700">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div>
+                    <h3 class="text-sm font-medium text-stone-900">Assuntos</h3>
+                    <div class="mt-3 max-h-56 space-y-2 overflow-y-auto rounded-md border border-stone-200 bg-white p-3">
+                        @forelse ($assuntoOptions as $assunto)
+                            <label class="flex items-start gap-2 text-sm text-stone-700">
+                                <input
+                                    type="checkbox"
+                                    name="assunto_ids[]"
+                                    value="{{ $assunto->id }}"
+                                    @checked(in_array((string) $assunto->id, $selectedAssuntos, true))
+                                    class="mt-0.5 rounded border-stone-300 text-[#173F35] focus:ring-[#173F35]"
+                                >
+                                <span>{{ $assunto->titulo }}</span>
+                            </label>
+                        @empty
+                            <p class="text-sm text-stone-500">Nenhum assunto cadastrado.</p>
+                        @endforelse
+                    </div>
+                    @error('assunto_ids')
+                        <p class="mt-2 text-sm text-red-700">{{ $message }}</p>
+                    @enderror
+                    @error('assunto_ids.*')
+                        <p class="mt-2 text-sm text-red-700">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div>
+                    <h3 class="text-sm font-medium text-stone-900">Palavras-chave</h3>
+                    <div class="mt-3 max-h-56 space-y-2 overflow-y-auto rounded-md border border-stone-200 bg-white p-3">
+                        @forelse ($palavraChaveOptions as $palavraChave)
+                            <label class="flex items-start gap-2 text-sm text-stone-700">
+                                <input
+                                    type="checkbox"
+                                    name="palavra_chave_ids[]"
+                                    value="{{ $palavraChave->id }}"
+                                    @checked(in_array((string) $palavraChave->id, $selectedPalavrasChave, true))
+                                    class="mt-0.5 rounded border-stone-300 text-[#173F35] focus:ring-[#173F35]"
+                                >
+                                <span>{{ $palavraChave->termo }}</span>
+                            </label>
+                        @empty
+                            <p class="text-sm text-stone-500">Nenhuma palavra-chave cadastrada.</p>
+                        @endforelse
+                    </div>
+                    @error('palavra_chave_ids')
+                        <p class="mt-2 text-sm text-red-700">{{ $message }}</p>
+                    @enderror
+                    @error('palavra_chave_ids.*')
+                        <p class="mt-2 text-sm text-red-700">{{ $message }}</p>
+                    @enderror
+                </div>
+            </div>
+        </section>
 
         <div class="grid gap-4 md:grid-cols-3">
             <div>
