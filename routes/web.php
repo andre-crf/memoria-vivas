@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\CategoriaController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\FotografiaController;
 use App\Http\Controllers\Admin\PalavraChaveController;
+use App\Http\Controllers\Admin\PerfilController;
 use App\Http\Controllers\Admin\PessoaController;
 use App\Http\Controllers\Admin\UsuarioController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
@@ -34,6 +35,14 @@ Route::middleware(['auth', 'admin.access'])
     ->group(function (): void {
 
         Route::get('/', DashboardController::class)->name('dashboard');
+
+        Route::prefix('perfil')
+            ->name('perfil.')
+            ->group(function (): void {
+                Route::get('/', [PerfilController::class, 'edit'])->name('edit');
+                Route::put('/', [PerfilController::class, 'update'])->name('update');
+                Route::put('/senha', [PerfilController::class, 'updatePassword'])->name('password.update');
+            });
 
         Route::prefix('fotografias')
             ->name('fotografias.')

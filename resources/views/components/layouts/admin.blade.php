@@ -116,16 +116,23 @@
                     </details>
                 </nav>
 
-                <div class="ml-auto flex items-center gap-4">
-                    <div class="hidden text-right sm:block">
-                        <p class="text-sm font-medium text-stone-900">
+                <div class="ml-auto flex items-center gap-3 sm:gap-4">
+                    <a
+                        href="{{ route('admin.perfil.edit') }}"
+                        @if (request()->routeIs('admin.perfil.*'))
+                            aria-current="page"
+                        @endif
+                        aria-label="Acessar meu perfil"
+                        class="max-w-32 rounded-md px-2 py-1 text-right transition hover:bg-stone-100 focus:outline-none focus:ring-2 focus:ring-[#173F35] focus:ring-offset-2 sm:max-w-48 {{ request()->routeIs('admin.perfil.*') ? 'bg-stone-100' : '' }}"
+                    >
+                        <p class="truncate text-sm font-medium text-stone-900">
                             {{ auth()->user()->nome }}
                         </p>
 
-                        <p class="text-xs uppercase tracking-[0.12em] text-stone-500">
+                        <p class="hidden text-xs uppercase tracking-[0.12em] text-stone-500 sm:block">
                             {{ auth()->user()->role }}
                         </p>
-                    </div>
+                    </a>
 
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
