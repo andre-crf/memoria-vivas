@@ -7,6 +7,7 @@ use App\Enums\Visibilidade;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreFotografiaRequest;
 use App\Http\Requests\Admin\UpdateFotografiaRequest;
+use App\Models\Arquivo;
 use App\Models\Assunto;
 use App\Models\Autor;
 use App\Models\Categoria;
@@ -16,7 +17,10 @@ use App\Models\Pessoa;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Response;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Str;
 
 class FotografiaController extends Controller
 {
@@ -69,8 +73,15 @@ class FotografiaController extends Controller
 
     public function store(StoreFotografiaRequest $request): RedirectResponse
     {
-        $fotografia = ItemAcervo::create($request->payload());
-        $this->syncClassifications($fotografia, $request->classificationPayload());
+        if ($request->hasFile('arquivo_original')) {
+            Gate::authorize('uploadOriginal', Arquivo::class);
+        }
+
+        DB::transaction(function () use ($request): void {
+            $fotografia = ItemAcervo::create($request->payload());
+            $this->syncClassifications($fotografia, $request->classificationPayload());
+            $this->storeOriginalFile($fotografia, $request->file('arquivo_original'));
+        });
 
         return redirect()
             ->route('admin.fotografias.index')
@@ -105,7 +116,7 @@ class FotografiaController extends Controller
         $this->ensurePhotograph($fotografia);
         Gate::authorize('update', $fotografia);
 
-        $fotografia->load(['categorias', 'assuntos', 'palavrasChave', 'pessoas']);
+        $fotografia->load(['arquivos', 'categorias', 'assuntos', 'palavrasChave', 'pessoas']);
 
         return view('admin.fotografias.edit', [
             'fotografia' => $fotografia,
@@ -125,8 +136,21 @@ class FotografiaController extends Controller
     {
         $this->ensurePhotograph($fotografia);
 
-        $fotografia->update($request->payload());
-        $this->syncClassifications($fotografia, $request->classificationPayload());
+        if ($request->hasFile('arquivo_original')) {
+            Gate::authorize('uploadOriginal', Arquivo::class);
+
+            if ($fotografia->arquivos()->where('versao_arquivo', 'original')->exists()) {
+                return back()
+                    ->withErrors(['arquivo_original' => 'Esta fotografia já possui arquivo original vinculado.'])
+                    ->withInput();
+            }
+        }
+
+        DB::transaction(function () use ($request, $fotografia): void {
+            $fotografia->update($request->payload());
+            $this->syncClassifications($fotografia, $request->classificationPayload());
+            $this->storeOriginalFile($fotografia, $request->file('arquivo_original'));
+        });
 
         return redirect()
             ->route('admin.fotografias.show', $fotografia)
@@ -182,6 +206,64 @@ class FotografiaController extends Controller
     private function ensurePhotograph(ItemAcervo $fotografia): void
     {
         abort_unless($fotografia->tipo_item === 'fotografia', Response::HTTP_NOT_FOUND);
+    }
+
+    private function storeOriginalFile(ItemAcervo $fotografia, ?UploadedFile $file): void
+    {
+        if (! $file instanceof UploadedFile) {
+            return;
+        }
+
+        $extension = $file->guessExtension() ?: $file->getClientOriginalExtension() ?: 'bin';
+        $storagePath = $file->storeAs(
+            "acervo/originais/{$fotografia->id}",
+            Str::uuid()->toString().'.'.$extension,
+            'local',
+        );
+        [$width, $height] = $this->imageDimensions($file);
+
+        $fotografia->arquivos()->create([
+            'nome_original' => $file->getClientOriginalName(),
+            'provider' => 'local',
+            'storage_path' => $storagePath,
+            'mime_type' => $file->getMimeType() ?: 'application/octet-stream',
+            'file_size' => $file->getSize(),
+            'tipo_arquivo' => $this->fileType($file),
+            'sha256' => hash_file('sha256', $file->getRealPath()),
+            'versao_arquivo' => 'original',
+            'width' => $width,
+            'height' => $height,
+        ]);
+    }
+
+    /**
+     * @return array{0: int|null, 1: int|null}
+     */
+    private function imageDimensions(UploadedFile $file): array
+    {
+        if (! str_starts_with($file->getMimeType() ?: '', 'image/')) {
+            return [null, null];
+        }
+
+        $dimensions = @getimagesize($file->getRealPath());
+
+        return [
+            $dimensions[0] ?? null,
+            $dimensions[1] ?? null,
+        ];
+    }
+
+    private function fileType(UploadedFile $file): string
+    {
+        $mimeType = $file->getMimeType() ?: '';
+
+        return match (true) {
+            str_starts_with($mimeType, 'image/') => 'imagem',
+            $mimeType === 'application/pdf' => 'documento',
+            str_starts_with($mimeType, 'audio/') => 'audio',
+            str_starts_with($mimeType, 'video/') => 'video',
+            default => 'outro',
+        };
     }
 
     /**

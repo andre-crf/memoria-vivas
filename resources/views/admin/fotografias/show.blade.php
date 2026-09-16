@@ -236,10 +236,31 @@
                         <ul class="mt-4 divide-y divide-stone-200">
                             @foreach ($fotografia->arquivos as $arquivo)
                                 <li class="py-3">
-                                    <p class="text-sm font-semibold text-stone-700">{{ $arquivo->nome_original }}</p>
-                                    <p class="mt-1 text-xs text-stone-600">
-                                        {{ $arquivo->versao_arquivo }} · {{ $arquivo->mime_type }} · {{ number_format($arquivo->file_size / 1024, 1, ',', '.') }} KB
-                                    </p>
+                                    <p class="text-sm font-semibold text-stone-700">{{ $arquivo->nome_original ?: 'Arquivo derivado' }}</p>
+                                    <dl class="mt-2 grid gap-2 text-xs text-stone-600">
+                                        <div>
+                                            <dt class="font-semibold uppercase tracking-[0.12em] text-stone-500">Versão</dt>
+                                            <dd>{{ $arquivo->versao_arquivo }}</dd>
+                                        </div>
+                                        <div>
+                                            <dt class="font-semibold uppercase tracking-[0.12em] text-stone-500">Tipo e tamanho</dt>
+                                            <dd>{{ $arquivo->mime_type }} · {{ number_format($arquivo->file_size / 1024, 1, ',', '.') }} KB</dd>
+                                        </div>
+                                        <div>
+                                            <dt class="font-semibold uppercase tracking-[0.12em] text-stone-500">Dimensões</dt>
+                                            <dd>
+                                                @if ($arquivo->width && $arquivo->height)
+                                                    {{ $arquivo->width }} × {{ $arquivo->height }} px
+                                                @else
+                                                    Não aplicável
+                                                @endif
+                                            </dd>
+                                        </div>
+                                        <div>
+                                            <dt class="font-semibold uppercase tracking-[0.12em] text-stone-500">Armazenamento</dt>
+                                            <dd>{{ $arquivo->provider }} · {{ $arquivo->storage_path }}</dd>
+                                        </div>
+                                    </dl>
                                 </li>
                             @endforeach
                         </ul>

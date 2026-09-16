@@ -13,7 +13,7 @@
     $selectedPessoas = collect(old('pessoa_ids', $fotografia?->pessoas?->pluck('id')->all() ?? []))->map(fn ($id) => (string) $id)->all();
 @endphp
 
-<form method="POST" action="{{ $action }}" class="rounded-lg border border-stone-200 bg-white p-6 shadow-sm" data-date-form>
+<form method="POST" action="{{ $action }}" enctype="multipart/form-data" class="rounded-lg border border-stone-200 bg-white p-6 shadow-sm" data-date-form>
     @csrf
     @isset($method)
         @method($method)
@@ -134,6 +134,36 @@
                 <p class="mt-2 text-sm text-red-700">{{ $message }}</p>
             @enderror
         </div>
+
+        <section class="rounded-lg border border-stone-200 bg-stone-50 p-4">
+            <h2 class="text-base font-semibold text-stone-950">Arquivo original</h2>
+            <p class="mt-1 text-sm leading-6 text-stone-600">
+                Envie o arquivo digital original da fotografia em imagem ou PDF.
+            </p>
+
+            @if ($fotografia?->arquivos?->firstWhere('versao_arquivo', 'original'))
+                @php($arquivoOriginal = $fotografia->arquivos->firstWhere('versao_arquivo', 'original'))
+                <div class="mt-3 rounded-md border border-stone-200 bg-white p-3 text-sm text-stone-700">
+                    <p class="font-medium text-stone-900">{{ $arquivoOriginal->nome_original }}</p>
+                    <p class="mt-1 text-stone-600">
+                        {{ $arquivoOriginal->mime_type }} · {{ number_format($arquivoOriginal->file_size / 1024, 1, ',', '.') }} KB
+                    </p>
+                    <p class="mt-1 text-stone-600">Arquivo original já vinculado.</p>
+                </div>
+            @else
+                <input
+                    id="arquivo_original"
+                    name="arquivo_original"
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp,image/tiff,application/pdf"
+                    class="mt-3 block w-full rounded-md border border-stone-300 bg-white px-3 py-2 text-sm text-stone-900 shadow-sm file:mr-4 file:rounded-md file:border-0 file:bg-[#173F35] file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-[#0f2b24] focus:border-[#173F35] focus:outline-none focus:ring-2 focus:ring-[#173F35]/20"
+                >
+            @endif
+
+            @error('arquivo_original')
+                <p class="mt-2 text-sm text-red-700">{{ $message }}</p>
+            @enderror
+        </section>
 
         <section class="rounded-lg border border-stone-200 bg-stone-50 p-4">
             <h2 class="text-base font-semibold text-stone-950">Pessoas identificadas</h2>
