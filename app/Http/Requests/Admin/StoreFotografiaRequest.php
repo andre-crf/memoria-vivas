@@ -26,6 +26,8 @@ class StoreFotografiaRequest extends FormRequest
      */
     public function rules(): array
     {
+        $originalUpload = config('acervo.uploads.original');
+
         return [
             'titulo' => ['required', 'string', 'max:255'],
             'legenda' => ['nullable', 'string'],
@@ -34,7 +36,13 @@ class StoreFotografiaRequest extends FormRequest
             'evento' => ['nullable', 'string', 'max:255'],
             'cedente' => ['nullable', 'string', 'max:255'],
             'autor_id' => ['nullable', Rule::exists(Autor::class, 'id')],
-            'arquivo_original' => ['nullable', 'file', 'mimetypes:image/jpeg,image/png,image/webp,image/tiff,application/pdf', 'max:51200'],
+            'arquivo_original' => [
+                'nullable',
+                'file',
+                'mimetypes:'.implode(',', $originalUpload['mime_types']),
+                'extensions:'.implode(',', $originalUpload['extensions']),
+                'max:'.$originalUpload['max_kb'],
+            ],
             'categoria_ids' => ['nullable', 'array'],
             'categoria_ids.*' => ['integer', 'distinct', Rule::exists(Categoria::class, 'id')],
             'assunto_ids' => ['nullable', 'array'],
@@ -47,6 +55,20 @@ class StoreFotografiaRequest extends FormRequest
             'status' => ['required', Rule::in(array_keys(ItemAcervo::STATUS))],
             'visibilidade' => ['required', Rule::enum(Visibilidade::class)],
             ...DataHistorica::regras(),
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        $originalUpload = config('acervo.uploads.original');
+
+        return [
+            'arquivo_original.mimetypes' => 'O arquivo original deve ser uma imagem ou PDF compatível.',
+            'arquivo_original.extensions' => 'O arquivo original deve usar uma das extensões aceitas: '.implode(', ', $originalUpload['extensions']).'.',
+            'arquivo_original.max' => 'O arquivo original não pode passar de '.$this->formattedMaxUploadSize((int) $originalUpload['max_kb']).'.',
         ];
     }
 
@@ -140,5 +162,14 @@ class StoreFotografiaRequest extends FormRequest
             fn (mixed $value): int => (int) $value,
             $values,
         ));
+    }
+
+    private function formattedMaxUploadSize(int $maxKilobytes): string
+    {
+        if ($maxKilobytes >= 1024 && $maxKilobytes % 1024 === 0) {
+            return ($maxKilobytes / 1024).' MB';
+        }
+
+        return $maxKilobytes.' KB';
     }
 }

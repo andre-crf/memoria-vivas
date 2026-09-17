@@ -11,6 +11,10 @@
     $selectedAssuntos = collect(old('assunto_ids', $fotografia?->assuntos?->pluck('id')->all() ?? []))->map(fn ($id) => (string) $id)->all();
     $selectedPalavrasChave = collect(old('palavra_chave_ids', $fotografia?->palavrasChave?->pluck('id')->all() ?? []))->map(fn ($id) => (string) $id)->all();
     $selectedPessoas = collect(old('pessoa_ids', $fotografia?->pessoas?->pluck('id')->all() ?? []))->map(fn ($id) => (string) $id)->all();
+    $originalUploadConfig = config('acervo.uploads.original');
+    $acceptedOriginalMimeTypes = implode(',', $originalUploadConfig['mime_types']);
+    $acceptedOriginalExtensions = implode(', ', array_map(fn (string $extension) => ".{$extension}", $originalUploadConfig['extensions']));
+    $originalUploadMaxMb = number_format($originalUploadConfig['max_kb'] / 1024, 0, ',', '.');
 @endphp
 
 <form method="POST" action="{{ $action }}" enctype="multipart/form-data" class="rounded-lg border border-stone-200 bg-white p-6 shadow-sm" data-date-form>
@@ -138,7 +142,7 @@
         <section class="rounded-lg border border-stone-200 bg-stone-50 p-4">
             <h2 class="text-base font-semibold text-stone-950">Arquivo original</h2>
             <p class="mt-1 text-sm leading-6 text-stone-600">
-                Envie o arquivo digital original da fotografia em imagem ou PDF.
+                Envie imagem ou PDF até {{ $originalUploadMaxMb }} MB. Formatos aceitos: {{ $acceptedOriginalExtensions }}.
             </p>
 
             @if ($fotografia?->arquivos?->firstWhere('versao_arquivo', 'original'))
@@ -155,7 +159,7 @@
                     id="arquivo_original"
                     name="arquivo_original"
                     type="file"
-                    accept="image/jpeg,image/png,image/webp,image/tiff,application/pdf"
+                    accept="{{ $acceptedOriginalMimeTypes }}"
                     class="mt-3 block w-full rounded-md border border-stone-300 bg-white px-3 py-2 text-sm text-stone-900 shadow-sm file:mr-4 file:rounded-md file:border-0 file:bg-[#173F35] file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-[#0f2b24] focus:border-[#173F35] focus:outline-none focus:ring-2 focus:ring-[#173F35]/20"
                 >
             @endif

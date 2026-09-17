@@ -61,6 +61,8 @@ class AdminFotografiaOriginalUploadTest extends TestCase
             ->get(route('admin.fotografias.create'))
             ->assertOk()
             ->assertSee('Arquivo original')
+            ->assertSee('Formatos aceitos: .jpg, .jpeg, .png, .webp, .tif, .tiff, .pdf')
+            ->assertSee('até 50 MB')
             ->assertSee('name="arquivo_original"', false)
             ->assertSee('enctype="multipart/form-data"', false);
     }
@@ -125,6 +127,49 @@ class AdminFotografiaOriginalUploadTest extends TestCase
             ]))
             ->assertRedirect(route('admin.fotografias.create'))
             ->assertSessionHasErrors('arquivo_original');
+
+        $this->assertDatabaseMissing('item_acervos', [
+            'titulo' => 'Praça central restaurada',
+        ]);
+        $this->assertSame(0, Arquivo::count());
+    }
+
+    public function test_original_file_size_limit_is_configurable(): void
+    {
+        Storage::fake('local');
+        config(['acervo.uploads.original.max_kb' => 100]);
+
+        $this
+            ->actingAs($this->usuarioInterno())
+            ->from(route('admin.fotografias.create'))
+            ->post(route('admin.fotografias.store'), $this->validPayload([
+                'arquivo_original' => UploadedFile::fake()->image('foto-grande.jpg', 640, 480)->size(101),
+            ]))
+            ->assertRedirect(route('admin.fotografias.create'))
+            ->assertSessionHasErrors([
+                'arquivo_original' => 'O arquivo original não pode passar de 100 KB.',
+            ]);
+
+        $this->assertDatabaseMissing('item_acervos', [
+            'titulo' => 'Praça central restaurada',
+        ]);
+        $this->assertSame(0, Arquivo::count());
+    }
+
+    public function test_original_file_extension_must_be_accepted(): void
+    {
+        Storage::fake('local');
+
+        $this
+            ->actingAs($this->usuarioInterno())
+            ->from(route('admin.fotografias.create'))
+            ->post(route('admin.fotografias.store'), $this->validPayload([
+                'arquivo_original' => UploadedFile::fake()->create('foto.exe', 1, 'image/jpeg'),
+            ]))
+            ->assertRedirect(route('admin.fotografias.create'))
+            ->assertSessionHasErrors([
+                'arquivo_original' => 'O arquivo original deve usar uma das extensões aceitas: jpg, jpeg, png, webp, tif, tiff, pdf.',
+            ]);
 
         $this->assertDatabaseMissing('item_acervos', [
             'titulo' => 'Praça central restaurada',
