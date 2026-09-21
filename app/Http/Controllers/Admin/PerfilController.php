@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Auditing\AuditContextFactory;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\UpdatePerfilPasswordRequest;
 use App\Http\Requests\Admin\UpdatePerfilRequest;
+use App\Services\Usuarios\AlterarSenhaPerfil;
+use App\Services\Usuarios\AtualizarPerfil;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -23,20 +26,32 @@ class PerfilController extends Controller
         ]);
     }
 
-    public function update(UpdatePerfilRequest $request): RedirectResponse
-    {
-        $request->user()->update($request->validated());
+    public function update(
+        UpdatePerfilRequest $request,
+        AtualizarPerfil $service,
+        AuditContextFactory $contexts,
+    ): RedirectResponse {
+        $service->execute(
+            usuario: $request->user(),
+            data: $request->validated(),
+            context: $contexts->fromRequest($request),
+        );
 
         return redirect()
             ->route('admin.perfil.edit')
             ->with('profile_success', 'Dados pessoais atualizados com sucesso.');
     }
 
-    public function updatePassword(UpdatePerfilPasswordRequest $request): RedirectResponse
-    {
-        $request->user()->update([
-            'password' => $request->validated('password'),
-        ]);
+    public function updatePassword(
+        UpdatePerfilPasswordRequest $request,
+        AlterarSenhaPerfil $service,
+        AuditContextFactory $contexts,
+    ): RedirectResponse {
+        $service->execute(
+            usuario: $request->user(),
+            password: $request->validated('password'),
+            context: $contexts->fromRequest($request),
+        );
 
         return redirect()
             ->route('admin.perfil.edit')

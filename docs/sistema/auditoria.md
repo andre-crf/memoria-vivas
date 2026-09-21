@@ -10,14 +10,16 @@ O `AuditRecorder` é o único componente da aplicação autorizado a inserir
 eventos. O model `AuditEvent` e seu query builder rejeitam inserções,
 alterações e exclusões diretas.
 
-Nesta primeira etapa nenhum CRUD existente produz eventos automaticamente. A
-integração será feita gradualmente por serviços de aplicação, sempre dentro da
-mesma transação da alteração de negócio.
+A integração é feita gradualmente por serviços de aplicação, sempre dentro da
+mesma transação da alteração de negócio. A gestão administrativa de usuários e
+o perfil pessoal já seguem esse padrão.
 
 ## Componentes
 
 - `AuditContext`: DTO imutável com responsável, origem, `request_id` e
   `correlation_id`.
+- `AuditContextFactory`: cria o contexto das requisições autenticadas e reutiliza
+  os mesmos identificadores durante toda a requisição.
 - `AuditEventData`: dados normalizados do evento a ser persistido.
 - `AuditRecorder`: sanitiza e persiste o evento de forma síncrona.
 - `AuditSanitizer`: remove campos sensíveis recursivamente.
@@ -164,6 +166,46 @@ chunk.
 Alterações por cascade do banco não geram eventos individuais. O evento da ação
 principal deve informar em `metadata` as consequências conhecidas, como IDs ou
 quantidades de vínculos removidos.
+
+## Usuários e perfil
+
+As mutações de usuários são executadas pelos serviços em
+`App\Services\Usuarios`. Os controllers validam a entrada, obtêm o usuário
+autenticado, criam o contexto da requisição e delegam a operação. Os serviços
+refazem a autorização e carregam os registros com bloqueio dentro da transação,
+evitando que uma decisão baseada em dados desatualizados quebre as proteções de
+perfil, situação ou último administrador ativo.
+
+O snapshot de usuário possui uma lista positiva e centralizada de campos:
+`nome`, `email`, `role` e `status`. Senha, hash, token de lembrança e quaisquer
+credenciais ficam fora do snapshot por construção, além da sanitização geral do
+`AuditRecorder`.
+
+| Operação | Ação de auditoria | Conteúdo |
+|---|---|---|
+| Cadastro administrativo | `created` | Estado inicial permitido, sempre com situação ativa |
+| Alteração de nome, e-mail ou perfil | `updated` | Somente os campos efetivamente alterados |
+| Alteração conjunta, incluindo situação | `updated` | Uma única diferença consolidada |
+| Somente ativação | `activated` | Diferença de `status` |
+| Somente inativação | `deactivated` | Diferença de `status` |
+| Alteração do próprio nome/e-mail | `updated` | Somente diferenças de identidade |
+| Alteração da própria senha | `password_changed` | Sem valores anteriores ou novos |
+
+Uma submissão que mantém os mesmos valores não produz evento. Uma nova senha
+igual à senha atual também é tratada como ausência de alteração. Falhas de
+validação, autorização, proteção do último administrador ou persistência não
+deixam evento nem mudança de negócio parcial.
+
+O `actor` representa quem iniciou a operação e o `subject`, o usuário afetado.
+Na alteração do próprio perfil ambos têm o mesmo ID. Nome e perfil do ator são
+capturados no início da requisição para preservar o contexto histórico mesmo
+quando a operação altera o próprio nome.
+
+Os metadados distinguem a intenção da operação (`admin_user_create`,
+`admin_user_update`, `self_profile_update` e `self_password_change`) e podem
+informar os grupos modificados (`identity`, `authorization` e `status`). Eles
+não devem duplicar dados pessoais já presentes nas diferenças nem carregar
+segredos.
 
 ## Imutabilidade
 

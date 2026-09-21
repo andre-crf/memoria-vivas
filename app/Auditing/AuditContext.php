@@ -6,6 +6,7 @@ use App\Auditing\Enums\AuditSource;
 use App\Models\User;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
+use LogicException;
 
 final readonly class AuditContext
 {
@@ -55,5 +56,16 @@ final readonly class AuditContext
             requestId: $requestId,
             correlationId: $correlationId ?? $requestId,
         );
+    }
+
+    public function assertActor(User $user): void
+    {
+        if (
+            $this->actorUserId !== (int) $user->getKey()
+            || $this->actorName !== $user->nome
+            || $this->actorRole !== $user->role
+        ) {
+            throw new LogicException('O responsável da operação não corresponde ao AuditContext.');
+        }
     }
 }
