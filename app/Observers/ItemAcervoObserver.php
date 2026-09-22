@@ -6,7 +6,10 @@ use App\Models\ItemAcervo;
 use Illuminate\Support\Facades\Auth;
 
 /**
- * Preenche a auditoria do item de acervo com o usuário autenticado.
+ * Mantém somente a autoria resumida do item (`*_by_user_id`) com o usuário
+ * autenticado. O histórico de alterações não é responsabilidade deste
+ * observer: ele é registrado em `audit_events` pelos serviços de
+ * `App\Services\Acervo`.
  *
  * Os campos `*_by_user_id` ficam fora do Fillable justamente para que nenhum
  * cliente da aplicação possa escolher a quem atribuir a ação.

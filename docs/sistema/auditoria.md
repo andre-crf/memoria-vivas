@@ -11,8 +11,8 @@ eventos. O model `AuditEvent` e seu query builder rejeitam inserções,
 alterações e exclusões diretas.
 
 A integração é feita gradualmente por serviços de aplicação, sempre dentro da
-mesma transação da alteração de negócio. A gestão administrativa de usuários e
-o perfil pessoal já seguem esse padrão.
+mesma transação da alteração de negócio. A gestão administrativa de usuários,
+o perfil pessoal e os itens do acervo já seguem esse padrão.
 
 ## Componentes
 
@@ -206,6 +206,61 @@ Os metadados distinguem a intenção da operação (`admin_user_create`,
 informar os grupos modificados (`identity`, `authorization` e `status`). Eles
 não devem duplicar dados pessoais já presentes nas diferenças nem carregar
 segredos.
+
+## Itens do acervo e relacionamentos
+
+As mutações de itens do acervo são executadas pelos serviços em
+`App\Services\Acervo`. O `FotografiaController` valida a entrada, garante que o
+registro é uma fotografia, cria o contexto da requisição e delega a operação.
+Os serviços refazem a autorização e carregam o item com bloqueio dentro da
+transação.
+
+O `ItemAcervoObserver` continua responsável apenas pela autoria resumida
+(`created_by_user_id`, `updated_by_user_id` e `deleted_by_user_id`). Ele não
+grava em `audit_events`; alterações feitas fora dos serviços atualizam a
+autoria resumida, mas não geram histórico.
+
+O `ItemAcervoAuditSnapshot` possui a lista positiva de campos do item e inclui
+os relacionamentos auditados:
+
+| Chave | Conteúdo |
+|---|---|
+| `autor` | `{id, label}` do autor ou `null` |
+| `categorias` | Lista de `{id, label}` ordenada por ID |
+| `assuntos` | Lista de `{id, label}` ordenada por ID |
+| `palavras_chave` | Lista de `{id, label}` ordenada por ID |
+| `pessoas` | Lista de `{id, label}` ordenada por ID |
+
+O rótulo é gravado junto do ID para que o histórico continue legível depois
+que o item ou a entidade relacionada forem excluídos. Campos de autoria
+resumida e timestamps ficam fora do snapshot.
+
+| Operação | Serviço | Ação | Conteúdo |
+|---|---|---|---|
+| Cadastro | `CriarItemAcervo` | `created` | Campos e vínculos iniciais |
+| Edição de campos e/ou vínculos | `AtualizarItemAcervo` | `updated` | Uma única diferença consolidada |
+| Exclusão lógica | `ExcluirItemAcervo` | `deleted` | Snapshot completo anterior |
+| Restauração | `RestaurarItemAcervo` | `restored` | Diferença de `deleted_at` |
+| Exclusão definitiva | `ExcluirItemAcervoDefinitivamente` | `force_deleted` | Snapshot completo, incluindo `deleted_at` |
+
+Na edição, os relacionamentos são sincronizados pelo serviço auxiliar
+`SincronizarRelacionamentosItemAcervo`, dentro da mesma transação. Uma chave de
+relacionamento ausente preserva os vínculos atuais; uma lista vazia remove
+todos. Alterações somente de vínculos também atualizam a autoria resumida do
+item. Uma submissão sem diferenças efetivas não produz evento.
+
+Os metadados informam a intenção (`acervo_item_create`, `acervo_item_update`,
+`acervo_item_soft_delete`, `acervo_item_restore` e
+`acervo_item_force_delete`). Na edição, `change_groups` indica os grupos
+alterados (`descriptive`, `publication` e `relationships`) e
+`relationship_changes` resume os IDs adicionados e removidos de cada
+relacionamento N:N.
+
+A exclusão definitiva captura o snapshot antes da remoção, pois o banco apaga
+por cascade vínculos, arquivos, registros de download e participações em
+coleções e conjuntos contextuais. Essas consequências são registradas em
+`metadata.cascade` (`arquivo_ids`, `colecao_ids`, `conjunto_contextual_ids`,
+`colecao_capa_ids` e `registro_downloads_count`), sem eventos individuais.
 
 ## Imutabilidade
 

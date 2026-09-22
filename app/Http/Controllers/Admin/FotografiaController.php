@@ -2,14 +2,21 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Auditing\AuditContextFactory;
 use App\Enums\TipoData;
 use App\Enums\Visibilidade;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreFotografiaRequest;
 use App\Http\Requests\Admin\UpdateFotografiaRequest;
 use App\Models\ItemAcervo;
+use App\Services\Acervo\AtualizarItemAcervo;
+use App\Services\Acervo\CriarItemAcervo;
+use App\Services\Acervo\ExcluirItemAcervo;
+use App\Services\Acervo\ExcluirItemAcervoDefinitivamente;
+use App\Services\Acervo\RestaurarItemAcervo;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Gate;
 
@@ -57,9 +64,16 @@ class FotografiaController extends Controller
         ]);
     }
 
-    public function store(StoreFotografiaRequest $request): RedirectResponse
-    {
-        ItemAcervo::create($request->payload());
+    public function store(
+        StoreFotografiaRequest $request,
+        CriarItemAcervo $service,
+        AuditContextFactory $contexts,
+    ): RedirectResponse {
+        $service->execute(
+            actor: $request->user(),
+            data: $request->payload(),
+            context: $contexts->fromRequest($request),
+        );
 
         return redirect()
             ->route('admin.fotografias.index')
@@ -103,47 +117,84 @@ class FotografiaController extends Controller
         ]);
     }
 
-    public function update(UpdateFotografiaRequest $request, ItemAcervo $fotografia): RedirectResponse
-    {
+    public function update(
+        UpdateFotografiaRequest $request,
+        ItemAcervo $fotografia,
+        AtualizarItemAcervo $service,
+        AuditContextFactory $contexts,
+    ): RedirectResponse {
         $this->ensurePhotograph($fotografia);
 
-        $fotografia->update($request->payload());
+        $service->execute(
+            actor: $request->user(),
+            item: $fotografia,
+            data: $request->payload(),
+            context: $contexts->fromRequest($request),
+        );
 
         return redirect()
             ->route('admin.fotografias.show', $fotografia)
             ->with('success', 'Fotografia atualizada com sucesso.');
     }
 
-    public function destroy(ItemAcervo $fotografia): RedirectResponse
-    {
+    public function destroy(
+        Request $request,
+        ItemAcervo $fotografia,
+        ExcluirItemAcervo $service,
+        AuditContextFactory $contexts,
+    ): RedirectResponse {
         $this->ensurePhotograph($fotografia);
-        Gate::authorize('delete', $fotografia);
 
-        $fotografia->delete();
+        $service->execute(
+            actor: $request->user(),
+            item: $fotografia,
+            context: $contexts->fromRequest($request),
+        );
 
         return redirect()
             ->route('admin.fotografias.index')
             ->with('success', 'Fotografia excluída com sucesso.');
     }
 
-    public function restore(string $fotografia): RedirectResponse
-    {
-        $fotografia = ItemAcervo::query()
-            ->onlyTrashed()
-            ->whereKey($fotografia)
-            ->firstOrFail();
+    public function restore(
+        Request $request,
+        string $fotografia,
+        RestaurarItemAcervo $service,
+        AuditContextFactory $contexts,
+    ): RedirectResponse {
+        $fotografia = $this->trashedPhotograph($fotografia);
 
-        $this->ensurePhotograph($fotografia);
-        Gate::authorize('restore', $fotografia);
-
-        $fotografia->restore();
+        $service->execute(
+            actor: $request->user(),
+            item: $fotografia,
+            context: $contexts->fromRequest($request),
+        );
 
         return redirect()
             ->route('admin.fotografias.trashed')
             ->with('success', 'Fotografia restaurada com sucesso.');
     }
 
-    public function forceDestroy(string $fotografia): RedirectResponse
+    public function forceDestroy(
+        Request $request,
+        string $fotografia,
+        ExcluirItemAcervoDefinitivamente $service,
+        AuditContextFactory $contexts,
+    ): RedirectResponse {
+        $fotografia = $this->trashedPhotograph($fotografia);
+
+        $service->execute(
+            actor: $request->user(),
+            item: $fotografia,
+            context: $contexts->fromRequest($request),
+        );
+
+        return redirect()
+            ->route('admin.fotografias.trashed')
+            ->with('success', 'Fotografia excluída permanentemente.');
+    }
+
+    private function trashedPhotograph(string $fotografia): ItemAcervo
     {
         $fotografia = ItemAcervo::query()
             ->onlyTrashed()
@@ -151,13 +202,8 @@ class FotografiaController extends Controller
             ->firstOrFail();
 
         $this->ensurePhotograph($fotografia);
-        Gate::authorize('forceDelete', $fotografia);
 
-        $fotografia->forceDelete();
-
-        return redirect()
-            ->route('admin.fotografias.trashed')
-            ->with('success', 'Fotografia excluída permanentemente.');
+        return $fotografia;
     }
 
     private function ensurePhotograph(ItemAcervo $fotografia): void

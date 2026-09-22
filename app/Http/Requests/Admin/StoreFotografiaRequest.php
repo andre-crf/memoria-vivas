@@ -32,6 +32,15 @@ class StoreFotografiaRequest extends FormRequest
             'status' => ['required', Rule::in(array_keys(ItemAcervo::STATUS))],
             'visibilidade' => ['required', Rule::enum(Visibilidade::class)],
             ...DataHistorica::regras(),
+            'autor_id' => ['sometimes', 'nullable', 'integer', Rule::exists('autores', 'id')],
+            'categorias' => ['sometimes', 'array'],
+            'categorias.*' => ['integer', 'distinct', Rule::exists('categorias', 'id')],
+            'assuntos' => ['sometimes', 'array'],
+            'assuntos.*' => ['integer', 'distinct', Rule::exists('assuntos', 'id')],
+            'palavras_chave' => ['sometimes', 'array'],
+            'palavras_chave.*' => ['integer', 'distinct', Rule::exists('palavras_chave', 'id')],
+            'pessoas' => ['sometimes', 'array'],
+            'pessoas.*' => ['integer', 'distinct', Rule::exists('pessoas', 'id')],
         ];
     }
 
@@ -74,7 +83,26 @@ class StoreFotografiaRequest extends FormRequest
             'estado_conservacao' => $validated['estado_conservacao'],
             'status' => $validated['status'],
             'visibilidade' => $validated['visibilidade'],
+            ...$this->relationships($validated),
         ];
+    }
+
+    /**
+     * Relacionamentos só entram no payload quando enviados: uma chave ausente
+     * preserva os vínculos atuais na edição.
+     *
+     * @param  array<string, mixed>  $validated
+     * @return array<string, mixed>
+     */
+    private function relationships(array $validated): array
+    {
+        return Arr::only($validated, [
+            'autor_id',
+            'categorias',
+            'assuntos',
+            'palavras_chave',
+            'pessoas',
+        ]);
     }
 
     /**
