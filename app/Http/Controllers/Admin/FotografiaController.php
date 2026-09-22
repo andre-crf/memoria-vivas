@@ -73,14 +73,24 @@ class FotografiaController extends Controller
 
     public function store(StoreFotografiaRequest $request): RedirectResponse
     {
+        $originalFileHash = null;
+
         if ($request->hasFile('arquivo_original')) {
             Gate::authorize('uploadOriginal', Arquivo::class);
+
+            $originalFileHash = $this->originalFileHash($request->file('arquivo_original'));
+
+            if ($duplicate = $this->duplicateOriginalFile($originalFileHash)) {
+                return back()
+                    ->withErrors(['arquivo_original' => $this->duplicateOriginalFileMessage($duplicate)])
+                    ->withInput();
+            }
         }
 
-        DB::transaction(function () use ($request): void {
+        DB::transaction(function () use ($request, $originalFileHash): void {
             $fotografia = ItemAcervo::create($request->payload());
             $this->syncClassifications($fotografia, $request->classificationPayload());
-            $this->storeOriginalFile($fotografia, $request->file('arquivo_original'));
+            $this->storeOriginalFile($fotografia, $request->file('arquivo_original'), $originalFileHash);
         });
 
         return redirect()
@@ -135,6 +145,7 @@ class FotografiaController extends Controller
     public function update(UpdateFotografiaRequest $request, ItemAcervo $fotografia): RedirectResponse
     {
         $this->ensurePhotograph($fotografia);
+        $originalFileHash = null;
 
         if ($request->hasFile('arquivo_original')) {
             Gate::authorize('uploadOriginal', Arquivo::class);
@@ -144,12 +155,20 @@ class FotografiaController extends Controller
                     ->withErrors(['arquivo_original' => 'Esta fotografia já possui arquivo original vinculado.'])
                     ->withInput();
             }
+
+            $originalFileHash = $this->originalFileHash($request->file('arquivo_original'));
+
+            if ($duplicate = $this->duplicateOriginalFile($originalFileHash, $fotografia)) {
+                return back()
+                    ->withErrors(['arquivo_original' => $this->duplicateOriginalFileMessage($duplicate)])
+                    ->withInput();
+            }
         }
 
-        DB::transaction(function () use ($request, $fotografia): void {
+        DB::transaction(function () use ($request, $fotografia, $originalFileHash): void {
             $fotografia->update($request->payload());
             $this->syncClassifications($fotografia, $request->classificationPayload());
-            $this->storeOriginalFile($fotografia, $request->file('arquivo_original'));
+            $this->storeOriginalFile($fotografia, $request->file('arquivo_original'), $originalFileHash);
         });
 
         return redirect()
@@ -208,7 +227,7 @@ class FotografiaController extends Controller
         abort_unless($fotografia->tipo_item === 'fotografia', Response::HTTP_NOT_FOUND);
     }
 
-    private function storeOriginalFile(ItemAcervo $fotografia, ?UploadedFile $file): void
+    private function storeOriginalFile(ItemAcervo $fotografia, ?UploadedFile $file, ?string $sha256 = null): void
     {
         if (! $file instanceof UploadedFile) {
             return;
@@ -229,11 +248,38 @@ class FotografiaController extends Controller
             'mime_type' => $file->getMimeType() ?: 'application/octet-stream',
             'file_size' => $file->getSize(),
             'tipo_arquivo' => $this->fileType($file),
-            'sha256' => hash_file('sha256', $file->getRealPath()),
+            'sha256' => $sha256 ?? $this->originalFileHash($file),
             'versao_arquivo' => 'original',
             'width' => $width,
             'height' => $height,
         ]);
+    }
+
+    private function originalFileHash(UploadedFile $file): string
+    {
+        return (string) hash_file('sha256', $file->getRealPath());
+    }
+
+    private function duplicateOriginalFile(string $sha256, ?ItemAcervo $except = null): ?Arquivo
+    {
+        return Arquivo::query()
+            ->with(['itemAcervo' => fn ($query) => $query->withTrashed()])
+            ->where('sha256', $sha256)
+            ->where('versao_arquivo', 'original')
+            ->when($except, fn ($query) => $query->where('item_acervo_id', '!=', $except->id))
+            ->oldest('id')
+            ->first();
+    }
+
+    private function duplicateOriginalFileMessage(Arquivo $arquivo): string
+    {
+        $item = $arquivo->itemAcervo;
+
+        if (! $item instanceof ItemAcervo) {
+            return 'Este arquivo parece já estar cadastrado em outro item do acervo.';
+        }
+
+        return "Este arquivo parece já estar cadastrado na fotografia \"{$item->titulo}\" (#{$item->id}).";
     }
 
     /**

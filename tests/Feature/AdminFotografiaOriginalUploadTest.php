@@ -177,6 +177,83 @@ class AdminFotografiaOriginalUploadTest extends TestCase
         $this->assertSame(0, Arquivo::count());
     }
 
+    public function test_duplicate_original_file_is_rejected_during_registration(): void
+    {
+        Storage::fake('local');
+        $arquivoOriginal = UploadedFile::fake()->image('foto-duplicada.jpg', 320, 240)->size(128);
+        $hash = hash_file('sha256', $arquivoOriginal->getRealPath());
+        $fotografiaExistente = $this->fotografia(['titulo' => 'Fotografia já cadastrada']);
+        $fotografiaExistente->arquivos()->create([
+            'nome_original' => 'foto-duplicada.jpg',
+            'provider' => 'local',
+            'storage_path' => 'acervo/originais/existente.jpg',
+            'mime_type' => 'image/jpeg',
+            'file_size' => 1024,
+            'tipo_arquivo' => 'imagem',
+            'sha256' => $hash,
+            'versao_arquivo' => 'original',
+            'width' => 320,
+            'height' => 240,
+        ]);
+
+        $this
+            ->actingAs($this->usuarioInterno())
+            ->from(route('admin.fotografias.create'))
+            ->post(route('admin.fotografias.store'), $this->validPayload([
+                'titulo' => 'Nova tentativa duplicada',
+                'arquivo_original' => $arquivoOriginal,
+            ]))
+            ->assertRedirect(route('admin.fotografias.create'))
+            ->assertSessionHasErrors([
+                'arquivo_original' => 'Este arquivo parece já estar cadastrado na fotografia "Fotografia já cadastrada" (#'.$fotografiaExistente->id.').',
+            ]);
+
+        $this->assertDatabaseMissing('item_acervos', [
+            'titulo' => 'Nova tentativa duplicada',
+        ]);
+        $this->assertSame(1, Arquivo::where('sha256', $hash)->count());
+    }
+
+    public function test_duplicate_original_file_is_rejected_during_edit(): void
+    {
+        Storage::fake('local');
+        $arquivoOriginal = UploadedFile::fake()->image('foto-duplicada.jpg', 320, 240)->size(128);
+        $hash = hash_file('sha256', $arquivoOriginal->getRealPath());
+        $fotografiaExistente = $this->fotografia(['titulo' => 'Fotografia já cadastrada']);
+        $fotografiaExistente->arquivos()->create([
+            'nome_original' => 'foto-duplicada.jpg',
+            'provider' => 'local',
+            'storage_path' => 'acervo/originais/existente.jpg',
+            'mime_type' => 'image/jpeg',
+            'file_size' => 1024,
+            'tipo_arquivo' => 'imagem',
+            'sha256' => $hash,
+            'versao_arquivo' => 'original',
+            'width' => 320,
+            'height' => 240,
+        ]);
+        $fotografiaSemArquivo = $this->fotografia(['titulo' => 'Fotografia sem arquivo']);
+
+        $this
+            ->actingAs($this->usuarioInterno())
+            ->from(route('admin.fotografias.edit', $fotografiaSemArquivo))
+            ->put(route('admin.fotografias.update', $fotografiaSemArquivo), $this->validPayload([
+                'titulo' => 'Tentativa de edição duplicada',
+                'arquivo_original' => $arquivoOriginal,
+            ]))
+            ->assertRedirect(route('admin.fotografias.edit', $fotografiaSemArquivo))
+            ->assertSessionHasErrors([
+                'arquivo_original' => 'Este arquivo parece já estar cadastrado na fotografia "Fotografia já cadastrada" (#'.$fotografiaExistente->id.').',
+            ]);
+
+        $this->assertDatabaseHas('item_acervos', [
+            'id' => $fotografiaSemArquivo->id,
+            'titulo' => 'Fotografia sem arquivo',
+        ]);
+        $this->assertSame(0, Arquivo::where('item_acervo_id', $fotografiaSemArquivo->id)->count());
+        $this->assertSame(1, Arquivo::where('sha256', $hash)->count());
+    }
+
     public function test_edit_does_not_replace_existing_original_file(): void
     {
         Storage::fake('local');
