@@ -80,8 +80,13 @@ class AdminFotografiaOriginalUploadTest extends TestCase
             ->assertRedirect(route('admin.fotografias.index'));
 
         $fotografia = ItemAcervo::where('titulo', 'Fotografia com original')->firstOrFail();
-        $arquivo = Arquivo::where('item_acervo_id', $fotografia->id)->firstOrFail();
+        $arquivos = Arquivo::where('item_acervo_id', $fotografia->id)->orderBy('id')->get();
+        $arquivo = $arquivos->firstWhere('versao_arquivo', 'original');
+        $thumbnail = $arquivos->firstWhere('versao_arquivo', 'thumbnail');
+        $medium = $arquivos->firstWhere('versao_arquivo', 'medium');
+        $large = $arquivos->firstWhere('versao_arquivo', 'large');
 
+        $this->assertCount(4, $arquivos);
         $this->assertSame('praca-central.jpg', $arquivo->nome_original);
         $this->assertSame('local', $arquivo->provider);
         $this->assertSame('image/jpeg', $arquivo->mime_type);
@@ -92,6 +97,20 @@ class AdminFotografiaOriginalUploadTest extends TestCase
         $this->assertSame(64, strlen((string) $arquivo->sha256));
         $this->assertStringStartsWith("acervo/originais/{$fotografia->id}/", $arquivo->storage_path);
         Storage::disk('local')->assertExists($arquivo->storage_path);
+
+        $this->assertSame([320, 240], [$thumbnail->width, $thumbnail->height]);
+        $this->assertSame([640, 480], [$medium->width, $medium->height]);
+        $this->assertSame([640, 480], [$large->width, $large->height]);
+
+        foreach ([$thumbnail, $medium, $large] as $derivacao) {
+            $this->assertNull($derivacao->nome_original);
+            $this->assertSame('local', $derivacao->provider);
+            $this->assertSame('image/jpeg', $derivacao->mime_type);
+            $this->assertSame('imagem', $derivacao->tipo_arquivo);
+            $this->assertSame(64, strlen((string) $derivacao->sha256));
+            $this->assertStringStartsWith("acervo/derivados/{$fotografia->id}/", $derivacao->storage_path);
+            Storage::disk('local')->assertExists($derivacao->storage_path);
+        }
     }
 
     public function test_internal_user_can_attach_original_file_during_edit_when_missing(): void
@@ -106,12 +125,42 @@ class AdminFotografiaOriginalUploadTest extends TestCase
             ]))
             ->assertRedirect(route('admin.fotografias.show', $fotografia));
 
-        $arquivo = Arquivo::where('item_acervo_id', $fotografia->id)->firstOrFail();
+        $arquivo = Arquivo::where('item_acervo_id', $fotografia->id)
+            ->where('versao_arquivo', 'original')
+            ->firstOrFail();
 
         $this->assertSame('retrato.png', $arquivo->nome_original);
         $this->assertSame('image/png', $arquivo->mime_type);
         $this->assertSame(300, $arquivo->width);
         $this->assertSame(200, $arquivo->height);
+        Storage::disk('local')->assertExists($arquivo->storage_path);
+        $this->assertSame(
+            ['large', 'medium', 'original', 'thumbnail'],
+            Arquivo::where('item_acervo_id', $fotografia->id)->pluck('versao_arquivo')->sort()->values()->all(),
+        );
+    }
+
+    public function test_original_pdf_upload_does_not_generate_optimized_image_versions(): void
+    {
+        Storage::fake('local');
+
+        $this
+            ->actingAs($this->usuarioInterno())
+            ->post(route('admin.fotografias.store'), $this->validPayload([
+                'titulo' => 'Fotografia com PDF original',
+                'arquivo_original' => UploadedFile::fake()->create('documento.pdf', 128, 'application/pdf'),
+            ]))
+            ->assertRedirect(route('admin.fotografias.index'));
+
+        $fotografia = ItemAcervo::where('titulo', 'Fotografia com PDF original')->firstOrFail();
+        $arquivo = Arquivo::where('item_acervo_id', $fotografia->id)->sole();
+
+        $this->assertSame('documento.pdf', $arquivo->nome_original);
+        $this->assertSame('application/pdf', $arquivo->mime_type);
+        $this->assertSame('documento', $arquivo->tipo_arquivo);
+        $this->assertSame('original', $arquivo->versao_arquivo);
+        $this->assertNull($arquivo->width);
+        $this->assertNull($arquivo->height);
         Storage::disk('local')->assertExists($arquivo->storage_path);
     }
 

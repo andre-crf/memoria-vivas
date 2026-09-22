@@ -14,6 +14,7 @@ use App\Models\Categoria;
 use App\Models\ItemAcervo;
 use App\Models\PalavraChave;
 use App\Models\Pessoa;
+use App\Support\OptimizedImageVersions;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Response;
@@ -241,7 +242,7 @@ class FotografiaController extends Controller
         );
         [$width, $height] = $this->imageDimensions($file);
 
-        $fotografia->arquivos()->create([
+        $original = $fotografia->arquivos()->create([
             'nome_original' => $file->getClientOriginalName(),
             'provider' => 'local',
             'storage_path' => $storagePath,
@@ -253,6 +254,8 @@ class FotografiaController extends Controller
             'width' => $width,
             'height' => $height,
         ]);
+
+        app(OptimizedImageVersions::class)->generate($fotografia, $original);
     }
 
     private function originalFileHash(UploadedFile $file): string
