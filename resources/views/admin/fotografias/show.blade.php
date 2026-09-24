@@ -230,6 +230,33 @@
                 <section class="rounded-lg border border-stone-200 bg-white p-6 shadow-sm">
                     <h2 class="text-2xl font-semibold text-stone-950">Arquivos</h2>
                     @php($arquivoOriginal = $fotografia->arquivos->firstWhere('versao_arquivo', 'original'))
+                    @php($previewAdministrativa = $fotografia->visualizacaoAdministrativa())
+
+                    <div class="mt-4">
+                        @if ($previewAdministrativa)
+                            <figure>
+                                <img
+                                    src="{{ route('admin.arquivos.show', $previewAdministrativa) }}"
+                                    alt="Visualização administrativa de {{ $fotografia->titulo }}"
+                                    width="{{ $previewAdministrativa->width ?: 800 }}"
+                                    height="{{ $previewAdministrativa->height ?: 600 }}"
+                                    class="aspect-[4/3] w-full rounded-md bg-stone-100 object-contain"
+                                >
+                                <figcaption class="mt-2 text-xs text-stone-500">
+                                    Prévia administrativa: versão {{ $previewAdministrativa->versao_arquivo }}.
+                                </figcaption>
+                            </figure>
+                        @else
+                            <div class="grid aspect-[4/3] w-full place-items-center rounded-md border border-dashed border-stone-300 bg-stone-50 p-6 text-center">
+                                <div>
+                                    <p class="text-sm font-semibold text-stone-700">Prévia indisponível</p>
+                                    <p class="mt-1 text-xs leading-5 text-stone-500">
+                                        Cadastre ou regenere versões otimizadas para visualizar a fotografia aqui.
+                                    </p>
+                                </div>
+                            </div>
+                        @endif
+                    </div>
 
                     @if ($arquivoOriginal)
                         @can('replaceOriginal', $arquivoOriginal)

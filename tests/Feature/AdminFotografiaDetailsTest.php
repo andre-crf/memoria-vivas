@@ -153,6 +153,76 @@ class AdminFotografiaDetailsTest extends TestCase
             ->assertSee('2,0 KB');
     }
 
+    public function test_details_use_large_preview_version_instead_of_original(): void
+    {
+        $fotografia = $this->fotografia(['titulo' => 'Fotografia com prévia']);
+        $original = $fotografia->arquivos()->create([
+            'nome_original' => 'original.jpg',
+            'provider' => 'local',
+            'storage_path' => 'acervo/originais/original.jpg',
+            'mime_type' => 'image/jpeg',
+            'file_size' => 4096,
+            'tipo_arquivo' => 'imagem',
+            'versao_arquivo' => 'original',
+            'width' => 1600,
+            'height' => 1200,
+        ]);
+        $medium = $fotografia->arquivos()->create([
+            'nome_original' => null,
+            'provider' => 'local',
+            'storage_path' => 'acervo/derivados/medium.jpg',
+            'mime_type' => 'image/jpeg',
+            'file_size' => 2048,
+            'tipo_arquivo' => 'imagem',
+            'versao_arquivo' => 'medium',
+            'width' => 1024,
+            'height' => 768,
+        ]);
+        $large = $fotografia->arquivos()->create([
+            'nome_original' => null,
+            'provider' => 'local',
+            'storage_path' => 'acervo/derivados/large.jpg',
+            'mime_type' => 'image/jpeg',
+            'file_size' => 3072,
+            'tipo_arquivo' => 'imagem',
+            'versao_arquivo' => 'large',
+            'width' => 1400,
+            'height' => 1050,
+        ]);
+
+        $this
+            ->actingAs($this->usuarioInterno())
+            ->get(route('admin.fotografias.show', $fotografia))
+            ->assertOk()
+            ->assertSee(route('admin.arquivos.show', $large), false)
+            ->assertDontSee(route('admin.arquivos.show', $medium), false)
+            ->assertDontSee(route('admin.arquivos.show', $original), false)
+            ->assertSee('Prévia administrativa: versão large.');
+    }
+
+    public function test_details_use_preview_fallback_when_only_original_exists(): void
+    {
+        $fotografia = $this->fotografia(['titulo' => 'Fotografia sem derivada']);
+        $original = $fotografia->arquivos()->create([
+            'nome_original' => 'original.jpg',
+            'provider' => 'local',
+            'storage_path' => 'acervo/originais/original.jpg',
+            'mime_type' => 'image/jpeg',
+            'file_size' => 4096,
+            'tipo_arquivo' => 'imagem',
+            'versao_arquivo' => 'original',
+            'width' => 1600,
+            'height' => 1200,
+        ]);
+
+        $this
+            ->actingAs($this->usuarioInterno())
+            ->get(route('admin.fotografias.show', $fotografia))
+            ->assertOk()
+            ->assertSee('Prévia indisponível')
+            ->assertDontSee(route('admin.arquivos.show', $original), false);
+    }
+
     public function test_details_do_not_open_non_photograph_items(): void
     {
         $documento = $this->fotografia([

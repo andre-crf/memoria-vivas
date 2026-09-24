@@ -57,7 +57,10 @@ class DashboardController extends Controller
             ]),
             'itensPorDecada' => $this->breakdown($itensPorDecada),
             'itensRecentes' => ItemAcervo::query()
-                ->with('autor')
+                ->with([
+                    'autor',
+                    'arquivos' => fn ($query) => $query->where('versao_arquivo', 'thumbnail'),
+                ])
                 ->latest('id')
                 ->limit(5)
                 ->get(),

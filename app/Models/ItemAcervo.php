@@ -80,6 +80,43 @@ class ItemAcervo extends Model
         return $this->hasMany(Arquivo::class);
     }
 
+    public function arquivoDaVersao(string $versao): ?Arquivo
+    {
+        if ($this->relationLoaded('arquivos')) {
+            return $this->arquivos->firstWhere('versao_arquivo', $versao);
+        }
+
+        return $this->arquivos()
+            ->where('versao_arquivo', $versao)
+            ->first();
+    }
+
+    /**
+     * @param  array<int, string>  $versoes
+     */
+    public function imagemAdministrativa(array $versoes): ?Arquivo
+    {
+        foreach ($versoes as $versao) {
+            $arquivo = $this->arquivoDaVersao($versao);
+
+            if ($arquivo?->isImagem()) {
+                return $arquivo;
+            }
+        }
+
+        return null;
+    }
+
+    public function thumbnailAdministrativa(): ?Arquivo
+    {
+        return $this->imagemAdministrativa(['thumbnail']);
+    }
+
+    public function visualizacaoAdministrativa(): ?Arquivo
+    {
+        return $this->imagemAdministrativa(['large', 'medium', 'thumbnail']);
+    }
+
     public function categorias(): BelongsToMany
     {
         return $this->belongsToMany(Categoria::class, 'categoria_item_acervo');

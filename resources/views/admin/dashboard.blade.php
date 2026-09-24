@@ -114,11 +114,23 @@
             @else
                 <div class="mt-6 divide-y divide-stone-200">
                     @foreach ($itensRecentes as $item)
+                        @php($thumbnail = $item->thumbnailAdministrativa())
                         <div class="flex flex-col gap-4 py-4 sm:flex-row sm:items-center sm:justify-between">
                             <div class="flex items-center gap-4">
-                                <div class="grid h-16 w-16 shrink-0 place-items-center rounded-md bg-stone-100 text-lg font-semibold text-stone-950">
-                                    {{ strtoupper(substr($item->titulo, 0, 1)) }}
-                                </div>
+                                @if ($thumbnail)
+                                    <img
+                                        src="{{ route('admin.arquivos.show', $thumbnail) }}"
+                                        alt="Miniatura de {{ $item->titulo }}"
+                                        width="{{ $thumbnail->width ?: 64 }}"
+                                        height="{{ $thumbnail->height ?: 64 }}"
+                                        loading="lazy"
+                                        class="h-16 w-16 shrink-0 rounded-md bg-stone-100 object-cover"
+                                    >
+                                @else
+                                    <div class="grid h-16 w-16 shrink-0 place-items-center rounded-md bg-stone-100 text-lg font-semibold text-stone-950">
+                                        {{ strtoupper(substr($item->titulo, 0, 1)) }}
+                                    </div>
+                                @endif
                                 <div>
                                     <h3 class="font-semibold text-stone-950">{{ $item->titulo }}</h3>
                                     <p class="mt-1 text-sm text-stone-600">

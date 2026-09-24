@@ -32,6 +32,7 @@ class FotografiaController extends Controller
         Gate::authorize('viewAny', ItemAcervo::class);
 
         $fotografias = ItemAcervo::query()
+            ->with(['arquivos' => fn ($query) => $query->where('versao_arquivo', 'thumbnail')])
             ->where('tipo_item', 'fotografia')
             ->latest('id')
             ->paginate(15);

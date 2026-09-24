@@ -46,6 +46,7 @@
                     <table class="min-w-full divide-y divide-stone-200">
                         <thead class="bg-stone-100">
                             <tr>
+                                <th scope="col" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-[0.12em] text-stone-600">Imagem</th>
                                 <th scope="col" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-[0.12em] text-stone-600">Título</th>
                                 <th scope="col" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-[0.12em] text-stone-600">Data</th>
                                 <th scope="col" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-[0.12em] text-stone-600">Status</th>
@@ -55,7 +56,24 @@
                         </thead>
                         <tbody class="divide-y divide-stone-200 bg-white">
                             @foreach ($fotografias as $fotografia)
+                                @php($thumbnail = $fotografia->thumbnailAdministrativa())
                                 <tr id="fotografia-{{ $fotografia->id }}" class="hover:bg-stone-50">
+                                    <td class="px-5 py-4">
+                                        @if ($thumbnail)
+                                            <img
+                                                src="{{ route('admin.arquivos.show', $thumbnail) }}"
+                                                alt="Miniatura de {{ $fotografia->titulo }}"
+                                                width="{{ $thumbnail->width ?: 64 }}"
+                                                height="{{ $thumbnail->height ?: 64 }}"
+                                                loading="lazy"
+                                                class="h-16 w-16 rounded-md bg-stone-100 object-cover"
+                                            >
+                                        @else
+                                            <div class="grid h-16 w-16 place-items-center rounded-md border border-dashed border-stone-300 bg-stone-50 text-xs font-semibold uppercase tracking-[0.12em] text-stone-400">
+                                                Sem imagem
+                                            </div>
+                                        @endif
+                                    </td>
                                     <td class="max-w-md px-5 py-4">
                                         <p class="truncate text-sm font-semibold text-stone-950">{{ $fotografia->titulo }}</p>
                                         <p class="mt-1 text-xs text-stone-500">#{{ $fotografia->id }}</p>
