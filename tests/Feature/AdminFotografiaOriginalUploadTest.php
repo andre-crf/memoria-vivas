@@ -164,6 +164,132 @@ class AdminFotografiaOriginalUploadTest extends TestCase
         Storage::disk('local')->assertExists($arquivo->storage_path);
     }
 
+    public function test_show_page_displays_original_file_replacement_action(): void
+    {
+        $fotografia = $this->fotografia();
+        $arquivo = $fotografia->arquivos()->create([
+            'nome_original' => 'original.jpg',
+            'provider' => 'local',
+            'storage_path' => 'acervo/originais/original.jpg',
+            'mime_type' => 'image/jpeg',
+            'file_size' => 1024,
+            'tipo_arquivo' => 'imagem',
+            'sha256' => str_repeat('a', 64),
+            'versao_arquivo' => 'original',
+            'width' => 640,
+            'height' => 480,
+        ]);
+
+        $this
+            ->actingAs($this->usuarioInterno('operador'))
+            ->get(route('admin.fotografias.show', $fotografia))
+            ->assertOk()
+            ->assertSee('Substituir arquivo original')
+            ->assertSee(route('admin.fotografias.replace-original', $fotografia), false)
+            ->assertSee('name="arquivo_original"', false)
+            ->assertSee('Substituir o arquivo original desta fotografia? As versões otimizadas serão geradas novamente.', false)
+            ->assertSee($arquivo->storage_path);
+    }
+
+    public function test_internal_user_can_replace_original_file_and_regenerate_optimized_versions(): void
+    {
+        Storage::fake('local');
+
+        $this
+            ->actingAs($this->usuarioInterno('operador'))
+            ->post(route('admin.fotografias.store'), $this->validPayload([
+                'titulo' => 'Fotografia para substituir original',
+                'arquivo_original' => UploadedFile::fake()->image('original-antigo.jpg', 640, 480)->size(256),
+            ]))
+            ->assertRedirect(route('admin.fotografias.index'));
+
+        $fotografia = ItemAcervo::where('titulo', 'Fotografia para substituir original')->firstOrFail();
+        $oldArquivos = $fotografia->arquivos()->orderBy('id')->get();
+        $oldOriginal = $oldArquivos->firstWhere('versao_arquivo', 'original');
+        $oldStoragePaths = $oldArquivos->pluck('storage_path')->all();
+
+        $this
+            ->actingAs($this->usuarioInterno('operador'))
+            ->from(route('admin.fotografias.show', $fotografia))
+            ->put(route('admin.fotografias.replace-original', $fotografia), [
+                'arquivo_original' => UploadedFile::fake()->image('original-novo.png', 900, 600)->size(512),
+            ])
+            ->assertRedirect(route('admin.fotografias.show', $fotografia))
+            ->assertSessionHas('success', 'Arquivo original substituído com sucesso.');
+
+        foreach ($oldStoragePaths as $oldStoragePath) {
+            Storage::disk('local')->assertMissing($oldStoragePath);
+        }
+
+        $arquivos = $fotografia->arquivos()->orderBy('id')->get();
+        $original = $arquivos->firstWhere('versao_arquivo', 'original');
+        $thumbnail = $arquivos->firstWhere('versao_arquivo', 'thumbnail');
+        $medium = $arquivos->firstWhere('versao_arquivo', 'medium');
+        $large = $arquivos->firstWhere('versao_arquivo', 'large');
+
+        $this->assertCount(4, $arquivos);
+        $this->assertSame($oldOriginal->id, $original->id);
+        $this->assertSame('original-novo.png', $original->nome_original);
+        $this->assertSame('image/png', $original->mime_type);
+        $this->assertSame('imagem', $original->tipo_arquivo);
+        $this->assertSame('original', $original->versao_arquivo);
+        $this->assertSame([900, 600], [$original->width, $original->height]);
+        $this->assertNotSame($oldOriginal->storage_path, $original->storage_path);
+        $this->assertNotSame($oldOriginal->sha256, $original->sha256);
+        $this->assertStringStartsWith("acervo/originais/{$fotografia->id}/", $original->storage_path);
+        Storage::disk('local')->assertExists($original->storage_path);
+
+        $this->assertSame([320, 213], [$thumbnail->width, $thumbnail->height]);
+        $this->assertSame([900, 600], [$medium->width, $medium->height]);
+        $this->assertSame([900, 600], [$large->width, $large->height]);
+
+        foreach ([$thumbnail, $medium, $large] as $derivacao) {
+            $this->assertNull($derivacao->nome_original);
+            $this->assertSame('image/jpeg', $derivacao->mime_type);
+            $this->assertSame('imagem', $derivacao->tipo_arquivo);
+            $this->assertStringStartsWith("acervo/derivados/{$fotografia->id}/", $derivacao->storage_path);
+            Storage::disk('local')->assertExists($derivacao->storage_path);
+        }
+    }
+
+    public function test_replacing_image_original_with_pdf_removes_old_optimized_versions(): void
+    {
+        Storage::fake('local');
+
+        $this
+            ->actingAs($this->usuarioInterno())
+            ->post(route('admin.fotografias.store'), $this->validPayload([
+                'titulo' => 'Fotografia com original em PDF',
+                'arquivo_original' => UploadedFile::fake()->image('original-antigo.jpg', 640, 480)->size(256),
+            ]))
+            ->assertRedirect(route('admin.fotografias.index'));
+
+        $fotografia = ItemAcervo::where('titulo', 'Fotografia com original em PDF')->firstOrFail();
+        $oldStoragePaths = $fotografia->arquivos()->pluck('storage_path')->all();
+
+        $this
+            ->actingAs($this->usuarioInterno())
+            ->put(route('admin.fotografias.replace-original', $fotografia), [
+                'arquivo_original' => UploadedFile::fake()->create('novo-original.pdf', 128, 'application/pdf'),
+            ])
+            ->assertRedirect(route('admin.fotografias.show', $fotografia));
+
+        foreach ($oldStoragePaths as $oldStoragePath) {
+            Storage::disk('local')->assertMissing($oldStoragePath);
+        }
+
+        $arquivo = $fotografia->arquivos()->sole();
+
+        $this->assertSame('novo-original.pdf', $arquivo->nome_original);
+        $this->assertSame('application/pdf', $arquivo->mime_type);
+        $this->assertSame('documento', $arquivo->tipo_arquivo);
+        $this->assertSame('original', $arquivo->versao_arquivo);
+        $this->assertNull($arquivo->width);
+        $this->assertNull($arquivo->height);
+        $this->assertStringStartsWith("acervo/originais/{$fotografia->id}/", $arquivo->storage_path);
+        Storage::disk('local')->assertExists($arquivo->storage_path);
+    }
+
     public function test_invalid_original_file_is_rejected(): void
     {
         Storage::fake('local');
@@ -300,6 +426,91 @@ class AdminFotografiaOriginalUploadTest extends TestCase
             'titulo' => 'Fotografia sem arquivo',
         ]);
         $this->assertSame(0, Arquivo::where('item_acervo_id', $fotografiaSemArquivo->id)->count());
+        $this->assertSame(1, Arquivo::where('sha256', $hash)->count());
+    }
+
+    public function test_invalid_replacement_original_file_is_rejected(): void
+    {
+        Storage::fake('local');
+        $fotografia = $this->fotografia();
+        $original = $fotografia->arquivos()->create([
+            'nome_original' => 'original.jpg',
+            'provider' => 'local',
+            'storage_path' => 'acervo/originais/original.jpg',
+            'mime_type' => 'image/jpeg',
+            'file_size' => 1024,
+            'tipo_arquivo' => 'imagem',
+            'sha256' => str_repeat('a', 64),
+            'versao_arquivo' => 'original',
+            'width' => 640,
+            'height' => 480,
+        ]);
+
+        $this
+            ->actingAs($this->usuarioInterno())
+            ->from(route('admin.fotografias.show', $fotografia))
+            ->put(route('admin.fotografias.replace-original', $fotografia), [
+                'arquivo_original' => UploadedFile::fake()->create('novo-original.txt', 8, 'text/plain'),
+            ])
+            ->assertRedirect(route('admin.fotografias.show', $fotografia))
+            ->assertSessionHasErrors('arquivo_original');
+
+        $this->assertDatabaseHas('arquivos', [
+            'id' => $original->id,
+            'nome_original' => 'original.jpg',
+            'storage_path' => 'acervo/originais/original.jpg',
+        ]);
+    }
+
+    public function test_duplicate_original_file_is_rejected_during_replacement(): void
+    {
+        Storage::fake('local');
+        $arquivoOriginal = UploadedFile::fake()->image('foto-duplicada.jpg', 320, 240)->size(128);
+        $hash = hash_file('sha256', $arquivoOriginal->getRealPath());
+        $fotografiaExistente = $this->fotografia(['titulo' => 'Fotografia já cadastrada']);
+        $fotografiaExistente->arquivos()->create([
+            'nome_original' => 'foto-duplicada.jpg',
+            'provider' => 'local',
+            'storage_path' => 'acervo/originais/existente.jpg',
+            'mime_type' => 'image/jpeg',
+            'file_size' => 1024,
+            'tipo_arquivo' => 'imagem',
+            'sha256' => $hash,
+            'versao_arquivo' => 'original',
+            'width' => 320,
+            'height' => 240,
+        ]);
+        $fotografia = $this->fotografia(['titulo' => 'Fotografia com outro original']);
+        $original = $fotografia->arquivos()->create([
+            'nome_original' => 'original-atual.jpg',
+            'provider' => 'local',
+            'storage_path' => 'acervo/originais/original-atual.jpg',
+            'mime_type' => 'image/jpeg',
+            'file_size' => 2048,
+            'tipo_arquivo' => 'imagem',
+            'sha256' => str_repeat('b', 64),
+            'versao_arquivo' => 'original',
+            'width' => 640,
+            'height' => 480,
+        ]);
+
+        $this
+            ->actingAs($this->usuarioInterno())
+            ->from(route('admin.fotografias.show', $fotografia))
+            ->put(route('admin.fotografias.replace-original', $fotografia), [
+                'arquivo_original' => $arquivoOriginal,
+            ])
+            ->assertRedirect(route('admin.fotografias.show', $fotografia))
+            ->assertSessionHasErrors([
+                'arquivo_original' => 'Este arquivo parece já estar cadastrado na fotografia "Fotografia já cadastrada" (#'.$fotografiaExistente->id.').',
+            ]);
+
+        $this->assertDatabaseHas('arquivos', [
+            'id' => $original->id,
+            'nome_original' => 'original-atual.jpg',
+            'storage_path' => 'acervo/originais/original-atual.jpg',
+            'sha256' => str_repeat('b', 64),
+        ]);
         $this->assertSame(1, Arquivo::where('sha256', $hash)->count());
     }
 

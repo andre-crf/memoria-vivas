@@ -229,6 +229,49 @@
 
                 <section class="rounded-lg border border-stone-200 bg-white p-6 shadow-sm">
                     <h2 class="text-2xl font-semibold text-stone-950">Arquivos</h2>
+                    @php($arquivoOriginal = $fotografia->arquivos->firstWhere('versao_arquivo', 'original'))
+
+                    @if ($arquivoOriginal)
+                        @can('replaceOriginal', $arquivoOriginal)
+                            <form
+                                method="POST"
+                                action="{{ route('admin.fotografias.replace-original', $fotografia) }}"
+                                enctype="multipart/form-data"
+                                class="mt-4 space-y-3 border-b border-stone-200 pb-5"
+                                onsubmit="return confirm('Substituir o arquivo original desta fotografia? As versões otimizadas serão geradas novamente.')"
+                            >
+                                @csrf
+                                @method('PUT')
+
+                                <div>
+                                    <label for="arquivo_original" class="text-xs font-semibold uppercase tracking-[0.12em] text-stone-600">
+                                        Substituir arquivo original
+                                    </label>
+                                    <input
+                                        id="arquivo_original"
+                                        name="arquivo_original"
+                                        type="file"
+                                        accept=".jpg,.jpeg,.png,.webp,.tif,.tiff,.pdf,image/jpeg,image/png,image/webp,image/tiff,application/pdf"
+                                        required
+                                        class="mt-2 block w-full rounded-md border border-stone-300 bg-white px-3 py-2 text-sm text-stone-700 file:mr-4 file:rounded-md file:border-0 file:bg-[#173F35] file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-[#0f2b24] focus:outline-none focus:ring-2 focus:ring-[#173F35] focus:ring-offset-2"
+                                    >
+                                    <p class="mt-2 text-xs leading-5 text-stone-500">
+                                        O novo arquivo será validado, substituirá o original atual e recriará as versões otimizadas.
+                                    </p>
+                                    @error('arquivo_original')
+                                        <p class="mt-2 text-sm font-medium text-red-700">{{ $message }}</p>
+                                    @enderror
+                                </div>
+
+                                <button
+                                    type="submit"
+                                    class="inline-flex items-center justify-center rounded-md border border-stone-300 px-4 py-2 text-sm font-semibold text-stone-700 transition hover:bg-stone-100 focus:outline-none focus:ring-2 focus:ring-[#173F35] focus:ring-offset-2"
+                                >
+                                    Substituir arquivo
+                                </button>
+                            </form>
+                        @endcan
+                    @endif
 
                     @if ($fotografia->arquivos->isEmpty())
                         <p class="mt-3 text-sm leading-6 text-stone-600">Nenhum arquivo vinculado.</p>

@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Admin;
 
 use App\Enums\Visibilidade;
+use App\Http\Requests\Admin\Concerns\ValidatesArquivoOriginal;
 use App\Models\Assunto;
 use App\Models\Autor;
 use App\Models\Categoria;
@@ -16,6 +17,8 @@ use Illuminate\Validation\Rule;
 
 class StoreFotografiaRequest extends FormRequest
 {
+    use ValidatesArquivoOriginal;
+
     public function authorize(): bool
     {
         return $this->user()?->can('create', ItemAcervo::class) ?? false;
@@ -26,8 +29,6 @@ class StoreFotografiaRequest extends FormRequest
      */
     public function rules(): array
     {
-        $originalUpload = config('acervo.uploads.original');
-
         return [
             'titulo' => ['required', 'string', 'max:255'],
             'legenda' => ['nullable', 'string'],
@@ -36,13 +37,7 @@ class StoreFotografiaRequest extends FormRequest
             'evento' => ['nullable', 'string', 'max:255'],
             'cedente' => ['nullable', 'string', 'max:255'],
             'autor_id' => ['nullable', Rule::exists(Autor::class, 'id')],
-            'arquivo_original' => [
-                'nullable',
-                'file',
-                'mimetypes:'.implode(',', $originalUpload['mime_types']),
-                'extensions:'.implode(',', $originalUpload['extensions']),
-                'max:'.$originalUpload['max_kb'],
-            ],
+            'arquivo_original' => $this->arquivoOriginalRules(),
             'categoria_ids' => ['nullable', 'array'],
             'categoria_ids.*' => ['integer', 'distinct', Rule::exists(Categoria::class, 'id')],
             'assunto_ids' => ['nullable', 'array'],
@@ -63,13 +58,7 @@ class StoreFotografiaRequest extends FormRequest
      */
     public function messages(): array
     {
-        $originalUpload = config('acervo.uploads.original');
-
-        return [
-            'arquivo_original.mimetypes' => 'O arquivo original deve ser uma imagem ou PDF compatível.',
-            'arquivo_original.extensions' => 'O arquivo original deve usar uma das extensões aceitas: '.implode(', ', $originalUpload['extensions']).'.',
-            'arquivo_original.max' => 'O arquivo original não pode passar de '.$this->formattedMaxUploadSize((int) $originalUpload['max_kb']).'.',
-        ];
+        return $this->arquivoOriginalMessages();
     }
 
     /**
@@ -164,12 +153,4 @@ class StoreFotografiaRequest extends FormRequest
         ));
     }
 
-    private function formattedMaxUploadSize(int $maxKilobytes): string
-    {
-        if ($maxKilobytes >= 1024 && $maxKilobytes % 1024 === 0) {
-            return ($maxKilobytes / 1024).' MB';
-        }
-
-        return $maxKilobytes.' KB';
-    }
 }

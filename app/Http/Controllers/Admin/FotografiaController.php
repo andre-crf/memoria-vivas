@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Enums\TipoData;
 use App\Enums\Visibilidade;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\ReplaceArquivoOriginalRequest;
 use App\Http\Requests\Admin\StoreFotografiaRequest;
 use App\Http\Requests\Admin\UpdateFotografiaRequest;
 use App\Models\Arquivo;
@@ -21,6 +22,7 @@ use Illuminate\Http\Response;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class FotografiaController extends Controller
@@ -177,6 +179,54 @@ class FotografiaController extends Controller
             ->with('success', 'Fotografia atualizada com sucesso.');
     }
 
+    public function replaceOriginal(ReplaceArquivoOriginalRequest $request, ItemAcervo $fotografia): RedirectResponse
+    {
+        $this->ensurePhotograph($fotografia);
+
+        $original = $fotografia->arquivos()
+            ->where('versao_arquivo', 'original')
+            ->firstOrFail();
+
+        Gate::authorize('replaceOriginal', $original);
+
+        /** @var UploadedFile $file */
+        $file = $request->file('arquivo_original');
+        $originalFileHash = $this->originalFileHash($file);
+
+        if ($duplicate = $this->duplicateOriginalFile($originalFileHash, $fotografia)) {
+            return back()
+                ->withErrors(['arquivo_original' => $this->duplicateOriginalFileMessage($duplicate)])
+                ->withInput();
+        }
+
+        $oldStoragePaths = DB::transaction(function () use ($file, $fotografia, $original, $originalFileHash): array {
+            $derivadas = $fotografia->arquivos()
+                ->whereIn('versao_arquivo', array_keys(config('acervo.optimized_versions')))
+                ->get();
+
+            $oldStoragePaths = $derivadas
+                ->pluck('storage_path')
+                ->push($original->storage_path)
+                ->filter()
+                ->values()
+                ->all();
+
+            $derivadas->each->delete();
+
+            $original->update($this->originalFileAttributes($fotografia, $file, $originalFileHash));
+
+            app(OptimizedImageVersions::class)->generate($fotografia, $original->refresh());
+
+            return $oldStoragePaths;
+        });
+
+        Storage::disk('local')->delete($oldStoragePaths);
+
+        return redirect()
+            ->route('admin.fotografias.show', $fotografia)
+            ->with('success', 'Arquivo original substituído com sucesso.');
+    }
+
     public function destroy(ItemAcervo $fotografia): RedirectResponse
     {
         $this->ensurePhotograph($fotografia);
@@ -234,6 +284,18 @@ class FotografiaController extends Controller
             return;
         }
 
+        $original = $fotografia->arquivos()->create(
+            $this->originalFileAttributes($fotografia, $file, $sha256 ?? $this->originalFileHash($file))
+        );
+
+        app(OptimizedImageVersions::class)->generate($fotografia, $original);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function originalFileAttributes(ItemAcervo $fotografia, UploadedFile $file, string $sha256): array
+    {
         $extension = $file->guessExtension() ?: $file->getClientOriginalExtension() ?: 'bin';
         $storagePath = $file->storeAs(
             "acervo/originais/{$fotografia->id}",
@@ -242,20 +304,18 @@ class FotografiaController extends Controller
         );
         [$width, $height] = $this->imageDimensions($file);
 
-        $original = $fotografia->arquivos()->create([
+        return [
             'nome_original' => $file->getClientOriginalName(),
             'provider' => 'local',
             'storage_path' => $storagePath,
             'mime_type' => $file->getMimeType() ?: 'application/octet-stream',
             'file_size' => $file->getSize(),
             'tipo_arquivo' => $this->fileType($file),
-            'sha256' => $sha256 ?? $this->originalFileHash($file),
+            'sha256' => $sha256,
             'versao_arquivo' => 'original',
             'width' => $width,
             'height' => $height,
-        ]);
-
-        app(OptimizedImageVersions::class)->generate($fotografia, $original);
+        ];
     }
 
     private function originalFileHash(UploadedFile $file): string
