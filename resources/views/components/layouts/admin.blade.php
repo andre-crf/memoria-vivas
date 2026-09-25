@@ -41,6 +41,12 @@
             'active' => 'admin.usuarios.*',
             'adminOnly' => true,
         ],
+        [
+            'label' => 'Auditoria',
+            'route' => 'admin.auditoria.index',
+            'active' => 'admin.auditoria.*',
+            'adminOnly' => true,
+        ],
     ];
 
     $moreNavigation = array_slice($navigation, 2);

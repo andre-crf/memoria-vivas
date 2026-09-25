@@ -1,7 +1,8 @@
 <?php
 
-use App\Http\Controllers\Admin\AssuntoController;
 use App\Http\Controllers\Admin\ArquivoController;
+use App\Http\Controllers\Admin\AssuntoController;
+use App\Http\Controllers\Admin\AuditoriaController;
 use App\Http\Controllers\Admin\AutorController;
 use App\Http\Controllers\Admin\CategoriaController;
 use App\Http\Controllers\Admin\DashboardController;
@@ -36,6 +37,7 @@ Route::middleware(['auth', 'admin.access'])
     ->group(function (): void {
 
         Route::get('/', DashboardController::class)->name('dashboard');
+        Route::get('/auditoria', [AuditoriaController::class, 'index'])->name('auditoria.index');
         Route::get('/arquivos/{arquivo}', [ArquivoController::class, 'show'])->name('arquivos.show');
 
         Route::prefix('perfil')

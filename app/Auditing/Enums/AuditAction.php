@@ -14,4 +14,20 @@ enum AuditAction: string
     case Deactivated = 'deactivated';
     case Uploaded = 'uploaded';
     case Replaced = 'replaced';
+
+    public function label(): string
+    {
+        return match ($this) {
+            self::Created => 'Criação',
+            self::Updated => 'Alteração',
+            self::Deleted => 'Exclusão',
+            self::Restored => 'Restauração',
+            self::ForceDeleted => 'Exclusão definitiva',
+            self::PasswordChanged => 'Alteração de senha',
+            self::Activated => 'Ativação',
+            self::Deactivated => 'Inativação',
+            self::Uploaded => 'Upload',
+            self::Replaced => 'Substituição',
+        };
+    }
 }

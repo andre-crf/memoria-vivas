@@ -14,4 +14,20 @@ enum AuditEntity: string
     case Autor = 'autor';
     case Colecao = 'colecao';
     case ConjuntoContextual = 'conjunto_contextual';
+
+    public function label(): string
+    {
+        return match ($this) {
+            self::User => 'Usuário',
+            self::ItemAcervo => 'Item do acervo',
+            self::Arquivo => 'Arquivo',
+            self::Categoria => 'Categoria',
+            self::Assunto => 'Assunto',
+            self::PalavraChave => 'Palavra-chave',
+            self::Pessoa => 'Pessoa',
+            self::Autor => 'Autor',
+            self::Colecao => 'Coleção',
+            self::ConjuntoContextual => 'Conjunto contextual',
+        };
+    }
 }
