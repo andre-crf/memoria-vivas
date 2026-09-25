@@ -16,6 +16,8 @@ use App\Policies\ArquivoPolicy;
 use App\Policies\ItemAcervoPolicy;
 use App\Policies\SupportCatalogPolicy;
 use App\Policies\UserPolicy;
+use App\Services\Arquivos\Contracts\ArquivoStorage;
+use App\Services\Arquivos\LaravelArquivoStorage;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 
@@ -26,7 +28,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->bind(ArquivoStorage::class, LaravelArquivoStorage::class);
     }
 
     /**

@@ -11,6 +11,9 @@ $originalUploadExtensions = env(
 );
 
 return [
+    'storage_disks' => [
+        'local' => 'local',
+    ],
     'uploads' => [
         'original' => [
             'max_kb' => (int) env('ACERVO_ORIGINAL_UPLOAD_MAX_KB', 51200),

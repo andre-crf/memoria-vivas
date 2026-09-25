@@ -260,7 +260,59 @@ A exclusão definitiva captura o snapshot antes da remoção, pois o banco apaga
 por cascade vínculos, arquivos, registros de download e participações em
 coleções e conjuntos contextuais. Essas consequências são registradas em
 `metadata.cascade` (`arquivo_ids`, `colecao_ids`, `conjunto_contextual_ids`,
-`colecao_capa_ids` e `registro_downloads_count`), sem eventos individuais.
+`colecao_capa_ids` e `registro_downloads_count`). Os arquivos digitais são a
+exceção: o original recebe também um evento `deleted`, descrito a seguir.
+
+## Arquivos digitais
+
+O arquivo original é a unidade principal do histórico. Seu snapshot usa uma
+lista positiva: `item_acervo_id`, `nome_original`, `provider`,
+`external_file_id`, `storage_path`, `mime_type`, `file_size`, `tipo_arquivo`,
+`sha256`, `versao_arquivo`, `width` e `height`. Conteúdo binário, temporários,
+headers, credenciais e configurações do provider não são capturados.
+
+`CriarItemAcervo` e `AtualizarItemAcervo` recebem explicitamente o upload
+opcional e coordenam item, vínculos, arquivo e eventos na mesma
+`AuditTransaction`. A substituição é executada por
+`SubstituirArquivoOriginal`, que bloqueia o item e o original e preserva o ID
+do registro principal. O controller não abre transações nem manipula o
+storage.
+
+| Operação | Ação | Metadados principais |
+|---|---|---|
+| Upload | `uploaded` | `operation=arquivo_original_upload`, item e resumo das derivações |
+| Substituição | `replaced` | `operation=arquivo_original_replace`, derivações removidas, geradas e falhas |
+| Exclusão definitiva do item | `deleted` | `operation=arquivo_group_delete` e derivações removidas |
+
+As versões `thumbnail`, `medium` e `large` são consequências técnicas: não
+geram eventos próprios. Seus metadados permitidos aparecem em
+`metadata.derivations.generated`; versões que falharam aparecem apenas pelo
+nome em `failed_versions`. PDFs marcam a geração como não aplicável. Se uma
+estrutura inconsistente possuir somente derivações, cada registro remanescente
+recebe um evento `deleted` para que o histórico não seja perdido.
+
+O provider do model é resolvido para um disco do Laravel pela configuração
+`acervo.storage_disks`. Nesta etapa somente `local` oferece processamento. A
+interface `ArquivoStorage` mantém os serviços independentes do disco e permite
+adicionar providers externos sem alterar o formato dos eventos.
+
+### Compensação do storage
+
+Banco e armazenamento não compartilham uma transação distribuída. Por isso,
+cada operação mantém um diário com os caminhos físicos envolvidos:
+
+1. caminhos novos são registrados antes da escrita;
+2. erro de negócio ou do `AuditRecorder` reverte o banco e remove os objetos
+   novos;
+3. o original e as derivações anteriores permanecem durante a transação;
+4. após a confirmação, os caminhos substituídos ou excluídos são removidos.
+
+A gravação do original é estrita e cancela toda a operação quando falha. A
+geração das derivações é de melhor esforço: cada falha é enviada ao log, o
+arquivo parcial é limpo e o original permanece confirmado. Falhas na limpeza
+pós-confirmação também vão para o log com provider e caminhos, sem reverter o
+banco ou os eventos já persistidos. Download e visualização não produzem
+auditoria.
 
 ## Imutabilidade
 

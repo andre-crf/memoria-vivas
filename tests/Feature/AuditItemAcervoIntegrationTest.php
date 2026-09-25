@@ -364,9 +364,11 @@ class AuditItemAcervoIntegrationTest extends TestCase
         $pessoa->delete();
         $autor->delete();
 
-        $event = AuditEvent::query()->firstOrFail();
+        $event = AuditEvent::query()
+            ->where('subject_type', AuditEntity::ItemAcervo)
+            ->firstOrFail();
 
-        $this->assertDatabaseCount('audit_events', 1);
+        $this->assertDatabaseCount('audit_events', 2);
         $this->assertSame(AuditAction::ForceDeleted, $event->action);
         $this->assertSame((string) $fotografia->id, $event->subject_id);
         $this->assertSame('Praça central', $event->subject_label);
@@ -385,6 +387,16 @@ class AuditItemAcervoIntegrationTest extends TestCase
             'colecao_capa_ids' => [$colecao->id],
             'registro_downloads_count' => 0,
         ], $event->metadata['cascade']);
+
+        $arquivoEvent = AuditEvent::query()
+            ->where('subject_type', AuditEntity::Arquivo)
+            ->firstOrFail();
+
+        $this->assertSame(AuditAction::Deleted, $arquivoEvent->action);
+        $this->assertSame((string) $arquivo->id, $arquivoEvent->subject_id);
+        $this->assertSame('arquivo_group_delete', $arquivoEvent->metadata['operation']);
+        $this->assertSame($event->request_id, $arquivoEvent->request_id);
+        $this->assertSame($event->correlation_id, $arquivoEvent->correlation_id);
     }
 
     public function test_unauthorized_restore_and_force_delete_do_not_generate_events(): void

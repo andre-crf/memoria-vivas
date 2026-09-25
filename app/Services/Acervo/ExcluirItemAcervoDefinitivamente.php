@@ -12,7 +12,9 @@ use App\Auditing\ItemAcervoAuditSnapshot;
 use App\Models\Colecao;
 use App\Models\ItemAcervo;
 use App\Models\User;
+use App\Services\Arquivos\GerenciarArquivoOriginal;
 use Illuminate\Support\Facades\Gate;
+use Throwable;
 
 /**
  * Exclusão física de um item que já está na lixeira. O snapshot completo,
@@ -23,43 +25,54 @@ final readonly class ExcluirItemAcervoDefinitivamente
 {
     public function __construct(
         private AuditTransaction $auditTransaction,
+        private GerenciarArquivoOriginal $arquivos,
     ) {}
 
     public function execute(User $actor, ItemAcervo $item, AuditContext $context): void
     {
         $context->assertActor($actor);
+        $journal = $this->arquivos->journal();
 
-        $this->auditTransaction->run(
-            $context,
-            function (AuditEventCollector $audit) use ($actor, $item): void {
-                $item = ItemAcervo::query()
-                    ->onlyTrashed()
-                    ->lockForUpdate()
-                    ->findOrFail($item->getKey());
-                Gate::forUser($actor)->authorize('forceDelete', $item);
+        try {
+            $this->auditTransaction->run(
+                $context,
+                function (AuditEventCollector $audit) use ($actor, $item, $journal): void {
+                    $item = ItemAcervo::query()
+                        ->onlyTrashed()
+                        ->lockForUpdate()
+                        ->findOrFail($item->getKey());
+                    Gate::forUser($actor)->authorize('forceDelete', $item);
 
-                $before = AuditSnapshot::fromArray([
-                    ...ItemAcervoAuditSnapshot::capture($item)->values,
-                    ...ItemAcervoAuditSnapshot::captureDeletionState($item)->values,
-                ]);
-                $cascade = $this->cascadeConsequences($item);
+                    $before = AuditSnapshot::fromArray([
+                        ...ItemAcervoAuditSnapshot::capture($item)->values,
+                        ...ItemAcervoAuditSnapshot::captureDeletionState($item)->values,
+                    ]);
+                    $cascade = $this->cascadeConsequences($item);
 
-                $item->forceDelete();
+                    $audit->capture(
+                        action: AuditAction::ForceDeleted,
+                        subjectType: AuditEntity::ItemAcervo,
+                        subjectId: $item->id,
+                        before: $before,
+                        subjectLabel: $item->titulo,
+                        metadata: [
+                            'operation' => 'acervo_item_force_delete',
+                            'deletion_type' => 'permanent',
+                            'cascade' => $cascade,
+                        ],
+                    );
 
-                $audit->capture(
-                    action: AuditAction::ForceDeleted,
-                    subjectType: AuditEntity::ItemAcervo,
-                    subjectId: $item->id,
-                    before: $before,
-                    subjectLabel: $item->titulo,
-                    metadata: [
-                        'operation' => 'acervo_item_force_delete',
-                        'deletion_type' => 'permanent',
-                        'cascade' => $cascade,
-                    ],
-                );
-            },
-        );
+                    $this->arquivos->captureDeletion($item, $audit, $journal);
+                    $item->forceDelete();
+                },
+            );
+        } catch (Throwable $exception) {
+            $journal->rollbackCreated();
+
+            throw $exception;
+        }
+
+        $journal->cleanupObsolete();
     }
 
     /**

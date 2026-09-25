@@ -4,21 +4,46 @@ namespace App\Support;
 
 use App\Models\Arquivo;
 use App\Models\ItemAcervo;
+use App\Services\Arquivos\Contracts\ArquivoStorage;
+use App\Services\Arquivos\StorageMutationJournal;
 use GdImage;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use RuntimeException;
 use Throwable;
 
 class OptimizedImageVersions
 {
-    public function generate(ItemAcervo $item, Arquivo $original): void
-    {
+    public function __construct(
+        private readonly ArquivoStorage $storage,
+    ) {}
+
+    public function generate(
+        ItemAcervo $item,
+        Arquivo $original,
+        StorageMutationJournal $journal,
+    ): OptimizedImageResult {
         if (! $original->isImagem()) {
-            return;
+            return new OptimizedImageResult(applicable: false);
         }
 
-        $sourcePath = Storage::disk('local')->path($original->storage_path);
+        $versions = config('acervo.optimized_versions', []);
+
+        try {
+            $sourcePath = $this->storage->absolutePath($original->provider, $original->storage_path);
+        } catch (Throwable $exception) {
+            Log::warning('Arquivo original não pôde ser preparado para gerar versões otimizadas.', [
+                'arquivo_id' => $original->id,
+                'provider' => $original->provider,
+                'erro' => $exception->getMessage(),
+                'exception' => $exception,
+            ]);
+
+            return new OptimizedImageResult(
+                applicable: true,
+                failedVersions: array_keys($versions),
+            );
+        }
 
         if (! is_file($sourcePath)) {
             Log::warning('Arquivo original não encontrado para gerar versões otimizadas.', [
@@ -26,25 +51,46 @@ class OptimizedImageVersions
                 'storage_path' => $original->storage_path,
             ]);
 
-            return;
+            return new OptimizedImageResult(
+                applicable: true,
+                failedVersions: array_keys($versions),
+            );
         }
 
-        foreach (config('acervo.optimized_versions') as $version => $settings) {
+        $generated = [];
+        $failedVersions = [];
+
+        foreach ($versions as $version => $settings) {
             if ($item->arquivos()->where('versao_arquivo', $version)->exists()) {
                 continue;
             }
 
             try {
-                $this->generateVersion($item, $original, $sourcePath, $version, (int) $settings['max_dimension']);
+                $generated[] = $this->generateVersion(
+                    $item,
+                    $original,
+                    $sourcePath,
+                    $version,
+                    (int) $settings['max_dimension'],
+                    $journal,
+                );
             } catch (Throwable $exception) {
+                $failedVersions[] = $version;
                 Log::warning('Falha ao gerar versão otimizada da fotografia.', [
                     'arquivo_id' => $original->id,
                     'item_acervo_id' => $item->id,
                     'versao_arquivo' => $version,
                     'erro' => $exception->getMessage(),
+                    'exception' => $exception,
                 ]);
             }
         }
+
+        return new OptimizedImageResult(
+            applicable: true,
+            generated: $generated,
+            failedVersions: $failedVersions,
+        );
     }
 
     private function generateVersion(
@@ -53,11 +99,13 @@ class OptimizedImageVersions
         string $sourcePath,
         string $version,
         int $maxDimension,
-    ): void {
+        StorageMutationJournal $journal,
+    ): Arquivo {
         $source = $this->createSourceImage($sourcePath, $original->mime_type);
+        $storagePath = null;
 
         if (! $source instanceof GdImage) {
-            return;
+            throw new RuntimeException('O formato da imagem não pode ser processado.');
         }
 
         try {
@@ -66,7 +114,7 @@ class OptimizedImageVersions
             $target = imagecreatetruecolor($targetWidth, $targetHeight);
 
             if (! $target instanceof GdImage) {
-                return;
+                throw new RuntimeException('Não foi possível preparar a versão otimizada.');
             }
 
             try {
@@ -86,17 +134,18 @@ class OptimizedImageVersions
                 );
 
                 $directory = "acervo/derivados/{$item->id}";
-                Storage::disk('local')->makeDirectory($directory);
+                $this->storage->makeDirectory($original->provider, $directory);
                 $storagePath = "{$directory}/".Str::uuid()->toString()."-{$version}.jpg";
-                $absolutePath = Storage::disk('local')->path($storagePath);
+                $absolutePath = $this->storage->absolutePath($original->provider, $storagePath);
+                $journal->created($original->provider, $storagePath);
 
                 if (! imagejpeg($target, $absolutePath, 85)) {
-                    throw new \RuntimeException('Não foi possível gravar a versão otimizada.');
+                    throw new RuntimeException('Não foi possível gravar a versão otimizada.');
                 }
 
-                $item->arquivos()->create([
+                return $item->arquivos()->create([
                     'nome_original' => null,
-                    'provider' => 'local',
+                    'provider' => $original->provider,
                     'storage_path' => $storagePath,
                     'mime_type' => 'image/jpeg',
                     'file_size' => filesize($absolutePath),
@@ -109,6 +158,12 @@ class OptimizedImageVersions
             } finally {
                 imagedestroy($target);
             }
+        } catch (Throwable $exception) {
+            if (is_string($storagePath)) {
+                $journal->cleanupFailedCreation($original->provider, $storagePath);
+            }
+
+            throw $exception;
         } finally {
             imagedestroy($source);
         }
@@ -132,7 +187,7 @@ class OptimizedImageVersions
         $dimensions = getimagesize($sourcePath);
 
         if (! is_array($dimensions) || empty($dimensions[0]) || empty($dimensions[1])) {
-            throw new \RuntimeException('Dimensões da imagem original não puderam ser lidas.');
+            throw new RuntimeException('Dimensões da imagem original não puderam ser lidas.');
         }
 
         return [(int) $dimensions[0], (int) $dimensions[1]];
