@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Auditing\AuditContextFactory;
+use App\Auditing\Enums\AuditEntity;
 use App\Enums\TipoData;
 use App\Enums\Visibilidade;
 use App\Http\Controllers\Controller;
@@ -10,11 +11,13 @@ use App\Http\Requests\Admin\ReplaceArquivoOriginalRequest;
 use App\Http\Requests\Admin\StoreFotografiaRequest;
 use App\Http\Requests\Admin\UpdateFotografiaRequest;
 use App\Models\Assunto;
+use App\Models\AuditEvent;
 use App\Models\Autor;
 use App\Models\Categoria;
 use App\Models\ItemAcervo;
 use App\Models\PalavraChave;
 use App\Models\Pessoa;
+use App\Models\User;
 use App\Services\Acervo\AtualizarItemAcervo;
 use App\Services\Acervo\CriarItemAcervo;
 use App\Services\Acervo\ExcluirItemAcervo;
@@ -25,6 +28,7 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Gate;
 
@@ -118,6 +122,9 @@ class FotografiaController extends Controller
 
         return view('admin.fotografias.show', [
             'fotografia' => $fotografia,
+            'historicoAuditoria' => Gate::allows('viewAudit', User::class)
+                ? $this->auditHistory($fotografia)
+                : null,
         ]);
     }
 
@@ -258,6 +265,33 @@ class FotografiaController extends Controller
     private function ensurePhotograph(ItemAcervo $fotografia): void
     {
         abort_unless($fotografia->tipo_item === 'fotografia', Response::HTTP_NOT_FOUND);
+    }
+
+    private function auditHistory(ItemAcervo $fotografia): LengthAwarePaginator
+    {
+        return AuditEvent::query()
+            ->where(function ($query) use ($fotografia): void {
+                $query
+                    ->where(function ($itemQuery) use ($fotografia): void {
+                        $itemQuery
+                            ->where('subject_type', AuditEntity::ItemAcervo->value)
+                            ->where('subject_id', (string) $fotografia->id);
+                    })
+                    ->orWhere(function ($fileQuery) use ($fotografia): void {
+                        $fileQuery
+                            ->where('subject_type', AuditEntity::Arquivo->value)
+                            ->where(function ($itemReference) use ($fotografia): void {
+                                $itemReference
+                                    ->where('metadata->item_acervo->id', $fotografia->id)
+                                    ->orWhere('old_values->item_acervo_id', $fotografia->id)
+                                    ->orWhere('new_values->item_acervo_id', $fotografia->id);
+                            });
+                    });
+            })
+            ->orderByDesc('occurred_at')
+            ->orderByDesc('id')
+            ->paginate(10, ['*'], 'historico_auditoria')
+            ->withQueryString();
     }
 
     /**

@@ -13,6 +13,17 @@ use Override;
 
 class IndexAuditoriaRequest extends FormRequest
 {
+    /** @var list<string> */
+    public const FILTERS = [
+        'data_inicio',
+        'data_fim',
+        'responsavel',
+        'acao',
+        'entidade',
+        'entidade_id',
+        'page',
+    ];
+
     public function authorize(): bool
     {
         return Gate::allows('viewAudit', User::class);
@@ -41,6 +52,7 @@ class IndexAuditoriaRequest extends FormRequest
                 'max:191',
                 Rule::prohibitedIf(! $this->filled('entidade')),
             ],
+            'page' => ['nullable', 'integer', 'min:1'],
         ];
     }
 
@@ -54,6 +66,8 @@ class IndexAuditoriaRequest extends FormRequest
             'acao.enum' => 'A ação selecionada é inválida.',
             'entidade.enum' => 'A entidade selecionada é inválida.',
             'entidade_id.prohibited' => 'Selecione uma entidade antes de informar seu ID.',
+            'page.integer' => 'A página informada é inválida.',
+            'page.min' => 'A página informada é inválida.',
         ];
     }
 

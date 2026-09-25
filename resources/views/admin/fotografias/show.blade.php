@@ -198,6 +198,46 @@
                         </div>
                     </dl>
                 </section>
+
+                @if ($historicoAuditoria !== null)
+                    <section class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm" aria-labelledby="photo-audit-history-title">
+                        <div class="border-b border-stone-200 px-6 py-5">
+                            <h2 id="photo-audit-history-title" class="text-2xl font-semibold text-stone-950">Histórico de auditoria</h2>
+                            <p class="mt-1 text-sm text-stone-600">Eventos da fotografia e de seus arquivos digitais.</p>
+                        </div>
+
+                        @if ($historicoAuditoria->isEmpty())
+                            <p class="px-6 py-8 text-sm text-stone-600">Nenhum evento de auditoria registrado para esta fotografia.</p>
+                        @else
+                            <ul class="divide-y divide-stone-200">
+                                @foreach ($historicoAuditoria as $eventoAuditoria)
+                                    <li class="flex flex-col justify-between gap-3 px-6 py-4 sm:flex-row sm:items-center">
+                                        <div>
+                                            <p class="text-sm font-semibold text-stone-950">
+                                                {{ $eventoAuditoria->action->label() }} · {{ $eventoAuditoria->subject_label ?: 'Sem identificação' }}
+                                            </p>
+                                            <p class="mt-1 text-xs text-stone-500">
+                                                {{ $eventoAuditoria->occurred_at->format('d/m/Y H:i:s') }} · {{ $eventoAuditoria->actor_name ?: 'Sistema' }} · {{ $eventoAuditoria->subject_type->label() }} #{{ $eventoAuditoria->subject_id }}
+                                            </p>
+                                        </div>
+                                        <a
+                                            href="{{ route('admin.auditoria.show', $eventoAuditoria) }}"
+                                            class="shrink-0 text-sm font-semibold text-[#173F35] hover:text-[#0f2b24]"
+                                        >
+                                            Ver detalhes
+                                        </a>
+                                    </li>
+                                @endforeach
+                            </ul>
+
+                            @if ($historicoAuditoria->hasPages())
+                                <div class="border-t border-stone-200 px-5 py-4">
+                                    {{ $historicoAuditoria->links() }}
+                                </div>
+                            @endif
+                        @endif
+                    </section>
+                @endif
             </div>
 
             <aside class="space-y-6">

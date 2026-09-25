@@ -38,6 +38,7 @@ Route::middleware(['auth', 'admin.access'])
 
         Route::get('/', DashboardController::class)->name('dashboard');
         Route::get('/auditoria', [AuditoriaController::class, 'index'])->name('auditoria.index');
+        Route::get('/auditoria/{evento}', [AuditoriaController::class, 'show'])->name('auditoria.show');
         Route::get('/arquivos/{arquivo}', [ArquivoController::class, 'show'])->name('arquivos.show');
 
         Route::prefix('perfil')

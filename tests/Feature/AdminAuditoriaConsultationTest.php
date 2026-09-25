@@ -86,6 +86,7 @@ class AdminAuditoriaConsultationTest extends TestCase
             ->assertSee('Nome histórico')
             ->assertSee('Criação')
             ->assertSee('Categoria · #12')
+            ->assertSee(route('admin.auditoria.show', $sameTimeLast))
             ->assertDontSee('old_values')
             ->assertDontSee('new_values')
             ->assertDontSee('metadata');

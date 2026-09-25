@@ -148,6 +148,7 @@
                                 <th scope="col" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-[0.12em] text-stone-600">Responsável</th>
                                 <th scope="col" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-[0.12em] text-stone-600">Ação</th>
                                 <th scope="col" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-[0.12em] text-stone-600">Entidade afetada</th>
+                                <th scope="col" class="px-5 py-3 text-right text-xs font-semibold uppercase tracking-[0.12em] text-stone-600">Detalhes</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-stone-200 bg-white">
@@ -174,6 +175,14 @@
                                     <td class="min-w-64 px-5 py-4">
                                         <p class="text-sm font-semibold text-stone-950">{{ $evento->subject_label ?: 'Sem identificação' }}</p>
                                         <p class="mt-1 text-xs text-stone-500">{{ $evento->subject_type->label() }} · #{{ $evento->subject_id }}</p>
+                                    </td>
+                                    <td class="whitespace-nowrap px-5 py-4 text-right">
+                                        <a
+                                            href="{{ route('admin.auditoria.show', array_merge(['evento' => $evento], $navigationQuery)) }}"
+                                            class="text-sm font-semibold text-[#173F35] hover:text-[#0f2b24]"
+                                        >
+                                            Ver detalhes
+                                        </a>
                                     </td>
                                 </tr>
                             @endforeach

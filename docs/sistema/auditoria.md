@@ -314,6 +314,27 @@ pós-confirmação também vão para o log com provider e caminhos, sem reverter
 banco ou os eventos já persistidos. Download e visualização não produzem
 auditoria.
 
+## Consulta administrativa
+
+A consulta de auditoria é exclusiva para administradores ativos e permanece
+estritamente somente leitura. A listagem permite combinar período,
+responsável, ação, entidade e ID da entidade, sempre utilizando os aliases
+estáveis persistidos. Os resultados são ordenados por `occurred_at` e `id`, do
+mais recente para o mais antigo, e paginados em grupos de 25 eventos.
+
+A página de detalhes utiliza exclusivamente os snapshots do evento. Ela não
+consulta o estado atual da entidade para completar nomes ou valores, pois o
+registro pode ter sido alterado ou excluído. `old_values` e `new_values` são
+alinhados campo a campo, enquanto estruturas conhecidas e enums recebem labels
+em português apenas na apresentação; o conteúdo persistido não é modificado.
+
+Outros eventos com o mesmo `correlation_id` são apresentados como parte da
+mesma operação. O histórico contextual da fotografia combina os eventos cujo
+subject é o próprio `item_acervo` com os eventos de `arquivo` que registram o
+item em `metadata.item_acervo.id` ou no snapshot permitido do arquivo. Essa
+consulta contextual também é exclusiva para administradores e não substitui
+os campos resumidos de autoria mantidos no item.
+
 ## Imutabilidade
 
 A aplicação não oferece APIs para atualizar ou excluir eventos. A proteção do

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Auditing\AuditEventPresenter;
 use App\Auditing\Enums\AuditAction;
 use App\Auditing\Enums\AuditEntity;
 use App\Http\Controllers\Controller;
@@ -66,6 +67,35 @@ class AuditoriaController extends Controller
             'usuarios' => User::query()->orderBy('nome')->get(['id', 'nome', 'status']),
             'acoes' => AuditAction::cases(),
             'entidades' => AuditEntity::cases(),
+            'navigationQuery' => collect($filters)->only(IndexAuditoriaRequest::FILTERS)->all(),
+        ]);
+    }
+
+    public function show(
+        IndexAuditoriaRequest $request,
+        AuditEvent $evento,
+        AuditEventPresenter $presenter,
+    ): View {
+        Gate::authorize('viewAudit', User::class);
+
+        $navigationQuery = collect($request->validated())
+            ->only(IndexAuditoriaRequest::FILTERS)
+            ->all();
+        $correlatedEvents = AuditEvent::query()
+            ->where('correlation_id', $evento->correlation_id)
+            ->whereKeyNot($evento->id)
+            ->orderByDesc('occurred_at')
+            ->orderByDesc('id')
+            ->paginate(10, ['*'], 'correlacionados')
+            ->withQueryString();
+
+        return view('admin.auditoria.show', [
+            'evento' => $evento,
+            'differences' => $presenter->differences($evento),
+            'metadataRows' => $presenter->metadata($evento),
+            'correlatedEvents' => $correlatedEvents,
+            'navigationQuery' => $navigationQuery,
+            'presenter' => $presenter,
         ]);
     }
 }
