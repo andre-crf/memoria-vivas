@@ -19,6 +19,7 @@
 
 <form method="POST" action="{{ $action }}" enctype="multipart/form-data" class="rounded-lg border border-stone-200 bg-white p-6 shadow-sm" data-date-form>
     @csrf
+    <input type="hidden" name="classificacoes_enviadas" value="1">
     @isset($method)
         @method($method)
     @endisset

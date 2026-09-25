@@ -31,12 +31,16 @@ class UserPolicy
 
     public function updateIdentity(User $user, User $target): bool
     {
-        return $this->admin($user);
+        return $this->admin($user) || ($this->internal($user) && $user->is($target));
     }
 
     public function updateRole(User $user, User $target, ?string $role = null): bool
     {
         if (! $this->admin($user)) {
+            return false;
+        }
+
+        if ($role !== null && $role !== $target->role && $user->is($target)) {
             return false;
         }
 
@@ -50,6 +54,10 @@ class UserPolicy
     public function updateStatus(User $user, User $target, ?string $status = null): bool
     {
         if (! $this->admin($user)) {
+            return false;
+        }
+
+        if ($status !== null && $status !== $target->status && $user->is($target)) {
             return false;
         }
 

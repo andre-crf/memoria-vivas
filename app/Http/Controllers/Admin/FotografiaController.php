@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Auditing\AuditContextFactory;
 use App\Enums\TipoData;
 use App\Enums\Visibilidade;
 use App\Http\Controllers\Controller;
@@ -15,11 +16,18 @@ use App\Models\Categoria;
 use App\Models\ItemAcervo;
 use App\Models\PalavraChave;
 use App\Models\Pessoa;
+use App\Services\Acervo\AtualizarItemAcervo;
+use App\Services\Acervo\CriarItemAcervo;
+use App\Services\Acervo\ExcluirItemAcervo;
+use App\Services\Acervo\ExcluirItemAcervoDefinitivamente;
+use App\Services\Acervo\RestaurarItemAcervo;
 use App\Support\OptimizedImageVersions;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
@@ -75,8 +83,11 @@ class FotografiaController extends Controller
         ]);
     }
 
-    public function store(StoreFotografiaRequest $request): RedirectResponse
-    {
+    public function store(
+        StoreFotografiaRequest $request,
+        CriarItemAcervo $service,
+        AuditContextFactory $contexts,
+    ): RedirectResponse {
         $originalFileHash = null;
 
         if ($request->hasFile('arquivo_original')) {
@@ -91,11 +102,19 @@ class FotografiaController extends Controller
             }
         }
 
-        DB::transaction(function () use ($request, $originalFileHash): void {
-            $fotografia = ItemAcervo::create($request->payload());
-            $this->syncClassifications($fotografia, $request->classificationPayload());
-            $this->storeOriginalFile($fotografia, $request->file('arquivo_original'), $originalFileHash);
-        });
+        $service->execute(
+            actor: $request->user(),
+            data: [
+                ...$request->payload(),
+                ...$request->classificationPayload(),
+            ],
+            context: $contexts->fromRequest($request),
+            afterPersist: fn (ItemAcervo $fotografia) => $this->storeOriginalFile(
+                $fotografia,
+                $request->file('arquivo_original'),
+                $originalFileHash,
+            ),
+        );
 
         return redirect()
             ->route('admin.fotografias.index')
@@ -146,8 +165,12 @@ class FotografiaController extends Controller
         ]);
     }
 
-    public function update(UpdateFotografiaRequest $request, ItemAcervo $fotografia): RedirectResponse
-    {
+    public function update(
+        UpdateFotografiaRequest $request,
+        ItemAcervo $fotografia,
+        AtualizarItemAcervo $service,
+        AuditContextFactory $contexts,
+    ): RedirectResponse {
         $this->ensurePhotograph($fotografia);
         $originalFileHash = null;
 
@@ -169,11 +192,20 @@ class FotografiaController extends Controller
             }
         }
 
-        DB::transaction(function () use ($request, $fotografia, $originalFileHash): void {
-            $fotografia->update($request->payload());
-            $this->syncClassifications($fotografia, $request->classificationPayload());
-            $this->storeOriginalFile($fotografia, $request->file('arquivo_original'), $originalFileHash);
-        });
+        $service->execute(
+            actor: $request->user(),
+            item: $fotografia,
+            data: [
+                ...$request->payload(),
+                ...$request->classificationPayload(),
+            ],
+            context: $contexts->fromRequest($request),
+            afterPersist: fn (ItemAcervo $fotografia) => $this->storeOriginalFile(
+                $fotografia,
+                $request->file('arquivo_original'),
+                $originalFileHash,
+            ),
+        );
 
         return redirect()
             ->route('admin.fotografias.show', $fotografia)
@@ -228,36 +260,64 @@ class FotografiaController extends Controller
             ->with('success', 'Arquivo original substituído com sucesso.');
     }
 
-    public function destroy(ItemAcervo $fotografia): RedirectResponse
-    {
+    public function destroy(
+        Request $request,
+        ItemAcervo $fotografia,
+        ExcluirItemAcervo $service,
+        AuditContextFactory $contexts,
+    ): RedirectResponse {
         $this->ensurePhotograph($fotografia);
-        Gate::authorize('delete', $fotografia);
 
-        $fotografia->delete();
+        $service->execute(
+            actor: $request->user(),
+            item: $fotografia,
+            context: $contexts->fromRequest($request),
+        );
 
         return redirect()
             ->route('admin.fotografias.index')
             ->with('success', 'Fotografia excluída com sucesso.');
     }
 
-    public function restore(string $fotografia): RedirectResponse
-    {
-        $fotografia = ItemAcervo::query()
-            ->onlyTrashed()
-            ->whereKey($fotografia)
-            ->firstOrFail();
+    public function restore(
+        Request $request,
+        string $fotografia,
+        RestaurarItemAcervo $service,
+        AuditContextFactory $contexts,
+    ): RedirectResponse {
+        $fotografia = $this->trashedPhotograph($fotografia);
 
-        $this->ensurePhotograph($fotografia);
-        Gate::authorize('restore', $fotografia);
-
-        $fotografia->restore();
+        $service->execute(
+            actor: $request->user(),
+            item: $fotografia,
+            context: $contexts->fromRequest($request),
+        );
 
         return redirect()
             ->route('admin.fotografias.trashed')
             ->with('success', 'Fotografia restaurada com sucesso.');
     }
 
-    public function forceDestroy(string $fotografia): RedirectResponse
+    public function forceDestroy(
+        Request $request,
+        string $fotografia,
+        ExcluirItemAcervoDefinitivamente $service,
+        AuditContextFactory $contexts,
+    ): RedirectResponse {
+        $fotografia = $this->trashedPhotograph($fotografia);
+
+        $service->execute(
+            actor: $request->user(),
+            item: $fotografia,
+            context: $contexts->fromRequest($request),
+        );
+
+        return redirect()
+            ->route('admin.fotografias.trashed')
+            ->with('success', 'Fotografia excluída permanentemente.');
+    }
+
+    private function trashedPhotograph(string $fotografia): ItemAcervo
     {
         $fotografia = ItemAcervo::query()
             ->onlyTrashed()
@@ -265,13 +325,8 @@ class FotografiaController extends Controller
             ->firstOrFail();
 
         $this->ensurePhotograph($fotografia);
-        Gate::authorize('forceDelete', $fotografia);
 
-        $fotografia->forceDelete();
-
-        return redirect()
-            ->route('admin.fotografias.trashed')
-            ->with('success', 'Fotografia excluída permanentemente.');
+        return $fotografia;
     }
 
     private function ensurePhotograph(ItemAcervo $fotografia): void
@@ -377,7 +432,7 @@ class FotografiaController extends Controller
     }
 
     /**
-     * @return \Illuminate\Support\Collection<int, \App\Models\Autor>
+     * @return Collection<int, Autor>
      */
     private function autorOptions()
     {
@@ -387,7 +442,7 @@ class FotografiaController extends Controller
     }
 
     /**
-     * @return \Illuminate\Support\Collection<int, \App\Models\Categoria>
+     * @return Collection<int, Categoria>
      */
     private function categoriaOptions()
     {
@@ -397,7 +452,7 @@ class FotografiaController extends Controller
     }
 
     /**
-     * @return \Illuminate\Support\Collection<int, \App\Models\Assunto>
+     * @return Collection<int, Assunto>
      */
     private function assuntoOptions()
     {
@@ -407,7 +462,7 @@ class FotografiaController extends Controller
     }
 
     /**
-     * @return \Illuminate\Support\Collection<int, \App\Models\PalavraChave>
+     * @return Collection<int, PalavraChave>
      */
     private function palavraChaveOptions()
     {
@@ -417,23 +472,12 @@ class FotografiaController extends Controller
     }
 
     /**
-     * @return \Illuminate\Support\Collection<int, \App\Models\Pessoa>
+     * @return Collection<int, Pessoa>
      */
     private function pessoaOptions()
     {
         return Pessoa::query()
             ->orderBy('nome')
             ->get(['id', 'nome']);
-    }
-
-    /**
-     * @param  array{categoria_ids: array<int, int>, assunto_ids: array<int, int>, palavra_chave_ids: array<int, int>, pessoa_ids: array<int, int>}  $classifications
-     */
-    private function syncClassifications(ItemAcervo $fotografia, array $classifications): void
-    {
-        $fotografia->categorias()->sync($classifications['categoria_ids']);
-        $fotografia->assuntos()->sync($classifications['assunto_ids']);
-        $fotografia->palavrasChave()->sync($classifications['palavra_chave_ids']);
-        $fotografia->pessoas()->sync($classifications['pessoa_ids']);
     }
 }

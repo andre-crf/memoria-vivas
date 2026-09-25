@@ -46,6 +46,16 @@ class StoreFotografiaRequest extends FormRequest
             'palavra_chave_ids.*' => ['integer', 'distinct', Rule::exists(PalavraChave::class, 'id')],
             'pessoa_ids' => ['nullable', 'array'],
             'pessoa_ids.*' => ['integer', 'distinct', Rule::exists(Pessoa::class, 'id')],
+            // Compatibilidade com os nomes canônicos usados pelos serviços de acervo.
+            'categorias' => ['sometimes', 'array'],
+            'categorias.*' => ['integer', 'distinct', Rule::exists(Categoria::class, 'id')],
+            'assuntos' => ['sometimes', 'array'],
+            'assuntos.*' => ['integer', 'distinct', Rule::exists(Assunto::class, 'id')],
+            'palavras_chave' => ['sometimes', 'array'],
+            'palavras_chave.*' => ['integer', 'distinct', Rule::exists(PalavraChave::class, 'id')],
+            'pessoas' => ['sometimes', 'array'],
+            'pessoas.*' => ['integer', 'distinct', Rule::exists(Pessoa::class, 'id')],
+            'classificacoes_enviadas' => ['sometimes', 'boolean'],
             'estado_conservacao' => ['required', Rule::in(array_keys(ItemAcervo::ESTADOS_CONSERVACAO))],
             'status' => ['required', Rule::in(array_keys(ItemAcervo::STATUS))],
             'visibilidade' => ['required', Rule::enum(Visibilidade::class)],
@@ -115,18 +125,38 @@ class StoreFotografiaRequest extends FormRequest
     }
 
     /**
-     * @return array{categoria_ids: array<int, int>, assunto_ids: array<int, int>, palavra_chave_ids: array<int, int>, pessoa_ids: array<int, int>}
+     * Traduz os nomes usados pelo formulário para os relacionamentos do model,
+     * consumidos pelos serviços de aplicação e pelos snapshots de auditoria.
+     *
+     * @return array<string, array<int, int>>
      */
     public function classificationPayload(): array
     {
         $validated = $this->validated();
-
-        return [
-            'categoria_ids' => $this->integerList($validated['categoria_ids'] ?? []),
-            'assunto_ids' => $this->integerList($validated['assunto_ids'] ?? []),
-            'palavra_chave_ids' => $this->integerList($validated['palavra_chave_ids'] ?? []),
-            'pessoa_ids' => $this->integerList($validated['pessoa_ids'] ?? []),
+        $allRelationshipsSubmitted = (bool) ($validated['classificacoes_enviadas'] ?? false);
+        $relationships = [];
+        $fields = [
+            'categorias' => 'categoria_ids',
+            'assuntos' => 'assunto_ids',
+            'palavras_chave' => 'palavra_chave_ids',
+            'pessoas' => 'pessoa_ids',
         ];
+
+        foreach ($fields as $relationship => $formField) {
+            if (
+                ! $allRelationshipsSubmitted
+                && ! array_key_exists($formField, $validated)
+                && ! array_key_exists($relationship, $validated)
+            ) {
+                continue;
+            }
+
+            $relationships[$relationship] = $this->integerList(
+                $validated[$formField] ?? $validated[$relationship] ?? [],
+            );
+        }
+
+        return $relationships;
     }
 
     /**
@@ -152,5 +182,4 @@ class StoreFotografiaRequest extends FormRequest
             $values,
         ));
     }
-
 }

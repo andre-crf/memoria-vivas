@@ -7,9 +7,16 @@ RUN apt-get update \
         git \
         curl \
         unzip \
+        libjpeg62-turbo-dev \
+        libpng-dev \
+        libsqlite3-dev \
+        libwebp-dev \
         libzip-dev \
+    && docker-php-ext-configure gd --with-jpeg --with-webp \
     && docker-php-ext-install \
+        gd \
         pdo_mysql \
+        pdo_sqlite \
         zip \
     && rm -rf /var/lib/apt/lists/*
 

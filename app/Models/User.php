@@ -58,6 +58,11 @@ class User extends Authenticatable
         return $this->hasMany(ItemAcervo::class, 'deleted_by_user_id');
     }
 
+    public function eventosAuditoria(): HasMany
+    {
+        return $this->hasMany(AuditEvent::class, 'actor_user_id');
+    }
+
     /**
      * Get the attributes that should be cast.
      *
