@@ -39,68 +39,78 @@
 @endphp
 
 <x-layouts.app :title="$title ?? 'Administração | Memórias Vivas'">
-    <div class="min-h-screen bg-stone-50">
-        <header class="border-b border-stone-200 bg-white">
-            <div class="mx-auto flex max-w-7xl items-center justify-between gap-4 px-6 py-4">
-                <div>
-                    <p class="text-xs font-semibold uppercase tracking-[0.18em] text-[#6B5E2E]">
-                        Memórias Vivas
-                    </p>
+    <div class="admin-shell">
+        <header class="admin-header">
+            <div class="admin-header__primary">
+                <div class="admin-header__inner admin-header__bar">
+                    <a href="{{ route('admin.dashboard') }}" class="admin-brand">
+                        <span class="admin-brand__mark" aria-hidden="true">MV</span>
+                        <span class="admin-brand__text">
+                            <span class="admin-brand__title">Memórias Vivas</span>
+                            <span class="admin-brand__subtitle">Acervo de Umuarama</span>
+                        </span>
+                    </a>
 
-                    <h1 class="mt-1 text-xl font-semibold text-stone-950">
-                        Administração do acervo
-                    </h1>
-                </div>
+                    <div class="admin-header__actions">
+                        <div class="admin-user">
+                            <div class="admin-user__meta">
+                                <p class="admin-user__name">{{ auth()->user()->nome }}</p>
+                                <p class="admin-user__role">{{ auth()->user()->isAdmin() ? 'Administrador' : 'Operador' }}</p>
+                            </div>
 
-                <div class="flex items-center gap-4">
-                    <nav
-                        class="hidden items-center gap-2 md:flex"
-                        aria-label="Navegação administrativa"
-                    >
-                        @foreach ($navigation as $item)
-                            @php
-                                $isActive = request()->routeIs($item['active']);
-                            @endphp
+                            <span class="admin-user__avatar" aria-hidden="true">
+                                {{ mb_substr(auth()->user()->nome, 0, 1) }}
+                            </span>
+                        </div>
 
-                            <a
-                                href="{{ route($item['route']) }}"
-                                @if ($isActive)
-                                    aria-current="page"
-                                @endif
-                                class="{{ $isActive
-                                    ? 'rounded-md bg-[#173F35] px-3 py-2 text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-[#173F35] focus:ring-offset-2'
-                                    : 'rounded-md px-3 py-2 text-sm font-medium text-stone-600 transition hover:bg-stone-100 hover:text-stone-950 focus:outline-none focus:ring-2 focus:ring-[#173F35] focus:ring-offset-2' }}"
-                            >
-                                {{ $item['label'] }}
-                            </a>
-                        @endforeach
-                    </nav>
+                        <form method="POST" action="{{ route('logout') }}">
+                            @csrf
+                            <button type="submit" class="admin-logout">Sair</button>
+                        </form>
 
-                    <div class="hidden text-right sm:block">
-                        <p class="text-sm font-medium text-stone-900">
-                            {{ auth()->user()->nome }}
-                        </p>
+                        <details class="admin-mobile-nav">
+                            <summary class="admin-mobile-nav__summary">Menu</summary>
 
-                        <p class="text-xs uppercase tracking-[0.12em] text-stone-500">
-                            {{ auth()->user()->role }}
-                        </p>
+                            <nav class="admin-mobile-nav__panel" aria-label="Navegação administrativa mobile">
+                                @foreach ($navigation as $item)
+                                    @php($isActive = request()->routeIs($item['active']))
+
+                                    <a
+                                        href="{{ route($item['route']) }}"
+                                        @if ($isActive)
+                                            aria-current="page"
+                                        @endif
+                                        class="admin-nav__link"
+                                    >
+                                        {{ $item['label'] }}
+                                    </a>
+                                @endforeach
+                            </nav>
+                        </details>
                     </div>
-
-                    <form method="POST" action="{{ route('logout') }}">
-                        @csrf
-
-                        <button
-                            type="submit"
-                            class="rounded-md border border-stone-300 px-3 py-2 text-sm font-medium text-stone-700 transition hover:bg-stone-100 focus:outline-none focus:ring-2 focus:ring-[#173F35] focus:ring-offset-2"
-                        >
-                            Sair
-                        </button>
-                    </form>
                 </div>
+            </div>
+
+            <div class="admin-header__navigation">
+                <nav class="admin-header__inner admin-nav" aria-label="Navegação administrativa">
+                    @foreach ($navigation as $item)
+                        @php($isActive = request()->routeIs($item['active']))
+
+                        <a
+                            href="{{ route($item['route']) }}"
+                            @if ($isActive)
+                                aria-current="page"
+                            @endif
+                            class="admin-nav__link"
+                        >
+                            {{ $item['label'] }}
+                        </a>
+                    @endforeach
+                </nav>
             </div>
         </header>
 
-        <main>
+        <main class="admin-main">
             {{ $slot }}
         </main>
     </div>
