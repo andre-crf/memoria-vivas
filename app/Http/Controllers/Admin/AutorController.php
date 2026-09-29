@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreAutorRequest;
 use App\Http\Requests\Admin\UpdateAutorRequest;
 use App\Models\Autor;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -43,9 +44,17 @@ class AutorController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreAutorRequest $request): RedirectResponse
+    public function store(StoreAutorRequest $request): JsonResponse|RedirectResponse
     {
-        Autor::create($request->validated());
+        $autor = Autor::create($request->validated());
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'id' => $autor->id,
+                'label' => $autor->nome,
+                'description' => $autor->tipo === 'instituicao' ? 'Instituição' : 'Pessoa',
+            ], 201);
+        }
 
         return redirect()
             ->route('admin.autores.index')

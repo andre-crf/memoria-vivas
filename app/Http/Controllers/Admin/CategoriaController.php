@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreCategoriaRequest;
 use App\Http\Requests\Admin\UpdateCategoriaRequest;
 use App\Models\Categoria;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
@@ -42,9 +43,16 @@ class CategoriaController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreCategoriaRequest $request): RedirectResponse
+    public function store(StoreCategoriaRequest $request): JsonResponse|RedirectResponse
     {
-        Categoria::create($request->validated());
+        $categoria = Categoria::create($request->validated());
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'id' => $categoria->id,
+                'label' => $categoria->titulo,
+            ], 201);
+        }
 
         return redirect()
             ->route('admin.categorias.index')

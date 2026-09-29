@@ -48,6 +48,7 @@
                         <span class="admin-brand__text">
                             <span class="admin-brand__title">Memórias Vivas</span>
                             <span class="admin-brand__subtitle">Acervo de Umuarama</span>
+                            <span class="sr-only">Administração do acervo</span>
                         </span>
                     </a>
 
