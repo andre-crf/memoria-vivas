@@ -735,6 +735,22 @@
         line-height: 1.4;
     }
 
+    .catalog-character-count {
+        justify-self: end;
+        color: #7c8791;
+        font-size: 0.68rem;
+        font-variant-numeric: tabular-nums;
+        font-weight: 650;
+    }
+
+    .catalog-character-count.is-near-limit {
+        color: #9a6700;
+    }
+
+    .catalog-character-count.is-over-limit {
+        color: #b42318;
+    }
+
     .catalog-actions {
         display: flex;
         justify-content: flex-end;

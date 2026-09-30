@@ -41,7 +41,8 @@
 
             <label class="catalog-label catalog-grid__wide" for="legenda">
                 <span>Legenda/descrição</span>
-                <textarea id="legenda" name="legenda" rows="3" class="{{ $fieldClass }}">{{ $value('legenda') }}</textarea>
+                <textarea id="legenda" name="legenda" rows="3" maxlength="5000" data-character-limit="5000" class="{{ $fieldClass }}">{{ $value('legenda') }}</textarea>
+                <span class="catalog-character-count" data-character-count>0/5000</span>
                 @error('legenda') <small class="catalog-error">{{ $message }}</small> @enderror
             </label>
 
@@ -127,7 +128,7 @@
                         <span>{{ $label }}</span>
                         <input id="{{ $field }}" name="{{ $field }}" type="{{ $field === 'decada' ? 'text' : 'number' }}" value="{{ $value($field) }}"
                             @if ($field === 'dia') min="1" max="31" @endif @if ($field === 'mes') min="1" max="12" @endif
-                            @if ($field === 'ano') min="1000" max="{{ date('Y') }}" @endif @if ($field === 'decada') inputmode="numeric" maxlength="4" @endif class="{{ $fieldClass }}">
+                            @if ($field === 'ano') min="1000" max="{{ date('Y') }}" step="1" @endif @if ($field === 'decada') inputmode="numeric" maxlength="4" pattern="[0-9]{4}" @endif class="{{ $fieldClass }}">
                         @error($field) <small class="catalog-error">{{ $message }}</small> @enderror
                     </label>
                 @endforeach
@@ -209,6 +210,19 @@
         };
         datePrecision?.addEventListener('change', updateDateFields);
         updateDateFields();
+
+        form.querySelectorAll('[data-character-limit]').forEach((field) => {
+            const counter = field.parentElement.querySelector('[data-character-count]');
+            const limit = Number(field.dataset.characterLimit);
+            const updateCharacterCount = () => {
+                const length = [...field.value].length;
+                counter.textContent = `${length.toLocaleString('pt-BR')}/${limit.toLocaleString('pt-BR')}`;
+                counter.classList.toggle('is-near-limit', length >= limit * 0.9);
+                counter.classList.toggle('is-over-limit', length > limit);
+            };
+            field.addEventListener('input', updateCharacterCount);
+            updateCharacterCount();
+        });
 
         const updateCount = (picker) => {
             const count = picker.querySelectorAll('input[type="checkbox"]:checked').length;
