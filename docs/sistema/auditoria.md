@@ -31,6 +31,11 @@ o perfil pessoal e os itens do acervo já seguem esse padrão.
 - `AuditAction`: vocabulário central de ações.
 - `AuditEntity`: aliases estáveis das entidades.
 - `AuditSource`: origens aceitas para o evento.
+- `AuditEventPresenter`: traduz campos, valores e datas para a apresentação,
+  sem alterar o que foi persistido.
+- `DataExibicao` (`app/Support`): ponto único de conversão e formatação de
+  instantes para o fuso de exibição.
+- `FusoDoUsuario` (`app/Support`): resolve o fuso efetivo da requisição.
 
 ## Regras
 
@@ -322,6 +327,12 @@ responsável, ação, entidade e ID da entidade, sempre utilizando os aliases
 estáveis persistidos. Os resultados são ordenados por `occurred_at` e `id`, do
 mais recente para o mais antigo, e paginados em grupos de 25 eventos.
 
+O período informado é recortado no fuso de exibição da requisição, e não em
+UTC: a data inicial começa em 00:00 e a final termina em 23:59:59 daquele
+fuso. A tela informa qual fuso foi usado, de modo que o resultado seja sempre
+explicável. Um evento ocorrido às 22h de Brasília pertence, portanto, ao dia
+local, e não ao dia seguinte.
+
 A página de detalhes utiliza exclusivamente os snapshots do evento. Ela não
 consulta o estado atual da entidade para completar nomes ou valores, pois o
 registro pode ter sido alterado ou excluído. `old_values` e `new_values` são
@@ -334,6 +345,78 @@ subject é o próprio `item_acervo` com os eventos de `arquivo` que registram o
 item em `metadata.item_acervo.id` ou no snapshot permitido do arquivo. Essa
 consulta contextual também é exclusiva para administradores e não substitui
 os campos resumidos de autoria mantidos no item.
+
+## Datas e fusos
+
+Todo instante é gravado, comparado e transportado em UTC. Isso vale para
+`occurred_at`, para os timestamps dos models, para os snapshots de auditoria
+(ISO-8601 com offset `+00:00`), para os logs e para o atributo `datetime` do
+HTML, que é o dado canônico da interface. `config/app.php` fixa `UTC` e não lê
+variável de ambiente: apontar o backend para um fuso local faria `now()`
+gravar hora local sem offset e reinterpretaria os registros já existentes.
+
+A conversão acontece apenas na exibição e no recorte de períodos, sempre por
+identificador IANA (`America/Sao_Paulo`), nunca por offset fixo (`-03:00`), que
+congelaria a regra vigente no momento em que foi escrito. `DataExibicao` recusa
+um fuso que não seja IANA.
+
+O fuso efetivo da requisição é resolvido por `FusoDoUsuario`, nesta ordem:
+
+1. o parâmetro `fuso`, enviado pelo formulário de filtro da auditoria;
+2. o cookie `fuso_usuario` (`FusoDoUsuario::COOKIE`), escrito pelo JavaScript
+   no primeiro carregamento;
+3. `datas.fuso_exibicao` (`APP_DISPLAY_TIMEZONE`), que é apenas o **fallback**
+   para quem está sem JavaScript, para o primeiro acesso e para console e filas.
+
+Valores inválidos são descartados em silêncio e recaem no nível seguinte. Como
+exibição e filtro usam a mesma resolução, o período recortado corresponde
+exatamente aos horários mostrados na tela.
+
+O cookie é escrito pelo navegador em texto puro e por isso está dispensado da
+criptografia de cookies em `bootstrap/app.php`; sem essa exceção o middleware
+tentaria decifrá-lo e o descartaria, fazendo tudo recair no fallback. O nome
+vive em `FusoDoUsuario::COOKIE`, e não em configuração, porque o bootstrap
+precisa dele antes de a configuração existir. Como consequência direta de não
+ser criptografado, o conteúdo do cookie é dado do cliente: ele só é aceito
+depois de validado contra a lista de identificadores IANA. Nos testes, use
+`withUnencryptedCookie()`; `withCookie()` criptografa o valor e verificaria um
+cenário que o navegador nunca produz.
+
+### Como exibir uma data
+
+Telas novas devem usar o componente `<x-data-hora :valor="$model->created_at" />`,
+nunca `->format()` direto. Ele emite:
+
+```html
+<time datetime="2026-09-25T12:00:00+00:00" data-data-hora data-formato="completo">25/09/2026 09:00:00</time>
+```
+
+O atributo `datetime` carrega o instante em UTC; o texto é o mesmo instante no
+fuso efetivo. `formato="curto"` omite os segundos e `vazio` define o texto
+quando não há data. `resources/js/data-hora.js` publica o fuso do navegador no
+cookie, preenche o campo oculto do filtro e reescreve os horários já
+renderizados — sem JavaScript, o texto do servidor já está correto.
+
+Nos snapshots, as datas permanecem gravadas em UTC; o `AuditEventPresenter`
+apenas as formata na apresentação, e só quando a string inteira é um ISO-8601
+válido, de modo que texto livre que mencione uma data continua intacto.
+
+Duas coisas diferentes convivem em `app/Support`: `DataExibicao` trata de
+instantes do sistema (quando algo aconteceu), enquanto `DataHistorica` trata da
+data do acervo (dia, mês, ano ou década do conteúdo), que não tem hora nem
+fuso.
+
+O banco também precisa ficar em UTC: as colunas são `TIMESTAMP`, convertidas
+pelo fuso da sessão do MySQL. `config/database.php` fixa `+00:00` e o
+`compose.yaml` usa `TZ=UTC` e `--default-time-zone=+00:00`. Em um ambiente que
+já tenha dados, confira `SELECT @@global.time_zone, @@session.time_zone,
+@@system_time_zone;` antes de aplicar: se o fuso do servidor não era UTC, os
+registros existentes passam a ser lidos com outra conversão e precisam de
+correção.
+
+Validações e agregações que dependam de "hoje" (`today`, `whereDate`,
+`groupBy DATE(...)`) resolvem em UTC e precisam de conversão explícita para o
+fuso de exibição, sob pena de reproduzir o mesmo deslocamento.
 
 ## Imutabilidade
 

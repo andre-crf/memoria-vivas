@@ -96,7 +96,7 @@
                                             {{ $correlatedEvent->action->label() }} · {{ $correlatedEvent->subject_label ?: 'Sem identificação' }}
                                         </p>
                                         <p class="mt-1 text-xs text-stone-500">
-                                            {{ $correlatedEvent->occurred_at->format('d/m/Y H:i:s') }} · {{ $correlatedEvent->subject_type->label() }} #{{ $correlatedEvent->subject_id }}
+                                            <x-data-hora :valor="$correlatedEvent->occurred_at" /> · {{ $correlatedEvent->subject_type->label() }} #{{ $correlatedEvent->subject_id }}
                                         </p>
                                     </div>
                                     <a
@@ -124,7 +124,7 @@
                     <dl class="mt-5 space-y-5">
                         <div>
                             <dt class="text-xs font-semibold uppercase tracking-[0.12em] text-stone-600">Data e hora</dt>
-                            <dd class="mt-1 text-sm text-stone-700">{{ $evento->occurred_at->format('d/m/Y H:i:s') }}</dd>
+                            <dd class="mt-1 text-sm text-stone-700"><x-data-hora :valor="$evento->occurred_at" /></dd>
                         </div>
                         <div>
                             <dt class="text-xs font-semibold uppercase tracking-[0.12em] text-stone-600">Origem</dt>

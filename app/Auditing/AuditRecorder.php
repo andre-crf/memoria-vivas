@@ -3,6 +3,7 @@
 namespace App\Auditing;
 
 use App\Models\AuditEvent;
+use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 use JsonException;
 
@@ -31,7 +32,9 @@ final readonly class AuditRecorder
             'request_id' => $context->requestId,
             'correlation_id' => $context->correlationId,
             'source' => $context->source->value,
-            'occurred_at' => now(),
+            // O instante do evento é sempre gravado em UTC, independente do
+            // fuso usado para exibir.
+            'occurred_at' => CarbonImmutable::now('UTC'),
         ]);
 
         return AuditEvent::query()->findOrFail($id);

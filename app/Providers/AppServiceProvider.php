@@ -18,6 +18,8 @@ use App\Policies\SupportCatalogPolicy;
 use App\Policies\UserPolicy;
 use App\Services\Arquivos\Contracts\ArquivoStorage;
 use App\Services\Arquivos\LaravelArquivoStorage;
+use App\Support\DataExibicao;
+use App\Support\FusoDoUsuario;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 
@@ -29,6 +31,21 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->bind(ArquivoStorage::class, LaravelArquivoStorage::class);
+
+        $this->app->singleton(
+            FusoDoUsuario::class,
+            fn (): FusoDoUsuario => new FusoDoUsuario(new DataExibicao(config('datas.fuso_exibicao'))),
+        );
+
+        // Sempre derivado da requisição corrente, nunca memorizado: componente,
+        // presenter e controllers enxergam o mesmo fuso, e uma requisição não
+        // herda o fuso da anterior.
+        $this->app->bind(
+            DataExibicao::class,
+            fn ($app): DataExibicao => $app->make(FusoDoUsuario::class)->para(
+                $app->bound('request') ? $app->make('request') : null,
+            ),
+        );
     }
 
     /**

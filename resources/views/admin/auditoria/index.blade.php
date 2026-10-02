@@ -26,6 +26,10 @@
             </div>
 
             <form method="GET" action="{{ route('admin.auditoria.index') }}" class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                {{-- Preenchido pelo JavaScript com o fuso do navegador, para que o
+                     período seja recortado no mesmo fuso dos horários exibidos. --}}
+                <input type="hidden" name="fuso" value="{{ request('fuso') }}" data-fuso-usuario>
+
                 <div>
                     <label for="data_inicio" class="block text-sm font-medium text-stone-700">Data inicial</label>
                     <input
@@ -120,6 +124,9 @@
                     >
                         Limpar filtros
                     </a>
+                    <p class="text-xs text-stone-500">
+                        Período interpretado no fuso <span class="font-medium text-stone-700">{{ $fusoExibicao }}</span>.
+                    </p>
                 </div>
             </form>
         </section>
@@ -155,7 +162,7 @@
                             @foreach ($eventos as $evento)
                                 <tr id="evento-auditoria-{{ $evento->id }}" class="hover:bg-stone-50">
                                     <td class="whitespace-nowrap px-5 py-4 text-sm text-stone-700">
-                                        {{ $evento->occurred_at->format('d/m/Y H:i:s') }}
+                                        <x-data-hora :valor="$evento->occurred_at" />
                                     </td>
                                     <td class="min-w-52 px-5 py-4">
                                         <p class="text-sm font-semibold text-stone-950">{{ $evento->actor_name ?: 'Sistema' }}</p>

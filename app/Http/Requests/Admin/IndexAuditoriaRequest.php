@@ -21,6 +21,7 @@ class IndexAuditoriaRequest extends FormRequest
         'acao',
         'entidade',
         'entidade_id',
+        'fuso',
         'page',
     ];
 
@@ -52,6 +53,9 @@ class IndexAuditoriaRequest extends FormRequest
                 'max:191',
                 Rule::prohibitedIf(! $this->filled('entidade')),
             ],
+            // Fuso do navegador, enviado pelo formulário: o período precisa ser
+            // recortado no mesmo fuso em que os horários são exibidos.
+            'fuso' => ['nullable', 'timezone'],
             'page' => ['nullable', 'integer', 'min:1'],
         ];
     }
@@ -66,6 +70,7 @@ class IndexAuditoriaRequest extends FormRequest
             'acao.enum' => 'A ação selecionada é inválida.',
             'entidade.enum' => 'A entidade selecionada é inválida.',
             'entidade_id.prohibited' => 'Selecione uma entidade antes de informar seu ID.',
+            'fuso.timezone' => 'O fuso horário informado é inválido.',
             'page.integer' => 'A página informada é inválida.',
             'page.min' => 'A página informada é inválida.',
         ];
@@ -81,6 +86,7 @@ class IndexAuditoriaRequest extends FormRequest
             'acao' => 'ação',
             'entidade' => 'entidade',
             'entidade_id' => 'ID da entidade',
+            'fuso' => 'fuso horário',
         ];
     }
 

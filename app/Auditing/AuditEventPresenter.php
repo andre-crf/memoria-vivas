@@ -7,12 +7,42 @@ use App\Enums\TipoData;
 use App\Enums\Visibilidade;
 use App\Models\AuditEvent;
 use App\Models\ItemAcervo;
+use App\Support\DataExibicao;
 use BackedEnum;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Str;
 
 final class AuditEventPresenter
 {
+    /**
+     * Campos cujo valor é sempre um instante; a conversão é aplicada direto.
+     *
+     * @var list<string>
+     */
+    private const TIMESTAMP_FIELDS = [
+        'occurred_at',
+        'created_at',
+        'updated_at',
+        'deleted_at',
+    ];
+
+    /**
+     * Campos de texto livre, onde uma data mencionada no meio da frase deve
+     * permanecer exatamente como foi registrada.
+     *
+     * @var list<string>
+     */
+    private const FREE_TEXT_FIELDS = [
+        'observacao',
+        'descricao',
+        'legenda',
+        'titulo',
+        'nome',
+        'nome_original',
+        'storage_path',
+        'sha256',
+    ];
+
     /** @var array<string, string> */
     private const FIELD_LABELS = [
         'action' => 'Ação',
@@ -160,6 +190,10 @@ final class AuditEventPresenter
             ->all();
     }
 
+    public function __construct(
+        private readonly DataExibicao $datas,
+    ) {}
+
     public function fieldLabel(string $field): string
     {
         return self::FIELD_LABELS[$field]
@@ -186,7 +220,7 @@ final class AuditEventPresenter
         }
 
         if ($value instanceof CarbonInterface) {
-            return $value->format('d/m/Y H:i:s');
+            return (string) $this->datas->formatar($value);
         }
 
         if (is_bool($value)) {
@@ -225,11 +259,34 @@ final class AuditEventPresenter
             return ItemAcervo::STATUS[$value] ?? Str::headline($value);
         }
 
+        if (is_string($value) && ($instante = $this->instanteDeTexto($value, $field)) !== null) {
+            return $instante;
+        }
+
         if (is_string($value)) {
             return self::VALUE_LABELS[$value] ?? $value;
         }
 
         return (string) $value;
+    }
+
+    /**
+     * Os snapshots guardam instantes como ISO-8601 em UTC. Aqui eles voltam a
+     * ser datas legíveis, mas só quando a string inteira é um ISO válido: ao
+     * percorrer listas o nome do campo se perde (`arrayValue()`), por isso a
+     * lista de texto livre protege os campos onde a conversão nunca se aplica.
+     */
+    private function instanteDeTexto(string $value, string $field): ?string
+    {
+        if (in_array($field, self::FREE_TEXT_FIELDS, true)) {
+            return null;
+        }
+
+        if (! in_array($field, self::TIMESTAMP_FIELDS, true) && $this->datas->tentarIso($value) === null) {
+            return null;
+        }
+
+        return $this->datas->formatar($value);
     }
 
     /**

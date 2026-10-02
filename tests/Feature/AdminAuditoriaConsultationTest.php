@@ -110,13 +110,19 @@ class AdminAuditoriaConsultationTest extends TestCase
             ->assertDontSee('Nenhum evento de auditoria registrado');
     }
 
+    /**
+     * As datas informadas são sempre em UTC, como ficam gravadas; os rótulos
+     * descrevem a posição delas no fuso de exibição, que é onde o período é
+     * recortado. Um evento às 22h de Brasília pertence ao dia local, não ao
+     * dia seguinte em UTC.
+     */
     public function test_date_period_filter_is_inclusive(): void
     {
         $admin = $this->user();
-        $this->record($admin, '2026-09-19 23:59:59', subjectLabel: 'Antes');
-        $this->record($admin, '2026-09-20 00:00:00', subjectLabel: 'No início');
-        $this->record($admin, '2026-09-21 23:59:59', subjectLabel: 'No fim');
-        $this->record($admin, '2026-09-22 00:00:00', subjectLabel: 'Depois');
+        $this->record($admin, '2026-09-20 02:59:59', subjectLabel: 'Antes');
+        $this->record($admin, '2026-09-20 03:00:00', subjectLabel: 'No início');
+        $this->record($admin, '2026-09-22 02:59:59', subjectLabel: 'No fim');
+        $this->record($admin, '2026-09-22 03:00:00', subjectLabel: 'Depois');
 
         $this->actingAs($admin)
             ->get(route('admin.auditoria.index', [
@@ -266,7 +272,7 @@ class AdminAuditoriaConsultationTest extends TestCase
         string $subjectId = '1',
         string $subjectLabel = 'Registro auditado',
     ): AuditEvent {
-        CarbonImmutable::setTestNow(CarbonImmutable::parse($occurredAt, config('app.timezone')));
+        CarbonImmutable::setTestNow(CarbonImmutable::parse($occurredAt, 'UTC'));
         $requestId = (string) Str::uuid();
         $context = $actor instanceof User
             ? AuditContext::forUser($actor, AuditSource::Web, $requestId)

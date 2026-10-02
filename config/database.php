@@ -55,6 +55,9 @@ return [
             'unix_socket' => env('DB_SOCKET', ''),
             'charset' => env('DB_CHARSET', 'utf8mb4'),
             'collation' => env('DB_COLLATION', 'utf8mb4_unicode_ci'),
+            // Colunas TIMESTAMP convertem conforme o fuso da sessão. Fixar em
+            // UTC torna a leitura determinística em qualquer host.
+            'timezone' => env('DB_TIMEZONE', '+00:00'),
             'prefix' => '',
             'prefix_indexes' => true,
             'strict' => true,
@@ -75,6 +78,9 @@ return [
             'unix_socket' => env('DB_SOCKET', ''),
             'charset' => env('DB_CHARSET', 'utf8mb4'),
             'collation' => env('DB_COLLATION', 'utf8mb4_unicode_ci'),
+            // Colunas TIMESTAMP convertem conforme o fuso da sessão. Fixar em
+            // UTC torna a leitura determinística em qualquer host.
+            'timezone' => env('DB_TIMEZONE', '+00:00'),
             'prefix' => '',
             'prefix_indexes' => true,
             'strict' => true,
