@@ -64,6 +64,8 @@ class AdminFotografiaOriginalUploadTest extends TestCase
             ->assertSee('Formatos aceitos: .jpg, .jpeg, .png, .webp, .tif, .tiff, .pdf')
             ->assertSee('até 50 MB')
             ->assertSee('name="arquivo_original"', false)
+            ->assertSee('data-file-preview', false)
+            ->assertSee('Pré-visualização de', false)
             ->assertSee('enctype="multipart/form-data"', false);
     }
 

@@ -185,6 +185,14 @@
                 <div class="catalog-file-current"><strong>{{ $arquivoOriginal->nome_original }}</strong><span>{{ $arquivoOriginal->mime_type }} · {{ number_format($arquivoOriginal->file_size / 1024, 1, ',', '.') }} KB</span></div>
             @else
                 <input id="arquivo_original" name="arquivo_original" type="file" accept="{{ $acceptedMimeTypes }}" class="catalog-file-input">
+                <div class="catalog-file-preview" data-file-preview hidden>
+                    <div class="catalog-file-preview__media" data-file-preview-media></div>
+                    <div class="catalog-file-preview__details">
+                        <strong data-file-preview-name></strong>
+                        <span data-file-preview-meta></span>
+                        <small data-file-preview-status></small>
+                    </div>
+                </div>
             @endif
             @error('arquivo_original') <p class="catalog-error">{{ $message }}</p> @enderror
         </div>
@@ -223,6 +231,40 @@
             field.addEventListener('input', updateCharacterCount);
             updateCharacterCount();
         });
+
+        const fileInput = form.querySelector('[data-file-preview]')?.previousElementSibling;
+        const filePreview = form.querySelector('[data-file-preview]');
+        if (fileInput && filePreview) {
+            const media = filePreview.querySelector('[data-file-preview-media]');
+            const name = filePreview.querySelector('[data-file-preview-name]');
+            const meta = filePreview.querySelector('[data-file-preview-meta]');
+            const status = filePreview.querySelector('[data-file-preview-status]');
+            let previewUrl;
+
+            fileInput.addEventListener('change', () => {
+                const file = fileInput.files?.[0];
+                if (previewUrl) URL.revokeObjectURL(previewUrl);
+                media.replaceChildren();
+                filePreview.hidden = !file;
+                if (!file) return;
+
+                name.textContent = file.name;
+                meta.textContent = `${file.type || 'Tipo não identificado'} · ${(file.size / 1024 / 1024).toLocaleString('pt-BR', { maximumFractionDigits: 2 })} MB`;
+                status.textContent = file.type.startsWith('image/') ? 'Imagem pronta para envio.' : 'Arquivo pronto para envio.';
+
+                if (file.type.startsWith('image/')) {
+                    previewUrl = URL.createObjectURL(file);
+                    const image = document.createElement('img');
+                    image.src = previewUrl;
+                    image.alt = `Pré-visualização de ${file.name}`;
+                    media.append(image);
+                } else {
+                    const label = document.createElement('span');
+                    label.textContent = 'PDF';
+                    media.append(label);
+                }
+            });
+        }
 
         const updateCount = (picker) => {
             const count = picker.querySelectorAll('input[type="checkbox"]:checked').length;
