@@ -70,7 +70,7 @@
                                         @endif
                                     </td>
                                     <td class="max-w-md px-5 py-4">
-                                        <p class="truncate text-sm font-semibold text-stone-950">{{ $fotografia->titulo }}</p>
+                                        <p class="truncate text-sm font-semibold text-stone-950" title="{{ $fotografia->titulo }}">{{ $fotografia->titulo }}</p>
                                         <p class="mt-1 text-xs text-stone-500">#{{ $fotografia->id }}</p>
                                     </td>
                                     <td class="whitespace-nowrap px-5 py-4 text-sm text-stone-700">
