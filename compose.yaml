@@ -7,6 +7,8 @@ services:
     container_name: memorias-vivas-app
     user: "${HOST_UID:-1000}:${HOST_GID:-1000}"
     working_dir: /var/www
+    environment:
+      TZ: UTC
     volumes:
       - .:/var/www
     depends_on:
@@ -17,6 +19,8 @@ services:
   nginx:
     image: nginx:alpine
     container_name: memorias-vivas-nginx
+    environment:
+      TZ: UTC
     ports:
       - "8080:80"
     volumes:
@@ -30,6 +34,8 @@ services:
     container_name: memorias-vivas-node
     user: "${HOST_UID:-1000}:${HOST_GID:-1000}"
     working_dir: /var/www
+    environment:
+      TZ: UTC
     volumes:
       - .:/var/www
     ports:
@@ -39,7 +45,9 @@ services:
   mysql:
     image: mysql:8.4
     container_name: memorias-vivas-mysql
+    command: --default-time-zone=+00:00
     environment:
+      TZ: UTC
       MYSQL_DATABASE: memorias_vivas
       MYSQL_ROOT_PASSWORD: root
       MYSQL_USER: laravel

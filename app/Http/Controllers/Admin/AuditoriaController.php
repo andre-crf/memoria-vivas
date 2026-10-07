@@ -9,34 +9,25 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\IndexAuditoriaRequest;
 use App\Models\AuditEvent;
 use App\Models\User;
-use Carbon\CarbonImmutable;
+use App\Support\DataExibicao;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
 
 class AuditoriaController extends Controller
 {
-    public function index(IndexAuditoriaRequest $request): View
+    public function index(IndexAuditoriaRequest $request, DataExibicao $datas): View
     {
         Gate::authorize('viewAudit', User::class);
 
         $filters = $request->validated();
-        $timezone = config('app.timezone');
         $query = AuditEvent::query();
 
         if ($startDate = $filters['data_inicio'] ?? null) {
-            $query->where(
-                'occurred_at',
-                '>=',
-                CarbonImmutable::createFromFormat('Y-m-d', $startDate, $timezone)->startOfDay(),
-            );
+            $query->where('occurred_at', '>=', $datas->inicioDoDia($startDate));
         }
 
         if ($endDate = $filters['data_fim'] ?? null) {
-            $query->where(
-                'occurred_at',
-                '<=',
-                CarbonImmutable::createFromFormat('Y-m-d', $endDate, $timezone)->endOfDay(),
-            );
+            $query->where('occurred_at', '<=', $datas->fimDoDia($endDate));
         }
 
         if (($filters['responsavel'] ?? null) === 'system') {
@@ -68,6 +59,7 @@ class AuditoriaController extends Controller
             'acoes' => AuditAction::cases(),
             'entidades' => AuditEntity::cases(),
             'navigationQuery' => collect($filters)->only(IndexAuditoriaRequest::FILTERS)->all(),
+            'fusoExibicao' => $datas->fuso(),
         ]);
     }
 

@@ -87,7 +87,7 @@
                                         </span>
                                     </td>
                                     <td class="whitespace-nowrap px-5 py-4 text-sm text-stone-700">
-                                        <p>{{ $fotografia->deleted_at?->format('d/m/Y H:i') ?: 'Não registrada' }}</p>
+                                        <p><x-data-hora :valor="$fotografia->deleted_at" formato="curto" vazio="Não registrada" /></p>
                                         <p class="mt-1 text-xs text-stone-500">{{ $fotografia->excluidoPor?->nome ?: 'Usuário não registrado' }}</p>
                                     </td>
                                     <td class="px-5 py-4">

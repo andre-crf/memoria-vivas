@@ -59,9 +59,12 @@ return [
     | Application Timezone
     |--------------------------------------------------------------------------
     |
-    | Here you may specify the default timezone for your application, which
-    | will be used by the PHP date and date-time functions. The timezone
-    | is set to "UTC" by default as it is suitable for most use cases.
+    | O fuso do backend é um invariante da arquitetura, não uma configuração de
+    | ambiente: tudo é gravado e manipulado em UTC. Por isso este valor é fixo e
+    | não lê `env()` — apontá-lo para um fuso local faria `now()` gravar hora
+    | local sem offset e reinterpretaria os registros históricos já existentes.
+    |
+    | O fuso usado para EXIBIR datas fica em `config/datas.php`.
     |
     */
 

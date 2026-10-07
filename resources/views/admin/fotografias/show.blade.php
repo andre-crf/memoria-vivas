@@ -217,7 +217,7 @@
                                                 {{ $eventoAuditoria->action->label() }} · {{ $eventoAuditoria->subject_label ?: 'Sem identificação' }}
                                             </p>
                                             <p class="mt-1 text-xs text-stone-500">
-                                                {{ $eventoAuditoria->occurred_at->format('d/m/Y H:i:s') }} · {{ $eventoAuditoria->actor_name ?: 'Sistema' }} · {{ $eventoAuditoria->subject_type->label() }} #{{ $eventoAuditoria->subject_id }}
+                                                <x-data-hora :valor="$eventoAuditoria->occurred_at" /> · {{ $eventoAuditoria->actor_name ?: 'Sistema' }} · {{ $eventoAuditoria->subject_type->label() }} #{{ $eventoAuditoria->subject_id }}
                                             </p>
                                         </div>
                                         <a
@@ -247,7 +247,7 @@
                     <dl class="mt-5 space-y-5">
                         <div>
                             <dt class="text-xs font-semibold uppercase tracking-[0.12em] text-stone-600">Criado em</dt>
-                            <dd class="mt-1 text-sm text-stone-700">{{ $fotografia->created_at?->format('d/m/Y H:i') ?: 'Não registrado' }}</dd>
+                            <dd class="mt-1 text-sm text-stone-700"><x-data-hora :valor="$fotografia->created_at" formato="curto" vazio="Não registrado" /></dd>
                         </div>
 
                         <div>
@@ -257,7 +257,7 @@
 
                         <div>
                             <dt class="text-xs font-semibold uppercase tracking-[0.12em] text-stone-600">Última alteração</dt>
-                            <dd class="mt-1 text-sm text-stone-700">{{ $fotografia->updated_at?->format('d/m/Y H:i') ?: 'Não registrada' }}</dd>
+                            <dd class="mt-1 text-sm text-stone-700"><x-data-hora :valor="$fotografia->updated_at" formato="curto" vazio="Não registrada" /></dd>
                         </div>
 
                         <div>
