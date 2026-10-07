@@ -31,7 +31,13 @@
                 @endcan
 
                 @can('delete', $fotografia)
-                    <form method="POST" action="{{ route('admin.fotografias.destroy', $fotografia) }}" onsubmit="return confirm('Excluir esta fotografia?')">
+                    <form
+                        method="POST"
+                        action="{{ route('admin.fotografias.destroy', $fotografia) }}"
+                        data-confirm-title="Confirmar exclusão"
+                        data-confirm-message="Excluir esta fotografia?"
+                        data-confirm-label="Excluir fotografia"
+                    >
                         @csrf
                         @method('DELETE')
                         <button
@@ -305,7 +311,10 @@
                                 action="{{ route('admin.fotografias.replace-original', $fotografia) }}"
                                 enctype="multipart/form-data"
                                 class="mt-4 space-y-3 border-b border-stone-200 pb-5"
-                                onsubmit="return confirm('Substituir o arquivo original desta fotografia? As versões otimizadas serão geradas novamente.')"
+                                data-confirm-title="Confirmar substituição"
+                                data-confirm-message="Substituir o arquivo original desta fotografia? As versões otimizadas serão geradas novamente."
+                                data-confirm-label="Substituir arquivo"
+                                data-confirm-variant="primary"
                             >
                                 @csrf
                                 @method('PUT')

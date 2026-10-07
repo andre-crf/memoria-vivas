@@ -3,21 +3,30 @@
     $hasSelection = count($selectedValues) > 0;
 @endphp
 
-<article class="catalog-picker" data-relationship-picker>
+<article
+    class="catalog-picker"
+    x-data="relationshipPicker({{ count($selectedValues) }})"
+    @change="refreshSelection()"
+>
     <div class="catalog-picker__heading">
         <div>
             <h3>{{ $label }}</h3>
             <p>{{ $description }}</p>
         </div>
-        <span class="catalog-picker__count" data-selection-count>{{ count($selectedValues) }} selecionado(s)</span>
+        <span class="catalog-picker__count" x-text="`${selectedCount} selecionado(s)`">{{ count($selectedValues) }} selecionado(s)</span>
     </div>
 
     <label class="catalog-search">
         <span class="sr-only">Pesquisar em {{ mb_strtolower($label) }}</span>
-        <input type="search" placeholder="{{ $searchPlaceholder }}" data-option-search>
+        <input
+            type="search"
+            placeholder="{{ $searchPlaceholder }}"
+            x-model="search"
+            @input="filterOptions()"
+        >
     </label>
 
-    <div class="catalog-picker__options" data-option-list>
+    <div class="catalog-picker__options" x-ref="options">
         @forelse ($options as $option)
             @php
                 $optionValue = (string) data_get($option, $valueField);
@@ -33,39 +42,10 @@
                 <span>{{ $optionLabel }}</span>
             </label>
         @empty
-            <p class="catalog-picker__empty" data-empty-message>{{ $emptyMessage }}</p>
+            <p class="catalog-picker__empty">{{ $emptyMessage }}</p>
         @endforelse
-        <p class="catalog-picker__empty" data-no-results hidden>Nenhum resultado encontrado.</p>
+        <p class="catalog-picker__empty" x-show="showNoResults" style="display: none;">Nenhum resultado encontrado.</p>
     </div>
-
-    @isset($create)
-        <details
-            class="quick-create"
-            data-quick-create
-            data-endpoint="{{ $create['endpoint'] }}"
-            data-target-name="{{ $name }}[]"
-        >
-            <summary>+ Criar {{ $create['article'] }}</summary>
-            <div class="quick-create__body">
-                @foreach ($create['fields'] as $field)
-                    <label>
-                        <span>{{ $field['label'] }}</span>
-                        <input
-                            type="text"
-                            data-field-name="{{ $field['name'] }}"
-                            maxlength="255"
-                            @if ($loop->first) required @endif
-                            data-quick-field
-                        >
-                    </label>
-                @endforeach
-                <div class="quick-create__actions">
-                    <button type="button" data-quick-submit>Criar e selecionar</button>
-                    <span role="status" data-quick-status></span>
-                </div>
-            </div>
-        </details>
-    @endisset
 
     @error($name)
         <p class="catalog-error">{{ $message }}</p>

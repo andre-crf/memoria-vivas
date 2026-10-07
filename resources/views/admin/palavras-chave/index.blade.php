@@ -41,7 +41,13 @@
                                         <td class="px-5 py-4">
                                             <div class="flex justify-end gap-2">
                                                 <a href="{{ route('admin.palavras-chave.edit', $palavraChave) }}" class="rounded-md border border-stone-300 px-3 py-2 text-sm font-medium text-stone-700 transition hover:bg-stone-100 focus:outline-none focus:ring-2 focus:ring-[#173F35] focus:ring-offset-2">Editar</a>
-                                                <form method="POST" action="{{ route('admin.palavras-chave.destroy', $palavraChave) }}" onsubmit="return confirm('Tem certeza que deseja excluir esta palavra-chave? As associações com os itens do acervo serão removidas.')">
+                                                <form
+                                                    method="POST"
+                                                    action="{{ route('admin.palavras-chave.destroy', $palavraChave) }}"
+                                                    data-confirm-title="Confirmar exclusão"
+                                                    data-confirm-message="Tem certeza que deseja excluir esta palavra-chave? As associações com os itens do acervo serão removidas."
+                                                    data-confirm-label="Excluir palavra-chave"
+                                                >
                                                     @csrf
                                                     @method('DELETE')
                                                     <button type="submit" class="rounded-md border border-red-200 px-3 py-2 text-xs font-medium text-red-700 hover:bg-red-50">Excluir</button>

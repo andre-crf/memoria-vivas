@@ -93,7 +93,14 @@
                                     <td class="px-5 py-4">
                                         <div class="flex justify-end gap-2">
                                             @can('restore', $fotografia)
-                                                <form method="POST" action="{{ route('admin.fotografias.restore', $fotografia->id) }}" onsubmit="return confirm('Restaurar esta fotografia?')">
+                                                <form
+                                                    method="POST"
+                                                    action="{{ route('admin.fotografias.restore', $fotografia->id) }}"
+                                                    data-confirm-title="Confirmar restauração"
+                                                    data-confirm-message="Restaurar esta fotografia?"
+                                                    data-confirm-label="Restaurar fotografia"
+                                                    data-confirm-variant="primary"
+                                                >
                                                     @csrf
                                                     @method('PATCH')
                                                     <button
@@ -106,7 +113,13 @@
                                             @endcan
 
                                             @can('forceDelete', $fotografia)
-                                                <form method="POST" action="{{ route('admin.fotografias.force-destroy', $fotografia->id) }}" onsubmit="return confirm('Excluir permanentemente esta fotografia? Esta operação é irreversível.')">
+                                                <form
+                                                    method="POST"
+                                                    action="{{ route('admin.fotografias.force-destroy', $fotografia->id) }}"
+                                                    data-confirm-title="Confirmar exclusão permanente"
+                                                    data-confirm-message="Excluir permanentemente esta fotografia? Esta operação é irreversível."
+                                                    data-confirm-label="Excluir permanentemente"
+                                                >
                                                     @csrf
                                                     @method('DELETE')
                                                     <button

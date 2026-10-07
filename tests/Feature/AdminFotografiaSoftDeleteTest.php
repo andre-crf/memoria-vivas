@@ -44,7 +44,8 @@ class AdminFotografiaSoftDeleteTest extends TestCase
             ->get(route('admin.fotografias.index'))
             ->assertOk()
             ->assertSee(route('admin.fotografias.destroy', $fotografia), false)
-            ->assertSee("return confirm('Excluir esta fotografia?')", false)
+            ->assertSee('data-confirm-message="Excluir esta fotografia?"', false)
+            ->assertDontSee('return confirm(', false)
             ->assertSee('Excluir');
     }
 

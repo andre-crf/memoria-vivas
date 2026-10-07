@@ -85,9 +85,11 @@
                                             <form
                                                 method="POST"
                                                 action="{{ route('admin.autores.destroy', $autor) }}"
-                                                onsubmit="return confirm('{{ $autor->itens_acervo_count > 0
+                                                data-confirm-title="Confirmar exclusão"
+                                                data-confirm-message="{{ $autor->itens_acervo_count > 0
                                                     ? "Este autor está associado a {$autor->itens_acervo_count} itens do acervo. Ao excluir o autor, essas associações serão removidas, mas os itens serão mantidos. Deseja continuar?"
-                                                    : "Este autor não possui itens associados. Deseja realmente excluí-lo?" }}')"
+                                                    : "Este autor não possui itens associados. Deseja realmente excluí-lo?" }}"
+                                                data-confirm-label="Excluir autor"
                                             >
                                                 @csrf
                                                 @method('DELETE')

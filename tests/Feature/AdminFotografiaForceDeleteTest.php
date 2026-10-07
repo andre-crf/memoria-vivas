@@ -50,7 +50,8 @@ class AdminFotografiaForceDeleteTest extends TestCase
             ->assertSee('Essa operação é irreversível.')
             ->assertSee('Excluir permanentemente')
             ->assertSee(route('admin.fotografias.force-destroy', $fotografia->id), false)
-            ->assertSee("return confirm('Excluir permanentemente esta fotografia? Esta operação é irreversível.')", false);
+            ->assertSee('data-confirm-message="Excluir permanentemente esta fotografia? Esta operação é irreversível."', false)
+            ->assertDontSee('return confirm(', false);
     }
 
     public function test_admin_can_permanently_delete_soft_deleted_photograph(): void

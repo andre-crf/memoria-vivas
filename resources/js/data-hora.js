@@ -101,4 +101,3 @@ const executar = () => {
 };
 
 document.addEventListener('DOMContentLoaded', executar);
-document.addEventListener('livewire:navigated', executar);

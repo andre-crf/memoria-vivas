@@ -115,7 +115,9 @@
                                                 <form 
                                                     method="POST" 
                                                     action="{{ route('admin.categorias.destroy', $categoria) }}"
-                                                    onsubmit="return confirm('Tem certeza que deseja excluir esta categoria? As associações com os itens do acervo serão removidas.')"
+                                                    data-confirm-title="Confirmar exclusão"
+                                                    data-confirm-message="Tem certeza que deseja excluir esta categoria? As associações com os itens do acervo serão removidas."
+                                                    data-confirm-label="Excluir categoria"
                                                 >
                                                     @csrf
                                                     @method('DELETE')

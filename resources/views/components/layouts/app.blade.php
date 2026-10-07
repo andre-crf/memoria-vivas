@@ -7,9 +7,7 @@
 
     <title>{{ $title ?? 'Memórias Vivas' }}</title>
 
-    @if (file_exists(public_path('build/manifest.json')) || file_exists(public_path('hot')))
-        @vite(['resources/css/app.css', 'resources/js/app.js'])
-    @endif
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
     @livewireStyles
 </head>
 
@@ -17,7 +15,7 @@
 
     {{ $slot }}
 
-    @livewireScripts
+    @livewireScriptConfig
 </body>
 
 </html>

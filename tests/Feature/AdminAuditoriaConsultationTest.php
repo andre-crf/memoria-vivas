@@ -224,7 +224,7 @@ class AdminAuditoriaConsultationTest extends TestCase
         $this->assertSame(25, substr_count($response->getContent(), 'id="evento-auditoria-'));
         $response
             ->assertSee('acao=created', false)
-            ->assertSee('page=2', false);
+            ->assertSee("wire:click=\"gotoPage(2, 'page')\"", false);
     }
 
     public function test_consultation_does_not_generate_or_modify_audit_events(): void

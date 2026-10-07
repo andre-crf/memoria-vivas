@@ -62,7 +62,8 @@ class AdminFotografiaTrashTest extends TestCase
             ->assertSee('Público')
             ->assertSee($deletedBy->nome)
             ->assertSee('Restaurar')
-            ->assertSee("return confirm('Restaurar esta fotografia?')", false);
+            ->assertSee('data-confirm-message="Restaurar esta fotografia?"', false)
+            ->assertDontSee('return confirm(', false);
     }
 
     public function test_trash_listing_displays_available_thumbnail_for_deleted_photograph(): void

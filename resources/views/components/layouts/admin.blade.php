@@ -129,4 +129,6 @@
             {{ $slot }}
         </main>
     </div>
+
+    <x-confirmation-dialog />
 </x-layouts.app>

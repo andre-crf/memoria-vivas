@@ -6,9 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreAutorRequest;
 use App\Http\Requests\Admin\UpdateAutorRequest;
 use App\Models\Autor;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
 
@@ -20,14 +18,14 @@ class AutorController extends Controller
     public function index(): View
     {
         Gate::authorize('viewAny', Autor::class);
-        
+
         $autores = Autor::query()
             ->withCount('itensAcervo')
             ->orderBy('nome')
             ->get();
 
         return view('admin.autores.index', [
-            'autores' => $autores
+            'autores' => $autores,
         ]);
     }
 
@@ -37,24 +35,16 @@ class AutorController extends Controller
     public function create(): View
     {
         Gate::authorize('viewAny', Autor::class);
-        
+
         return view('admin.autores.create');
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreAutorRequest $request): JsonResponse|RedirectResponse
+    public function store(StoreAutorRequest $request): RedirectResponse
     {
         $autor = Autor::create($request->validated());
-
-        if ($request->expectsJson()) {
-            return response()->json([
-                'id' => $autor->id,
-                'label' => $autor->nome,
-                'description' => $autor->tipo === 'instituicao' ? 'Instituição' : 'Pessoa',
-            ], 201);
-        }
 
         return redirect()
             ->route('admin.autores.index')
@@ -69,7 +59,7 @@ class AutorController extends Controller
         Gate::authorize('update', $autor);
 
         return view('admin.autores.edit', [
-            'autor' => $autor
+            'autor' => $autor,
         ]);
     }
 

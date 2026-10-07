@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreAssuntoRequest;
 use App\Http\Requests\Admin\UpdateAssuntoRequest;
 use App\Models\Assunto;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
@@ -34,16 +33,9 @@ class AssuntoController extends Controller
         return view('admin.assuntos.create');
     }
 
-    public function store(StoreAssuntoRequest $request): JsonResponse|RedirectResponse
+    public function store(StoreAssuntoRequest $request): RedirectResponse
     {
         $assunto = Assunto::create($request->validated());
-
-        if ($request->expectsJson()) {
-            return response()->json([
-                'id' => $assunto->id,
-                'label' => $assunto->titulo,
-            ], 201);
-        }
 
         return redirect()
             ->route('admin.assuntos.index')

@@ -106,7 +106,13 @@
                                                 Editar
                                             </a>
                                             @can('delete', $fotografia)
-                                                <form method="POST" action="{{ route('admin.fotografias.destroy', $fotografia) }}" onsubmit="return confirm('Excluir esta fotografia?')">
+                                                <form
+                                                    method="POST"
+                                                    action="{{ route('admin.fotografias.destroy', $fotografia) }}"
+                                                    data-confirm-title="Confirmar exclusão"
+                                                    data-confirm-message="Excluir esta fotografia?"
+                                                    data-confirm-label="Excluir fotografia"
+                                                >
                                                     @csrf
                                                     @method('DELETE')
                                                     <button

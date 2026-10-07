@@ -73,13 +73,15 @@
                                             <form
                                                 method="POST"
                                                 action="{{ route('admin.pessoas.destroy', $pessoa) }}"
-                                                onsubmit="return confirm('{{ $pessoa->itens_acervo_count > 0
+                                                data-confirm-title="Confirmar exclusão"
+                                                data-confirm-message="{{ $pessoa->itens_acervo_count > 0
                                                     ? sprintf(
                                                         'Esta pessoa está associada a %d %s do acervo. Ao excluí-la, essas associações serão removidas, mas os itens serão mantidos. Deseja continuar?',
                                                         $pessoa->itens_acervo_count,
                                                         $pessoa->itens_acervo_count === 1 ? 'item' : 'itens',
                                                     )
-                                                    : 'Esta pessoa não possui itens associados. Deseja realmente excluí-la?' }}')"
+                                                    : 'Esta pessoa não possui itens associados. Deseja realmente excluí-la?' }}"
+                                                data-confirm-label="Excluir pessoa"
                                             >
                                                 @csrf
                                                 @method('DELETE')

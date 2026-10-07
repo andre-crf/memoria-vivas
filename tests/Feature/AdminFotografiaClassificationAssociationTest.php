@@ -119,9 +119,9 @@ class AdminFotografiaClassificationAssociationTest extends TestCase
             ->assertSee('Fotografia urbana')
             ->assertSee('Espaço público')
             ->assertSee('centro')
-            ->assertSee('name="categoria_ids[]"', false)
-            ->assertSee('name="assunto_ids[]"', false)
-            ->assertSee('name="palavra_chave_ids[]"', false)
+            ->assertSee('name="categoria_ids&#91;&#93;"', false)
+            ->assertSee('name="assunto_ids&#91;&#93;"', false)
+            ->assertSee('name="palavra_chave_ids&#91;&#93;"', false)
             ->assertSee('checked', false);
     }
 

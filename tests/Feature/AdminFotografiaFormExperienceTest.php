@@ -36,8 +36,14 @@ class AdminFotografiaFormExperienceTest extends TestCase
             $this->actingAs($user)
                 ->get($url)
                 ->assertOk()
-                ->assertSee('data-relationship-picker', false)
-                ->assertSee('data-option-search', false)
+                ->assertSee('x-data="relationshipPicker(', false)
+                ->assertSee('x-data="characterCounter(', false)
+                ->assertSee('x-data="historicalDateFields(', false)
+                ->assertSeeInOrder([
+                    'x-data="filePreview()"',
+                    'id="arquivo_original"',
+                    '@change="selectFile($event)"',
+                ], false)
                 ->assertSee('Cadastrar novo autor')
                 ->assertSee('Criar categoria')
                 ->assertSee('Criar assunto')
@@ -45,48 +51,42 @@ class AdminFotografiaFormExperienceTest extends TestCase
         }
     }
 
-    public function test_internal_user_can_create_author_and_classifications_from_photograph_form(): void
+    public function test_photograph_can_be_submitted_without_opening_or_filling_quick_creation_fields(): void
     {
         $user = $this->usuarioInterno();
 
+        $form = $this->actingAs($user)
+            ->get(route('admin.fotografias.create'))
+            ->assertOk();
+
+        preg_match_all('/<input\b[^>]*wire:model="form\.(?:nome|titulo|termo)"[^>]*>/s', $form->getContent(), $quickCreationInputs);
+
+        $this->assertCount(4, $quickCreationInputs[0]);
+
+        foreach ($quickCreationInputs[0] as $input) {
+            $this->assertDoesNotMatchRegularExpression('/\srequired(?:\s|=|>)/', $input);
+            $this->assertDoesNotMatchRegularExpression('/\sname=/', $input);
+        }
+
+        $form
+            ->assertDontSee('data-endpoint=', false)
+            ->assertDontSee('data-quick-submit', false)
+            ->assertDontSee('data-quick-field', false);
+
         $this->actingAs($user)
-            ->postJson(route('admin.autores.store'), [
-                'nome' => 'Arquivo Municipal',
-                'tipo' => 'instituicao',
+            ->post(route('admin.fotografias.store'), [
+                'titulo' => 'Fotografia sem cadastros rápidos',
+                'tipo_data' => 'desconhecida',
+                'estado_conservacao' => 'desconhecido',
+                'status' => 'rascunho',
+                'visibilidade' => Visibilidade::Privado->value,
             ])
-            ->assertCreated()
-            ->assertJson([
-                'label' => 'Arquivo Municipal',
-                'description' => 'Instituição',
-            ]);
+            ->assertRedirect(route('admin.fotografias.index'));
 
-        $this->actingAs($user)
-            ->postJson(route('admin.categorias.store'), ['titulo' => 'Paisagem urbana'])
-            ->assertCreated()
-            ->assertJson(['label' => 'Paisagem urbana']);
-
-        $this->actingAs($user)
-            ->postJson(route('admin.assuntos.store'), ['titulo' => 'Patrimônio ferroviário'])
-            ->assertCreated()
-            ->assertJson(['label' => 'Patrimônio ferroviário']);
-
-        $this->actingAs($user)
-            ->postJson(route('admin.palavras-chave.store'), ['termo' => 'estação'])
-            ->assertCreated()
-            ->assertJson(['label' => 'estação']);
-
-        $this->assertDatabaseHas('autores', ['nome' => 'Arquivo Municipal']);
-        $this->assertDatabaseHas('categorias', ['titulo' => 'Paisagem urbana']);
-        $this->assertDatabaseHas('assuntos', ['titulo' => 'Patrimônio ferroviário']);
-        $this->assertDatabaseHas('palavras_chave', ['termo' => 'estação']);
-    }
-
-    public function test_quick_creation_returns_validation_errors_as_json(): void
-    {
-        $this->actingAs($this->usuarioInterno())
-            ->postJson(route('admin.categorias.store'), ['titulo' => ''])
-            ->assertUnprocessable()
-            ->assertJsonValidationErrors('titulo');
+        $this->assertDatabaseHas('item_acervos', [
+            'titulo' => 'Fotografia sem cadastros rápidos',
+            'tipo_item' => 'fotografia',
+        ]);
     }
 
     public function test_photograph_form_rejects_invalid_decade_and_long_legend_with_portuguese_messages(): void
