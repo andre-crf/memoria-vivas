@@ -9,7 +9,7 @@
                     Voltar para fotografias
                 </a>
                 <p class="mt-4 text-sm font-medium text-[#6B5E2E]">Fotografia #{{ $fotografia->id }}</p>
-                <h1 class="mt-2 max-w-4xl text-3xl font-semibold text-stone-950">{{ $fotografia->titulo }}</h1>
+                <h1 class="mt-2 max-w-4xl break-words text-3xl font-semibold text-stone-950">{{ $fotografia->titulo }}</h1>
                 <div class="mt-3 flex flex-wrap gap-2">
                     <span class="inline-flex rounded-full bg-stone-100 px-2.5 py-1 text-xs font-semibold text-stone-700">
                         {{ $fotografia->statusLabel() }}
@@ -59,7 +59,7 @@
                     <dl class="mt-5 grid gap-5 md:grid-cols-2">
                         <div>
                             <dt class="text-xs font-semibold uppercase tracking-[0.12em] text-stone-600">Título</dt>
-                            <dd class="mt-1 text-sm text-stone-700">{{ $fotografia->titulo }}</dd>
+                            <dd class="mt-1 break-words text-sm text-stone-700">{{ $fotografia->titulo }}</dd>
                         </div>
 
                         <div>
@@ -100,7 +100,7 @@
 
                     <div class="mt-5">
                         <h3 class="text-xs font-semibold uppercase tracking-[0.12em] text-stone-600">Legenda/descrição</h3>
-                        <p class="mt-1 whitespace-pre-line text-sm leading-6 text-stone-700">{{ $fotografia->legenda ?: 'Não informado' }}</p>
+                        <p class="mt-1 break-words whitespace-pre-line text-sm leading-6 text-stone-700">{{ $fotografia->legenda ?: 'Não informado' }}</p>
                     </div>
                 </section>
 
@@ -188,7 +188,7 @@
 
                         <div>
                             <dt class="text-xs font-semibold uppercase tracking-[0.12em] text-stone-600">Pessoas retratadas/relacionadas</dt>
-                            <dd class="mt-1 text-sm text-stone-700">
+                            <dd class="mt-1 break-words text-sm text-stone-700">
                                 @if ($fotografia->pessoas->isEmpty())
                                     Nenhuma pessoa vinculada.
                                 @else
@@ -346,7 +346,7 @@
                         <ul class="mt-4 divide-y divide-stone-200">
                             @foreach ($fotografia->arquivos as $arquivo)
                                 <li class="py-3">
-                                    <p class="text-sm font-semibold text-stone-700">{{ $arquivo->nome_original ?: 'Arquivo derivado' }}</p>
+                                    <p class="break-words text-sm font-semibold text-stone-700">{{ $arquivo->nome_original ?: 'Arquivo derivado' }}</p>
                                     <dl class="mt-2 grid gap-2 text-xs text-stone-600">
                                         <div>
                                             <dt class="font-semibold uppercase tracking-[0.12em] text-stone-500">Versão</dt>

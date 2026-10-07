@@ -105,6 +105,25 @@ class AdminFotografiaDetailsTest extends TestCase
             ->assertSee($updater->nome);
     }
 
+    public function test_details_keep_long_titles_and_legends_inside_breakable_containers(): void
+    {
+        $titulo = str_repeat('Fotografia com título muito extenso ', 8);
+        $legenda = str_repeat('Descrição detalhada da fotografia sem perder a leitura. ', 20);
+        $fotografia = $this->fotografia([
+            'titulo' => $titulo,
+            'legenda' => $legenda,
+        ]);
+
+        $this
+            ->actingAs($this->usuarioInterno())
+            ->get(route('admin.fotografias.show', $fotografia))
+            ->assertOk()
+            ->assertSee($titulo)
+            ->assertSee($legenda)
+            ->assertSee('break-words', false)
+            ->assertSee('whitespace-pre-line', false);
+    }
+
     public function test_details_are_ready_to_show_classifications_people_author_and_files(): void
     {
         $autor = Autor::create(['nome' => 'Fundação Cultural', 'tipo' => 'instituicao']);

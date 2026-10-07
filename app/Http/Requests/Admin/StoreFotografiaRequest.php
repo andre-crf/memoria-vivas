@@ -31,7 +31,7 @@ class StoreFotografiaRequest extends FormRequest
     {
         return [
             'titulo' => ['required', 'string', 'max:255'],
-            'legenda' => ['nullable', 'string'],
+            'legenda' => ['nullable', 'string', 'max:5000'],
             'local_atual' => ['nullable', 'string', 'max:255'],
             'local_epoca' => ['nullable', 'string', 'max:255'],
             'evento' => ['nullable', 'string', 'max:255'],
@@ -68,7 +68,20 @@ class StoreFotografiaRequest extends FormRequest
      */
     public function messages(): array
     {
-        return $this->arquivoOriginalMessages();
+        return [
+            'legenda.max' => 'A legenda/descrição não pode ultrapassar 5.000 caracteres.',
+            'dia.integer' => 'O dia deve ser um número inteiro válido.',
+            'dia.between' => 'O dia deve estar entre 1 e 31.',
+            'mes.integer' => 'O mês deve ser um número inteiro válido.',
+            'mes.between' => 'O mês deve estar entre 1 e 12.',
+            'ano.integer' => 'O ano deve ser um número inteiro válido.',
+            'ano.between' => 'O ano deve estar entre '.DataHistorica::ANO_MINIMO.' e '.DataHistorica::anoMaximo().'.',
+            'decada.regex' => 'A década deve ter quatro dígitos e terminar em zero, como 1980.',
+            'tipo_data.enum' => 'Selecione um nível de precisão da data válido.',
+            'status.in' => 'Selecione um status válido.',
+            'visibilidade.enum' => 'Selecione uma visibilidade válida.',
+            ...$this->arquivoOriginalMessages(),
+        ];
     }
 
     /**
@@ -80,6 +93,10 @@ class StoreFotografiaRequest extends FormRequest
             'titulo' => 'título',
             'legenda' => 'legenda/descrição',
             'tipo_data' => 'nível de precisão da data',
+            'dia' => 'dia',
+            'mes' => 'mês',
+            'ano' => 'ano',
+            'decada' => 'década',
             'local_atual' => 'local atual',
             'local_epoca' => 'local na época',
             'autor_id' => 'autor',

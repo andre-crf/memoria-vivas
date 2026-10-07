@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StorePalavraChaveRequest;
 use App\Http\Requests\Admin\UpdatePalavraChaveRequest;
 use App\Models\PalavraChave;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
@@ -33,9 +34,16 @@ class PalavraChaveController extends Controller
         return view('admin.palavras-chave.create');
     }
 
-    public function store(StorePalavraChaveRequest $request): RedirectResponse
+    public function store(StorePalavraChaveRequest $request): JsonResponse|RedirectResponse
     {
-        PalavraChave::create($request->validated());
+        $palavraChave = PalavraChave::create($request->validated());
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'id' => $palavraChave->id,
+                'label' => $palavraChave->termo,
+            ], 201);
+        }
 
         return redirect()
             ->route('admin.palavras-chave.index')

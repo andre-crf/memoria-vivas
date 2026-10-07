@@ -6,6 +6,8 @@ use App\Enums\Visibilidade;
 use App\Models\ItemAcervo;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class AdminFotografiaTrashTest extends TestCase
@@ -61,6 +63,47 @@ class AdminFotografiaTrashTest extends TestCase
             ->assertSee($deletedBy->nome)
             ->assertSee('Restaurar')
             ->assertSee("return confirm('Restaurar esta fotografia?')", false);
+    }
+
+    public function test_trash_listing_displays_available_thumbnail_for_deleted_photograph(): void
+    {
+        Storage::fake('local');
+        $fotografia = $this->fotografia(['titulo' => 'Praça com miniatura']);
+        $thumbnail = UploadedFile::fake()->image('thumbnail.jpg', 320, 240);
+        Storage::disk('local')->put('acervo/derivados/thumbnail.jpg', file_get_contents($thumbnail->getRealPath()));
+        $arquivo = $fotografia->arquivos()->create([
+            'nome_original' => null,
+            'provider' => 'local',
+            'storage_path' => 'acervo/derivados/thumbnail.jpg',
+            'mime_type' => 'image/jpeg',
+            'file_size' => 1024,
+            'tipo_arquivo' => 'imagem',
+            'sha256' => str_repeat('a', 64),
+            'versao_arquivo' => 'thumbnail',
+            'width' => 320,
+            'height' => 240,
+        ]);
+        $fotografia->delete();
+
+        $this
+            ->actingAs($this->usuarioInterno('admin'))
+            ->get(route('admin.fotografias.trashed'))
+            ->assertOk()
+            ->assertSee('Miniatura de Praça com miniatura', false)
+            ->assertSee(route('admin.arquivos.show', $arquivo), false)
+            ->assertDontSee('Sem imagem disponível');
+    }
+
+    public function test_trash_listing_shows_fallback_when_deleted_photograph_has_no_image(): void
+    {
+        $fotografia = $this->fotografia(['titulo' => 'Fotografia sem arquivo']);
+        $fotografia->delete();
+
+        $this
+            ->actingAs($this->usuarioInterno('admin'))
+            ->get(route('admin.fotografias.trashed'))
+            ->assertOk()
+            ->assertSee('Sem imagem disponível');
     }
 
     public function test_operator_cannot_access_trash_or_restore_photographs(): void

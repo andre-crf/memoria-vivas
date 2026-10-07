@@ -56,7 +56,10 @@ class FotografiaController extends Controller
         $fotografias = ItemAcervo::query()
             ->onlyTrashed()
             ->where('tipo_item', 'fotografia')
-            ->with('excluidoPor')
+            ->with([
+                'excluidoPor',
+                'arquivos' => fn ($query) => $query->whereIn('versao_arquivo', ['thumbnail', 'medium', 'large', 'original']),
+            ])
             ->latest('deleted_at')
             ->paginate(15);
 
