@@ -49,8 +49,10 @@
         ],
     ];
 
-    $moreNavigation = array_slice($navigation, 2);
-    $isMoreActive = collect($moreNavigation)->contains(fn($item) => request()->routeIs($item['active']));
+    $navigation = array_values(array_filter(
+        $navigation,
+        fn (array $item): bool => ! ($item['adminOnly'] ?? false) || auth()->user()->isAdmin(),
+    ));
 @endphp
 
 <x-layouts.app :title="$title ?? 'Administração | Memórias Vivas'">
@@ -68,7 +70,12 @@
                     </a>
 
                     <div class="admin-header__actions">
-                        <div class="admin-user">
+                        <a
+                            href="{{ route('admin.perfil.edit') }}"
+                            aria-label="Acessar meu perfil"
+                            @if (request()->routeIs('admin.perfil.*')) aria-current="page" @endif
+                            class="admin-user"
+                        >
                             <div class="admin-user__meta">
                                 <p class="admin-user__name">{{ auth()->user()->nome }}</p>
                                 <p class="admin-user__role">
@@ -78,7 +85,7 @@
                             <span class="admin-user__avatar" aria-hidden="true">
                                 {{ mb_substr(auth()->user()->nome, 0, 1) }}
                             </span>
-                        </div>
+                        </a>
 
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
