@@ -12,6 +12,7 @@ use App\Http\Controllers\Admin\PerfilController;
 use App\Http\Controllers\Admin\PessoaController;
 use App\Http\Controllers\Admin\UsuarioController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
+use App\Http\Controllers\Publico\ImagemPublicaController;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -21,6 +22,9 @@ Route::get('/', function (): RedirectResponse {
         ? redirect()->route('admin.dashboard')
         : redirect()->route('login');
 });
+
+Route::get('/acervo/imagens/{arquivo}', ImagemPublicaController::class)
+    ->name('publico.imagens.show');
 
 Route::middleware('guest')->group(function (): void {
     Route::get('/login', [AuthenticatedSessionController::class, 'create'])->name('login');
