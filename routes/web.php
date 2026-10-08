@@ -27,6 +27,8 @@ Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])
     ->middleware('auth')
     ->name('logout');
 
+Route::view('/publico', 'public.home')->name('public.home');
+
 Route::middleware(['auth', 'admin.access'])
     ->prefix('admin')
     ->name('admin.')
