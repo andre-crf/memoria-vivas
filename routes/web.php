@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\PalavraChaveController;
 use App\Http\Controllers\Admin\PessoaController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -28,6 +29,11 @@ Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])
     ->name('logout');
 
 Route::view('/publico', 'public.home')->name('public.home');
+Route::get('/publico/catalogo', function (Request $request) {
+    return view('public.catalogo', [
+        'termo' => trim((string) $request->query('q', '')),
+    ]);
+})->name('public.catalogo');
 
 Route::middleware(['auth', 'admin.access'])
     ->prefix('admin')

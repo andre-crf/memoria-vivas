@@ -16,7 +16,10 @@ class PublicAreaTest extends TestCase
             ->get(route('public.home'))
             ->assertOk()
             ->assertSee('Memórias Vivas de Umuarama')
+            ->assertSee('images/memorias-vivas-logo.jpg', false)
             ->assertSee('Navegação pública', false)
+            ->assertSee('Buscar no catálogo')
+            ->assertSee(route('public.catalogo'), false)
             ->assertSee('Área administrativa')
             ->assertDontSee('Administração do acervo');
     }
@@ -29,5 +32,14 @@ class PublicAreaTest extends TestCase
             ->actingAs($user)
             ->get(route('public.home'))
             ->assertOk();
+    }
+
+    public function test_public_catalog_accepts_search_term_without_authentication(): void
+    {
+        $this
+            ->get(route('public.catalogo', ['q' => 'praça']))
+            ->assertOk()
+            ->assertSee('Busca por “praça”.')
+            ->assertSee('Nenhum item público disponível ainda');
     }
 }
