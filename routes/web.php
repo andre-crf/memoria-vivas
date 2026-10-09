@@ -13,6 +13,8 @@ use App\Http\Controllers\Admin\PessoaController;
 use App\Http\Controllers\Admin\UsuarioController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Publico\ImagemPublicaController;
+use App\Http\Controllers\Publico\FotografiaController as PublicFotografiaController;
+use App\Http\Controllers\Publico\HomeController as PublicHomeController;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -36,12 +38,14 @@ Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])
     ->middleware('auth')
     ->name('logout');
 
-Route::view('/publico', 'public.home')->name('public.home');
+Route::get('/publico', PublicHomeController::class)->name('public.home');
 Route::get('/publico/catalogo', function (Request $request) {
     return view('public.catalogo', [
         'termo' => trim((string) $request->query('q', '')),
     ]);
 })->name('public.catalogo');
+Route::get('/publico/fotografias/{fotografia}', [PublicFotografiaController::class, 'show'])
+    ->name('public.fotografias.show');
 
 Route::middleware(['auth', 'admin.access'])
     ->prefix('admin')
