@@ -90,7 +90,7 @@ class CatalogoPublicoTest extends TestCase
             'created_at' => now(),
         ]);
 
-        $this->get(route('public.catalogo', ['q' => 'memória']))
+        $this->get(route('public.catalogo', ['q' => 'Fotografia']))
             ->assertOk()
             ->assertViewHas('fotografias', fn ($paginador): bool => $paginador->count() === 12
                 && $paginador->total() === 13
@@ -104,10 +104,10 @@ class CatalogoPublicoTest extends TestCase
             ->assertSee('Fotografia 13')
             ->assertSee('Fotografia 02')
             ->assertDontSee('Fotografia 01')
-            ->assertSee('q=mem%C3%B3ria', false)
+            ->assertSee('q=Fotografia', false)
             ->assertSee('page=2', false);
 
-        $this->get(route('public.catalogo', ['q' => 'memória', 'page' => 2]))
+        $this->get(route('public.catalogo', ['q' => 'Fotografia', 'page' => 2]))
             ->assertOk()
             ->assertViewHas('fotografias', fn ($paginador): bool => $paginador->count() === 1
                 && $paginador->currentPage() === 2)
@@ -115,18 +115,145 @@ class CatalogoPublicoTest extends TestCase
             ->assertDontSee('Fotografia 02');
     }
 
-    public function test_busca_ainda_nao_filtra_o_catalogo(): void
+    public function test_busca_filtra_por_frase_parcial_no_titulo_ou_na_legenda(): void
     {
-        $primeira = $this->fotografia(['titulo' => 'Praça central']);
-        $this->arquivo($primeira, 'thumbnail');
-        $segunda = $this->fotografia(['titulo' => 'Estação rodoviária']);
-        $this->arquivo($segunda, 'thumbnail');
+        $porTitulo = $this->fotografia(['titulo' => 'Praça Central de Umuarama']);
+        $this->arquivo($porTitulo, 'thumbnail');
+        $porLegenda = $this->fotografia([
+            'titulo' => 'Encontro comunitário',
+            'legenda' => 'Moradores reunidos na Praça Central em 1980.',
+        ]);
+        $this->arquivo($porLegenda, 'thumbnail');
+        $naoCorrespondente = $this->fotografia([
+            'titulo' => 'Estação rodoviária',
+            'legenda' => 'Ônibus estacionados no terminal.',
+        ]);
+        $this->arquivo($naoCorrespondente, 'thumbnail');
 
-        $this->get(route('public.catalogo', ['q' => 'praça']))
+        $this->get(route('public.catalogo', ['q' => 'Praça Central']))
             ->assertOk()
-            ->assertSee('A pesquisa por “praça” será disponibilizada em uma próxima etapa.')
-            ->assertSee('Praça central')
-            ->assertSee('Estação rodoviária');
+            ->assertSee('Resultados para “Praça Central”.')
+            ->assertSee('Praça Central de Umuarama')
+            ->assertSee('Encontro comunitário')
+            ->assertDontSee('Estação rodoviária');
+    }
+
+    public function test_busca_nao_diferencia_maiusculas_de_minusculas_e_mantem_acentos_armazenados(): void
+    {
+        $fotografia = $this->fotografia(['titulo' => 'Memória Urbana']);
+        $this->arquivo($fotografia, 'thumbnail');
+
+        $this->get(route('public.catalogo', ['q' => 'memória urbana']))
+            ->assertOk()
+            ->assertSee('Memória Urbana');
+    }
+
+    public function test_busca_trata_frase_com_varias_palavras_como_uma_unica_sequencia(): void
+    {
+        $sequencia = $this->fotografia(['titulo' => 'Praça Central de Umuarama']);
+        $this->arquivo($sequencia, 'thumbnail');
+        $palavrasSeparadas = $this->fotografia(['titulo' => 'Praça histórica de Umuarama Central']);
+        $this->arquivo($palavrasSeparadas, 'thumbnail');
+
+        $this->get(route('public.catalogo', ['q' => 'Praça Central']))
+            ->assertOk()
+            ->assertSee('Praça Central de Umuarama')
+            ->assertDontSee('Praça histórica de Umuarama Central');
+    }
+
+    public function test_busca_trata_curingas_e_caractere_de_escape_como_literais(): void
+    {
+        foreach ([
+            ['titulo' => 'Celebração 100%', 'q' => '%', 'ausente' => 'Celebração 100 anos'],
+            ['titulo' => 'Coleção_A', 'q' => '_', 'ausente' => 'ColeçãoXA'],
+            ['titulo' => 'Memória! Viva', 'q' => '!', 'ausente' => 'Memória Viva'],
+        ] as $caso) {
+            $correspondente = $this->fotografia(['titulo' => $caso['titulo']]);
+            $this->arquivo($correspondente, 'thumbnail');
+            $outro = $this->fotografia(['titulo' => $caso['ausente']]);
+            $this->arquivo($outro, 'thumbnail');
+
+            $this->get(route('public.catalogo', ['q' => $caso['q']]))
+                ->assertOk()
+                ->assertSee($caso['titulo'])
+                ->assertDontSee($caso['ausente']);
+
+            $correspondente->arquivos()->delete();
+            $correspondente->delete();
+            $outro->arquivos()->delete();
+            $outro->delete();
+        }
+    }
+
+    public function test_busca_mantem_as_regras_de_elegibilidade_publica(): void
+    {
+        $publica = $this->fotografia(['titulo' => 'Memória pesquisável pública']);
+        $this->arquivo($publica, 'thumbnail');
+
+        $privada = $this->fotografia([
+            'titulo' => 'Memória pesquisável privada',
+            'visibilidade' => Visibilidade::Privado,
+        ]);
+        $this->arquivo($privada, 'thumbnail');
+
+        $rascunho = $this->fotografia([
+            'titulo' => 'Memória pesquisável em rascunho',
+            'status' => 'rascunho',
+        ]);
+        $this->arquivo($rascunho, 'thumbnail');
+
+        $excluida = $this->fotografia(['titulo' => 'Memória pesquisável excluída']);
+        $this->arquivo($excluida, 'thumbnail');
+        $excluida->delete();
+
+        $this->get(route('public.catalogo', ['q' => 'Memória pesquisável']))
+            ->assertOk()
+            ->assertSee('Memória pesquisável pública')
+            ->assertDontSee('Memória pesquisável privada')
+            ->assertDontSee('Memória pesquisável em rascunho')
+            ->assertDontSee('Memória pesquisável excluída');
+    }
+
+    public function test_busca_vazia_ou_composta_por_espacos_retorna_o_catalogo_completo(): void
+    {
+        $fotografia = $this->fotografia(['titulo' => 'Registro disponível']);
+        $this->arquivo($fotografia, 'thumbnail');
+
+        $this->get(route('public.catalogo', ['q' => '   ']))
+            ->assertOk()
+            ->assertSee('Registro disponível')
+            ->assertDontSee('Resultados para')
+            ->assertDontSee('Nenhuma fotografia encontrada');
+    }
+
+    public function test_busca_sem_resultados_exibe_estado_especifico_e_link_para_limpar(): void
+    {
+        $fotografia = $this->fotografia(['titulo' => 'Avenida Paraná']);
+        $this->arquivo($fotografia, 'thumbnail');
+
+        $this->get(route('public.catalogo', ['q' => 'resultado inexistente']))
+            ->assertOk()
+            ->assertSee('Nenhuma fotografia encontrada')
+            ->assertSee('Não encontramos resultados para “resultado inexistente”.')
+            ->assertSee('Limpar pesquisa')
+            ->assertSee('href="'.route('public.catalogo').'"', false)
+            ->assertDontSee('Nenhuma fotografia pública disponível');
+    }
+
+    public function test_campo_de_busca_preserva_termo_normalizado_e_ignora_parametro_nao_escalar(): void
+    {
+        $fotografia = $this->fotografia(['titulo' => 'Praça Central']);
+        $this->arquivo($fotografia, 'thumbnail');
+
+        $this->get(route('public.catalogo', ['q' => '  Praça  ']))
+            ->assertOk()
+            ->assertSee('value="Praça"', false)
+            ->assertSee('Praça Central');
+
+        $this->get(route('public.catalogo', ['q' => ['inválido']]))
+            ->assertOk()
+            ->assertSee('value=""', false)
+            ->assertSee('Praça Central');
     }
 
     public function test_catalogo_exibe_estado_vazio_sem_fotografias_elegiveis(): void

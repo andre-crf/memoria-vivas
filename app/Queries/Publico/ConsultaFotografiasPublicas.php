@@ -41,9 +41,15 @@ class ConsultaFotografiasPublicas
     /**
      * @return LengthAwarePaginator<ItemAcervo>
      */
-    public function paginadas(int $porPagina): LengthAwarePaginator
+    public function paginadas(int $porPagina, ?string $termo = null): LengthAwarePaginator
     {
-        return $this->ordenadasPorRecencia()->paginate($porPagina);
+        $query = $this->ordenadasPorRecencia();
+
+        if ($termo !== null && $termo !== '') {
+            $this->restringirAoTermo($query, $termo);
+        }
+
+        return $query->paginate($porPagina);
     }
 
     public function porIdentificador(int|string $identificador): ?ItemAcervo
@@ -61,6 +67,25 @@ class ConsultaFotografiasPublicas
             ->where('tipo_arquivo', 'imagem')
             ->where('mime_type', 'like', 'image/%')
             ->whereIn('versao_arquivo', self::VERSOES_PUBLICAS);
+    }
+
+    /**
+     * @param  Builder<ItemAcervo>  $query
+     */
+    private function restringirAoTermo(Builder $query, string $termo): void
+    {
+        $termoEscapado = str_replace(
+            ['!', '%', '_'],
+            ['!!', '!%', '!_'],
+            $termo,
+        );
+        $padrao = "%{$termoEscapado}%";
+
+        $query->where(function (Builder $pesquisa) use ($padrao): void {
+            $pesquisa
+                ->whereRaw("titulo LIKE ? ESCAPE '!'", [$padrao])
+                ->orWhereRaw("legenda LIKE ? ESCAPE '!'", [$padrao]);
+        });
     }
 
     /**

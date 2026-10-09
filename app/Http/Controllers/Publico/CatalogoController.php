@@ -13,11 +13,14 @@ class CatalogoController extends Controller
 
     public function __invoke(Request $request, ConsultaFotografiasPublicas $consulta): View
     {
+        $termoRecebido = $request->query('q');
+        $termo = is_string($termoRecebido) ? trim($termoRecebido) : '';
+
         return view('public.catalogo', [
             'fotografias' => $consulta
-                ->paginadas(self::FOTOGRAFIAS_POR_PAGINA)
+                ->paginadas(self::FOTOGRAFIAS_POR_PAGINA, $termo)
                 ->withQueryString(),
-            'termo' => trim((string) $request->query('q', '')),
+            'termo' => $termo,
         ]);
     }
 }
