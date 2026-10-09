@@ -7,6 +7,7 @@ use App\Models\ItemAcervo;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class ConsultaFotografiasPublicas
 {
@@ -32,11 +33,17 @@ class ConsultaFotografiasPublicas
      */
     public function recentes(int $limite): Collection
     {
-        return $this->query()
-            ->orderByDesc('created_at')
-            ->orderByDesc('id')
+        return $this->ordenadasPorRecencia()
             ->limit($limite)
             ->get();
+    }
+
+    /**
+     * @return LengthAwarePaginator<ItemAcervo>
+     */
+    public function paginadas(int $porPagina): LengthAwarePaginator
+    {
+        return $this->ordenadasPorRecencia()->paginate($porPagina);
     }
 
     public function porIdentificador(int|string $identificador): ?ItemAcervo
@@ -54,5 +61,15 @@ class ConsultaFotografiasPublicas
             ->where('tipo_arquivo', 'imagem')
             ->where('mime_type', 'like', 'image/%')
             ->whereIn('versao_arquivo', self::VERSOES_PUBLICAS);
+    }
+
+    /**
+     * @return Builder<ItemAcervo>
+     */
+    private function ordenadasPorRecencia(): Builder
+    {
+        return $this->query()
+            ->orderByDesc('created_at')
+            ->orderByDesc('id');
     }
 }
