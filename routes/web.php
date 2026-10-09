@@ -12,11 +12,11 @@ use App\Http\Controllers\Admin\PerfilController;
 use App\Http\Controllers\Admin\PessoaController;
 use App\Http\Controllers\Admin\UsuarioController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
-use App\Http\Controllers\Publico\ImagemPublicaController;
+use App\Http\Controllers\Publico\CatalogoController;
 use App\Http\Controllers\Publico\FotografiaController as PublicFotografiaController;
 use App\Http\Controllers\Publico\HomeController as PublicHomeController;
+use App\Http\Controllers\Publico\ImagemPublicaController;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -39,11 +39,7 @@ Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])
     ->name('logout');
 
 Route::get('/publico', PublicHomeController::class)->name('public.home');
-Route::get('/publico/catalogo', function (Request $request) {
-    return view('public.catalogo', [
-        'termo' => trim((string) $request->query('q', '')),
-    ]);
-})->name('public.catalogo');
+Route::get('/publico/catalogo', CatalogoController::class)->name('public.catalogo');
 Route::get('/publico/fotografias/{fotografia}', [PublicFotografiaController::class, 'show'])
     ->name('public.fotografias.show');
 

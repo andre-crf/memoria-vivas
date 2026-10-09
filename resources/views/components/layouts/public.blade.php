@@ -1,3 +1,8 @@
+@php
+    $pesquisaAtual = request()->query('q');
+    $pesquisaAtual = is_string($pesquisaAtual) ? trim($pesquisaAtual) : '';
+@endphp
+
 <x-layouts.app :title="$title ?? 'Memórias Vivas'">
     <div class="public-shell">
         <header class="public-header">
@@ -19,7 +24,7 @@
                 <div class="public-header__tools">
                     <form method="GET" action="{{ route('public.catalogo') }}" class="public-search" role="search">
                         <label class="sr-only" for="public-search">Buscar no catálogo</label>
-                        <input id="public-search" name="q" type="search" value="{{ request('q') }}" placeholder="Buscar no catálogo" autocomplete="off">
+                        <input id="public-search" name="q" type="search" value="{{ $pesquisaAtual }}" placeholder="Buscar no catálogo" autocomplete="off">
                         <button type="submit">Buscar</button>
                     </form>
 

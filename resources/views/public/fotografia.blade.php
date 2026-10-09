@@ -1,17 +1,21 @@
-<x-layouts.public title="{{ $fotografia->titulo }} | Memórias Vivas">
-    @php($imagem = $fotografia->imagemAdministrativa(['large', 'medium', 'thumbnail']))
+<x-layouts.public :title="$fotografia->titulo.' | Memórias Vivas'">
+    @php
+        $imagem = $fotografia->arquivos->firstWhere('versao_arquivo', 'large')
+            ?? $fotografia->arquivos->firstWhere('versao_arquivo', 'medium')
+            ?? $fotografia->arquivos->firstWhere('versao_arquivo', 'thumbnail');
+    @endphp
 
     <section class="public-section public-detail">
         <div class="public-container">
-            <a href="{{ route('public.home') }}" class="public-text-link">&larr; Voltar para o início</a>
+            <a href="{{ route('public.catalogo') }}" class="public-back-link">&larr; Voltar ao catálogo</a>
             <div class="public-detail__grid">
-                <div class="public-detail__image">
-                    @if ($imagem)
-                        <img src="{{ route('publico.imagens.show', $imagem) }}" alt="{{ $fotografia->titulo }}" width="1200" height="800">
-                    @else
-                        <span>Imagem indisponível</span>
-                    @endif
-                </div>
+                <x-public.imagem
+                    :arquivo="$imagem"
+                    :alt="$fotografia->titulo"
+                    loading="eager"
+                    class="public-detail__image"
+                />
+
                 <div class="public-detail__content">
                     <p class="public-eyebrow">Fotografia do acervo</p>
                     <h1>{{ $fotografia->titulo }}</h1>
