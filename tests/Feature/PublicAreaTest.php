@@ -17,6 +17,8 @@ class PublicAreaTest extends TestCase
             ->assertOk()
             ->assertSee('Memórias Vivas de Umuarama')
             ->assertSee('images/memorias-vivas-logo.jpg', false)
+            ->assertSee('Explorar o catálogo')
+            ->assertSee('Uma porta de entrada para a memória local')
             ->assertSee('Navegação pública', false)
             ->assertSee('Buscar no catálogo')
             ->assertSee(route('public.catalogo'), false)

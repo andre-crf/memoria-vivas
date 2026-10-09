@@ -935,17 +935,33 @@
     .public-empty-state { display: grid; gap: 0.45rem; max-width: 42rem; margin-top: 2rem; border: 1px dashed #9fb9c5; border-radius: 0.5rem; padding: 2rem; color: #536575; }
     .public-empty-state strong { color: #173e63; }
     .public-hero { border-bottom: 1px solid #dce4e9; background: #eaf3f4; }
-    .public-hero__content { padding-block: clamp(5rem, 12vw, 9rem); }
+    .public-hero__grid { display: grid; min-height: min(44rem, calc(100vh - 5rem)); grid-template-columns: minmax(0, 1.35fr) minmax(14rem, 0.65fr); align-items: center; gap: 4rem; }
+    .public-hero__content { padding-block: clamp(4rem, 10vw, 8rem); }
     .public-eyebrow { color: #278b91; font-size: 0.72rem; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; }
     .public-hero h1, .public-section h2 { max-width: 42rem; margin-top: 0.8rem; color: #173e63; font-family: Georgia, 'Times New Roman', serif; font-weight: 600; overflow-wrap: anywhere; }
     .public-hero h1 { font-size: clamp(2.4rem, 6vw, 5rem); line-height: 1.05; }
     .public-hero__lead { max-width: 37rem; margin-top: 1.35rem; color: #536575; font-size: 1.08rem; line-height: 1.7; }
-    .public-button { display: inline-flex; margin-top: 2rem; align-items: center; border-radius: 0.375rem; background: #173e63; padding: 0.75rem 1rem; color: #fff; font-size: 0.82rem; font-weight: 700; }
+    .public-hero__actions { display: flex; flex-wrap: wrap; align-items: center; gap: 1.25rem; margin-top: 2rem; }
+    .public-button { display: inline-flex; align-items: center; gap: 0.75rem; border-radius: 0.375rem; background: #173e63; padding: 0.78rem 1rem; color: #fff; font-size: 0.82rem; font-weight: 700; }
     .public-button:hover { background: #102d48; }
+    .public-button span { font-size: 1rem; line-height: 1; }
+    .public-text-link { color: #173e63; font-size: 0.82rem; font-weight: 750; text-decoration: underline; text-decoration-color: #9fb9c5; text-underline-offset: 0.25rem; }
+    .public-text-link:hover { text-decoration-color: #173e63; }
+    .public-hero__identity { display: grid; justify-items: center; gap: 1.25rem; max-width: 19rem; border-left: 1px solid #9fb9c5; padding: 2rem 0 2rem 3rem; color: #536575; text-align: center; }
+    .public-hero__identity img { width: clamp(9rem, 18vw, 13rem); height: clamp(9rem, 18vw, 13rem); border: 0.7rem solid #fff; border-radius: 50%; object-fit: cover; box-shadow: 0 1rem 2rem rgb(23 62 99 / 0.12); }
+    .public-hero__identity p { max-width: 16rem; font-family: Georgia, 'Times New Roman', serif; font-size: 1rem; line-height: 1.5; }
     .public-section { padding-block: clamp(4rem, 8vw, 7rem); background: #fff; }
     .public-section__grid { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); gap: 4rem; }
     .public-section h2 { font-size: clamp(1.8rem, 4vw, 3rem); line-height: 1.12; }
     .public-section__copy { display: grid; gap: 1rem; max-width: 40rem; color: #536575; font-size: 1rem; line-height: 1.75; }
+    .public-section--tinted { border-top: 1px solid #dce4e9; background: #f1f6f6; }
+    .public-introduction { display: grid; grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr); gap: 4rem; }
+    .public-introduction h2 { max-width: 30rem; margin-top: 0.8rem; color: #173e63; font-family: Georgia, 'Times New Roman', serif; font-size: clamp(1.8rem, 4vw, 3rem); line-height: 1.12; }
+    .public-introduction__items { display: grid; gap: 1.25rem; }
+    .public-introduction__item { display: grid; grid-template-columns: 2.5rem minmax(0, 1fr); gap: 1rem; border-top: 1px solid #cbd9dd; padding-top: 1.15rem; }
+    .public-introduction__number { color: #278b91; font-size: 0.72rem; font-weight: 800; letter-spacing: 0.08em; }
+    .public-introduction__item h3 { color: #173e63; font-size: 1rem; }
+    .public-introduction__item p { margin-top: 0.35rem; color: #536575; font-size: 0.9rem; line-height: 1.6; }
     .public-footer { border-top: 1px solid #dce4e9; background: #173e63; color: #dce9ee; }
     .public-footer__inner { min-height: 4.5rem; font-size: 0.75rem; }
     @media (max-width: 700px) {
@@ -955,6 +971,10 @@
         .public-nav--desktop { display: none; }
         .public-menu { display: block; }
         .public-nav { justify-content: flex-start; gap: 0.75rem 1rem; }
+        .public-hero__grid, .public-introduction { grid-template-columns: 1fr; gap: 2rem; }
+        .public-hero__grid { min-height: auto; }
+        .public-hero__identity { justify-items: start; border-top: 1px solid #9fb9c5; border-left: 0; padding: 2rem 0 3rem; text-align: left; }
+        .public-hero__identity p { max-width: 20rem; }
         .public-section__grid { grid-template-columns: 1fr; gap: 2rem; }
     }
 }
