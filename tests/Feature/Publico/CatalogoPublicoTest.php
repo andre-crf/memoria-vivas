@@ -4,6 +4,8 @@ namespace Tests\Feature\Publico;
 
 use App\Enums\Visibilidade;
 use App\Models\Arquivo;
+use App\Models\Assunto;
+use App\Models\Categoria;
 use App\Models\ItemAcervo;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -254,6 +256,265 @@ class CatalogoPublicoTest extends TestCase
             ->assertOk()
             ->assertSee('value=""', false)
             ->assertSee('Praça Central');
+    }
+
+    public function test_filtro_de_decada_abrange_todas_as_precisoes_com_ano_conhecido(): void
+    {
+        $casosIncluidos = [
+            ['titulo' => 'Data exata em 1981', 'tipo_data' => 'data_exata', 'dia' => 12, 'mes' => 3, 'ano' => 1981],
+            ['titulo' => 'Mês e ano em 1985', 'tipo_data' => 'mes_ano', 'mes' => 7, 'ano' => 1985],
+            ['titulo' => 'Ano de 1989', 'tipo_data' => 'ano', 'ano' => 1989],
+            ['titulo' => 'Década aproximada de 1980', 'tipo_data' => 'decada', 'decada' => '1980'],
+        ];
+
+        foreach ($casosIncluidos as $atributos) {
+            $fotografia = $this->fotografia($atributos);
+            $this->arquivo($fotografia, 'thumbnail');
+        }
+
+        $foraDaDecada = $this->fotografia(['titulo' => 'Ano de 1979', 'tipo_data' => 'ano', 'ano' => 1979]);
+        $this->arquivo($foraDaDecada, 'thumbnail');
+        $desconhecida = $this->fotografia(['titulo' => 'Data desconhecida']);
+        $this->arquivo($desconhecida, 'thumbnail');
+
+        $resposta = $this->get(route('public.catalogo', ['decada' => '1980']))->assertOk();
+
+        foreach ($casosIncluidos as $atributos) {
+            $resposta->assertSee($atributos['titulo']);
+        }
+
+        $resposta
+            ->assertDontSee('Ano de 1979')
+            ->assertDontSee('Data desconhecida');
+    }
+
+    public function test_filtros_de_categoria_e_assunto_funcionam_isoladamente(): void
+    {
+        $categoria = Categoria::create(['titulo' => 'Arquitetura']);
+        $outraCategoria = Categoria::create(['titulo' => 'Cotidiano']);
+        $assunto = Assunto::create(['titulo' => 'Praças']);
+        $outroAssunto = Assunto::create(['titulo' => 'Transporte']);
+
+        $correspondente = $this->fotografia(['titulo' => 'Praça e arquitetura']);
+        $this->arquivo($correspondente, 'thumbnail');
+        $correspondente->categorias()->attach($categoria);
+        $correspondente->assuntos()->attach($assunto);
+
+        $outro = $this->fotografia(['titulo' => 'Terminal rodoviário']);
+        $this->arquivo($outro, 'thumbnail');
+        $outro->categorias()->attach($outraCategoria);
+        $outro->assuntos()->attach($outroAssunto);
+
+        $this->get(route('public.catalogo', ['categoria' => $categoria->id]))
+            ->assertOk()
+            ->assertSee('Praça e arquitetura')
+            ->assertDontSee('Terminal rodoviário');
+
+        $this->get(route('public.catalogo', ['assunto' => $outroAssunto->id]))
+            ->assertOk()
+            ->assertSee('Terminal rodoviário')
+            ->assertDontSee('Praça e arquitetura');
+    }
+
+    public function test_pesquisa_e_todos_os_filtros_sao_combinados_com_semantica_and(): void
+    {
+        $categoria = Categoria::create(['titulo' => 'Espaços urbanos']);
+        $assunto = Assunto::create(['titulo' => 'Eventos públicos']);
+
+        $correspondente = $this->fotografia([
+            'titulo' => 'Desfile na praça em 1985',
+            'tipo_data' => 'ano',
+            'ano' => 1985,
+        ]);
+        $this->arquivo($correspondente, 'thumbnail');
+        $correspondente->categorias()->attach($categoria);
+        $correspondente->assuntos()->attach($assunto);
+
+        foreach ([
+            ['titulo' => 'Desfile fora da década', 'tipo_data' => 'ano', 'ano' => 1975],
+            ['titulo' => 'Construção na praça em 1985', 'tipo_data' => 'ano', 'ano' => 1985],
+        ] as $atributos) {
+            $fotografia = $this->fotografia($atributos);
+            $this->arquivo($fotografia, 'thumbnail');
+            $fotografia->categorias()->attach($categoria);
+            $fotografia->assuntos()->attach($assunto);
+        }
+
+        $semClassificacao = $this->fotografia([
+            'titulo' => 'Desfile sem classificação em 1985',
+            'tipo_data' => 'ano',
+            'ano' => 1985,
+        ]);
+        $this->arquivo($semClassificacao, 'thumbnail');
+
+        $this->get(route('public.catalogo', [
+            'q' => 'Desfile',
+            'decada' => '1980',
+            'categoria' => $categoria->id,
+            'assunto' => $assunto->id,
+        ]))
+            ->assertOk()
+            ->assertSee('Desfile na praça em 1985')
+            ->assertDontSee('Desfile fora da década')
+            ->assertDontSee('Construção na praça em 1985')
+            ->assertDontSee('Desfile sem classificação em 1985');
+    }
+
+    public function test_filtros_nunca_incluem_fotografias_inelegiveis(): void
+    {
+        $categoria = Categoria::create(['titulo' => 'Memória urbana']);
+        $assunto = Assunto::create(['titulo' => 'Centro']);
+
+        $publica = $this->fotografia(['titulo' => 'Centro público', 'tipo_data' => 'ano', 'ano' => 1982]);
+        $this->arquivo($publica, 'thumbnail');
+        $publica->categorias()->attach($categoria);
+        $publica->assuntos()->attach($assunto);
+
+        $casos = [
+            ['titulo' => 'Centro privado', 'visibilidade' => Visibilidade::Privado],
+            ['titulo' => 'Centro em rascunho', 'status' => 'rascunho'],
+            ['titulo' => 'Centro sem imagem'],
+        ];
+
+        foreach ($casos as $atributos) {
+            $fotografia = $this->fotografia(['tipo_data' => 'ano', 'ano' => 1982, ...$atributos]);
+            if ($fotografia->titulo !== 'Centro sem imagem') {
+                $this->arquivo($fotografia, 'thumbnail');
+            }
+            $fotografia->categorias()->attach($categoria);
+            $fotografia->assuntos()->attach($assunto);
+        }
+
+        $excluida = $this->fotografia(['titulo' => 'Centro excluído', 'tipo_data' => 'ano', 'ano' => 1982]);
+        $this->arquivo($excluida, 'thumbnail');
+        $excluida->categorias()->attach($categoria);
+        $excluida->assuntos()->attach($assunto);
+        $excluida->delete();
+
+        $this->get(route('public.catalogo', [
+            'decada' => '1980',
+            'categoria' => $categoria->id,
+            'assunto' => $assunto->id,
+        ]))
+            ->assertOk()
+            ->assertSee('Centro público')
+            ->assertDontSee('Centro privado')
+            ->assertDontSee('Centro em rascunho')
+            ->assertDontSee('Centro sem imagem')
+            ->assertDontSee('Centro excluído');
+    }
+
+    public function test_opcoes_exibem_somente_valores_com_conteudo_publico_e_na_ordem_esperada(): void
+    {
+        $categoriaZeta = Categoria::create(['titulo' => 'Zoológico']);
+        $categoriaAlfa = Categoria::create(['titulo' => 'Arquitetura']);
+        $categoriaInterna = Categoria::create(['titulo' => 'Classificação interna']);
+        $assuntoZeta = Assunto::create(['titulo' => 'Trabalho']);
+        $assuntoAlfa = Assunto::create(['titulo' => 'Celebrações']);
+        $assuntoInterno = Assunto::create(['titulo' => 'Assunto interno']);
+
+        foreach ([
+            [$categoriaZeta, $assuntoZeta, ['tipo_data' => 'ano', 'ano' => 1985]],
+            [$categoriaAlfa, $assuntoAlfa, ['tipo_data' => 'decada', 'decada' => '2000']],
+        ] as [$categoria, $assunto, $data]) {
+            $fotografia = $this->fotografia($data);
+            $this->arquivo($fotografia, 'thumbnail');
+            $fotografia->categorias()->attach($categoria);
+            $fotografia->assuntos()->attach($assunto);
+        }
+
+        $privada = $this->fotografia(['visibilidade' => Visibilidade::Privado, 'tipo_data' => 'ano', 'ano' => 2022]);
+        $this->arquivo($privada, 'thumbnail');
+        $privada->categorias()->attach($categoriaInterna);
+        $privada->assuntos()->attach($assuntoInterno);
+
+        $this->get(route('public.catalogo'))
+            ->assertOk()
+            ->assertViewHas('decadas', ['2000', '1980'])
+            ->assertViewHas('categorias', fn ($opcoes): bool => $opcoes->pluck('titulo')->all() === ['Arquitetura', 'Zoológico'])
+            ->assertViewHas('assuntos', fn ($opcoes): bool => $opcoes->pluck('titulo')->all() === ['Celebrações', 'Trabalho'])
+            ->assertDontSee('Classificação interna')
+            ->assertDontSee('Assunto interno')
+            ->assertDontSee('Década de 2020');
+    }
+
+    public function test_parametros_invalidos_ou_indisponiveis_sao_ignorados_com_seguranca(): void
+    {
+        $interna = Categoria::create(['titulo' => 'Categoria sem conteúdo público']);
+        $fotografia = $this->fotografia(['titulo' => 'Registro público', 'tipo_data' => 'ano', 'ano' => 1985]);
+        $this->arquivo($fotografia, 'thumbnail');
+
+        $this->get(route('public.catalogo', [
+            'decada' => ['1980'],
+            'categoria' => $interna->id,
+            'assunto' => 'inexistente',
+        ]))
+            ->assertOk()
+            ->assertSee('Registro público')
+            ->assertViewHas('filtros', fn ($filtros): bool => ! $filtros->possuiCriterios());
+    }
+
+    public function test_selecoes_header_paginacao_e_limpeza_preservam_parametros_normalizados(): void
+    {
+        $categoria = Categoria::create(['titulo' => 'Paisagem urbana']);
+        $assunto = Assunto::create(['titulo' => 'Ruas']);
+
+        collect(range(1, 13))->each(function (int $indice) use ($categoria, $assunto): void {
+            $fotografia = $this->fotografia([
+                'titulo' => sprintf('Rua histórica %02d', $indice),
+                'tipo_data' => 'ano',
+                'ano' => 1985,
+            ]);
+            $this->arquivo($fotografia, 'thumbnail');
+            $fotografia->categorias()->attach($categoria);
+            $fotografia->assuntos()->attach($assunto);
+        });
+
+        $parametros = [
+            'q' => 'Rua histórica',
+            'decada' => '1980',
+            'categoria' => $categoria->id,
+            'assunto' => $assunto->id,
+        ];
+
+        $this->get(route('public.catalogo', $parametros))
+            ->assertOk()
+            ->assertViewHas('fotografias', fn ($paginador): bool => $paginador->count() === 12 && $paginador->total() === 13)
+            ->assertSee('name="q" type="search" value="Rua histórica"', false)
+            ->assertSee('type="hidden" name="decada" value="1980"', false)
+            ->assertSee('type="hidden" name="categoria" value="'.$categoria->id.'"', false)
+            ->assertSee('type="hidden" name="assunto" value="'.$assunto->id.'"', false)
+            ->assertSee('value="1980" selected', false)
+            ->assertSee('value="'.$categoria->id.'" selected', false)
+            ->assertSee('value="'.$assunto->id.'" selected', false)
+            ->assertSee('q=Rua%20hist%C3%B3rica', false)
+            ->assertSee('decada=1980', false)
+            ->assertSee('categoria='.$categoria->id, false)
+            ->assertSee('assunto='.$assunto->id, false)
+            ->assertSee('page=2', false)
+            ->assertSee(route('public.catalogo', ['q' => 'Rua histórica']), false);
+    }
+
+    public function test_estado_sem_resultados_filtrados_e_distinto_do_catalogo_vazio(): void
+    {
+        $categoria = Categoria::create(['titulo' => 'Categoria pública']);
+        $assunto = Assunto::create(['titulo' => 'Assunto público']);
+        $comCategoria = $this->fotografia(['titulo' => 'Registro da categoria']);
+        $this->arquivo($comCategoria, 'thumbnail');
+        $comCategoria->categorias()->attach($categoria);
+        $comAssunto = $this->fotografia(['titulo' => 'Registro do assunto']);
+        $this->arquivo($comAssunto, 'thumbnail');
+        $comAssunto->assuntos()->attach($assunto);
+
+        $this->get(route('public.catalogo', [
+            'categoria' => $categoria->id,
+            'assunto' => $assunto->id,
+        ]))
+            ->assertOk()
+            ->assertSee('Nenhuma fotografia encontrada')
+            ->assertSee('Nenhuma fotografia corresponde aos filtros selecionados.')
+            ->assertSee('Limpar pesquisa e filtros')
+            ->assertDontSee('Nenhuma fotografia pública disponível');
     }
 
     public function test_catalogo_exibe_estado_vazio_sem_fotografias_elegiveis(): void

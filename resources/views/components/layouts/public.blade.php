@@ -1,9 +1,11 @@
-@php
-    $pesquisaAtual = request()->query('q');
-    $pesquisaAtual = is_string($pesquisaAtual) ? trim($pesquisaAtual) : '';
-@endphp
+@props([
+    'title' => 'Memórias Vivas',
+    'catalogQuery' => [],
+])
 
-<x-layouts.app :title="$title ?? 'Memórias Vivas'">
+@php($pesquisaAtual = (string) ($catalogQuery['q'] ?? ''))
+
+<x-layouts.app :title="$title">
     <div class="public-shell">
         <header class="public-header">
             <div class="public-container public-header__inner">
@@ -25,6 +27,11 @@
                     <form method="GET" action="{{ route('public.catalogo') }}" class="public-search" role="search">
                         <label class="sr-only" for="public-search">Buscar no catálogo</label>
                         <input id="public-search" name="q" type="search" value="{{ $pesquisaAtual }}" placeholder="Buscar no catálogo" autocomplete="off">
+                        @foreach (['decada', 'categoria', 'assunto'] as $parametro)
+                            @if (isset($catalogQuery[$parametro]))
+                                <input type="hidden" name="{{ $parametro }}" value="{{ $catalogQuery[$parametro] }}">
+                            @endif
+                        @endforeach
                         <button type="submit" aria-label="Buscar no catálogo">Buscar</button>
                     </form>
 

@@ -7,7 +7,7 @@
 
     <section class="public-section public-detail">
         <div class="public-container">
-            <a href="{{ route('public.catalogo') }}" class="public-back-link">&larr; Voltar ao catálogo</a>
+            <a href="{{ $retornoCatalogo }}" class="public-back-link">&larr; Voltar ao catálogo</a>
             <div class="public-detail__grid">
                 <x-public.imagem
                     :arquivo="$imagem"
@@ -23,18 +23,124 @@
                     @if ($fotografia->legenda)
                         <div class="public-detail__caption">{{ $fotografia->legenda }}</div>
                     @endif
-                    @if ($fotografia->local_atual || $fotografia->local_epoca)
-                        <dl class="public-detail__metadata">
-                            @if ($fotografia->local_atual)
-                                <div><dt>Local atual</dt><dd>{{ $fotografia->local_atual }}</dd></div>
-                            @endif
-                            @if ($fotografia->local_epoca)
-                                <div><dt>Local na época</dt><dd>{{ $fotografia->local_epoca }}</dd></div>
-                            @endif
-                        </dl>
-                    @endif
+                    <dl class="public-detail__metadata">
+                        <div><dt>Precisão da data</dt><dd>{{ $fotografia->tipo_data->label() }}</dd></div>
+                        @if ($fotografia->local_atual)
+                            <div><dt>Local atual</dt><dd>{{ $fotografia->local_atual }}</dd></div>
+                        @endif
+                        @if ($fotografia->local_epoca)
+                            <div><dt>Local na época</dt><dd>{{ $fotografia->local_epoca }}</dd></div>
+                        @endif
+                        @if ($fotografia->evento)
+                            <div><dt>Evento</dt><dd>{{ $fotografia->evento }}</dd></div>
+                        @endif
+                        @if ($fotografia->cedente)
+                            <div><dt>Cedente</dt><dd>{{ $fotografia->cedente }}</dd></div>
+                        @endif
+                        @if ($fotografia->autor)
+                            <div><dt>Autoria</dt><dd>{{ $fotografia->autor->nome }}</dd></div>
+                        @endif
+                    </dl>
                 </div>
             </div>
+
+            @if (
+                $fotografia->categorias->isNotEmpty()
+                || $fotografia->assuntos->isNotEmpty()
+                || $fotografia->palavrasChave->isNotEmpty()
+                || $fotografia->pessoas->isNotEmpty()
+                || $fotografia->colecoes->isNotEmpty()
+                || $fotografia->conjuntosContextuais->isNotEmpty()
+            )
+                <div class="public-detail__sections">
+                    @if ($fotografia->categorias->isNotEmpty() || $fotografia->assuntos->isNotEmpty() || $fotografia->palavrasChave->isNotEmpty())
+                        <section class="public-detail__section">
+                            <h2>Classificações</h2>
+                            <dl class="public-detail__groups">
+                                @if ($fotografia->categorias->isNotEmpty())
+                                    <div>
+                                        <dt>Categorias</dt>
+                                        <dd>
+                                            <ul>
+                                                @foreach ($fotografia->categorias as $categoria)
+                                                    <li>{{ $categoria->titulo }}</li>
+                                                @endforeach
+                                            </ul>
+                                        </dd>
+                                    </div>
+                                @endif
+                                @if ($fotografia->assuntos->isNotEmpty())
+                                    <div>
+                                        <dt>Assuntos</dt>
+                                        <dd>
+                                            <ul>
+                                                @foreach ($fotografia->assuntos as $assunto)
+                                                    <li>{{ $assunto->titulo }}</li>
+                                                @endforeach
+                                            </ul>
+                                        </dd>
+                                    </div>
+                                @endif
+                                @if ($fotografia->palavrasChave->isNotEmpty())
+                                    <div>
+                                        <dt>Palavras-chave</dt>
+                                        <dd>
+                                            <ul>
+                                                @foreach ($fotografia->palavrasChave as $palavraChave)
+                                                    <li>{{ $palavraChave->termo }}</li>
+                                                @endforeach
+                                            </ul>
+                                        </dd>
+                                    </div>
+                                @endif
+                            </dl>
+                        </section>
+                    @endif
+
+                    @if ($fotografia->pessoas->isNotEmpty())
+                        <section class="public-detail__section">
+                            <h2>Pessoas identificadas</h2>
+                            <ul class="public-detail__list">
+                                @foreach ($fotografia->pessoas as $pessoa)
+                                    <li>{{ $pessoa->nome }}</li>
+                                @endforeach
+                            </ul>
+                        </section>
+                    @endif
+
+                    @if ($fotografia->colecoes->isNotEmpty() || $fotografia->conjuntosContextuais->isNotEmpty())
+                        <section class="public-detail__section">
+                            <h2>Coleções e contextos</h2>
+                            <dl class="public-detail__groups">
+                                @if ($fotografia->colecoes->isNotEmpty())
+                                    <div>
+                                        <dt>Coleções</dt>
+                                        <dd>
+                                            <ul>
+                                                @foreach ($fotografia->colecoes as $colecao)
+                                                    <li>{{ $colecao->titulo }}</li>
+                                                @endforeach
+                                            </ul>
+                                        </dd>
+                                    </div>
+                                @endif
+                                @if ($fotografia->conjuntosContextuais->isNotEmpty())
+                                    <div>
+                                        <dt>Conjuntos contextuais</dt>
+                                        <dd>
+                                            <ul>
+                                                @foreach ($fotografia->conjuntosContextuais as $conjunto)
+                                                    <li>{{ $conjunto->titulo }}</li>
+                                                @endforeach
+                                            </ul>
+                                        </dd>
+                                    </div>
+                                @endif
+                            </dl>
+                        </section>
+                    @endif
+                </div>
+            @endif
         </div>
     </section>
 </x-layouts.public>
