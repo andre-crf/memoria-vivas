@@ -1,20 +1,71 @@
-<x-layouts.public title="Catálogo | Memórias Vivas">
+<x-layouts.public title="Catálogo | Memórias Vivas" :catalog-query="$filtros->parametros()">
     <section class="public-section public-catalog">
         <div class="public-container">
             <p class="public-eyebrow">Catálogo</p>
             <h1>Pesquisar no acervo</h1>
-            @if ($termo !== '')
-                <p class="public-section__intro">Resultados para “{{ $termo }}”.</p>
+            @if ($filtros->termo !== '')
+                <p class="public-section__intro">Resultados para “{{ $filtros->termo }}”.</p>
             @else
                 <p class="public-section__intro">Explore as fotografias revisadas e disponibilizadas pelo acervo.</p>
             @endif
 
+            <form method="GET" action="{{ route('public.catalogo') }}" class="public-catalog-filters">
+                @if ($filtros->termo !== '')
+                    <input type="hidden" name="q" value="{{ $filtros->termo }}">
+                @endif
+
+                <div class="public-catalog-filters__fields">
+                    <label>
+                        <span>Década histórica</span>
+                        <select name="decada">
+                            <option value="">Todas as décadas</option>
+                            @foreach ($decadas as $decada)
+                                <option value="{{ $decada }}" @selected($filtros->decada === $decada)>Década de {{ $decada }}</option>
+                            @endforeach
+                        </select>
+                    </label>
+
+                    <label>
+                        <span>Categoria</span>
+                        <select name="categoria">
+                            <option value="">Todas as categorias</option>
+                            @foreach ($categorias as $categoria)
+                                <option value="{{ $categoria->id }}" @selected($filtros->categoriaId === $categoria->id)>{{ $categoria->titulo }}</option>
+                            @endforeach
+                        </select>
+                    </label>
+
+                    <label>
+                        <span>Assunto</span>
+                        <select name="assunto">
+                            <option value="">Todos os assuntos</option>
+                            @foreach ($assuntos as $assunto)
+                                <option value="{{ $assunto->id }}" @selected($filtros->assuntoId === $assunto->id)>{{ $assunto->titulo }}</option>
+                            @endforeach
+                        </select>
+                    </label>
+                </div>
+
+                <div class="public-catalog-filters__actions">
+                    <button type="submit" class="public-button">Aplicar filtros</button>
+                    @if ($filtros->possuiClassificacoes())
+                        <a href="{{ route('public.catalogo', $filtros->parametrosDaPesquisa()) }}" class="public-back-link">Limpar filtros</a>
+                    @endif
+                </div>
+            </form>
+
             @if ($fotografias->isEmpty())
                 <div class="public-empty-state">
-                    @if ($termo !== '')
+                    @if ($filtros->possuiCriterios())
                         <strong>Nenhuma fotografia encontrada</strong>
-                        <span>Não encontramos resultados para “{{ $termo }}”.</span>
-                        <a href="{{ route('public.catalogo') }}" class="public-back-link">Limpar pesquisa</a>
+                        @if ($filtros->termo !== '' && $filtros->possuiClassificacoes())
+                            <span>Não encontramos resultados para “{{ $filtros->termo }}” com os critérios selecionados.</span>
+                        @elseif ($filtros->termo !== '')
+                            <span>Não encontramos resultados para “{{ $filtros->termo }}”.</span>
+                        @else
+                            <span>Nenhuma fotografia corresponde aos filtros selecionados.</span>
+                        @endif
+                        <a href="{{ route('public.catalogo') }}" class="public-back-link">Limpar pesquisa e filtros</a>
                     @else
                         <strong>Nenhuma fotografia pública disponível</strong>
                         <span>Novos registros aparecerão aqui conforme forem revisados e publicados.</span>
