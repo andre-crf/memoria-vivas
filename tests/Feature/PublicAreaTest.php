@@ -106,6 +106,16 @@ class PublicAreaTest extends TestCase
             ->assertSee('Limpar pesquisa');
     }
 
+    public function test_unknown_page_shows_public_navigation_and_recovery_links(): void
+    {
+        $this
+            ->get('/publico/pagina-inexistente')
+            ->assertNotFound()
+            ->assertSee('Esta página não foi encontrada')
+            ->assertSee(route('public.home'), false)
+            ->assertSee(route('public.catalogo'), false);
+    }
+
     private function fotografia(string $titulo): ItemAcervo
     {
         return ItemAcervo::create([

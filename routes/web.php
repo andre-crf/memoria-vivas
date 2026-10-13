@@ -39,6 +39,15 @@ Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])
     ->name('logout');
 
 Route::get('/publico', PublicHomeController::class)->name('public.home');
+Route::view('/publico/sobre', 'public.institucional', [
+    'page' => config('institucional.pages.sobre'),
+])->name('public.sobre');
+Route::view('/publico/colaborar', 'public.institucional', [
+    'page' => config('institucional.pages.colaborar'),
+])->name('public.colaborar');
+Route::view('/publico/contato', 'public.institucional', [
+    'page' => config('institucional.pages.contato'),
+])->name('public.contato');
 Route::get('/publico/catalogo', CatalogoController::class)->name('public.catalogo');
 Route::get('/publico/fotografias/{fotografia}', [PublicFotografiaController::class, 'show'])
     ->name('public.fotografias.show');
