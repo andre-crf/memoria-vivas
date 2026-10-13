@@ -73,6 +73,12 @@
                 </div>
             @else
                 <div class="public-catalog-grid" aria-label="Fotografias do acervo">
+                    @php
+                        $parametrosDetalhe = [
+                            ...$filtros->parametros(),
+                            'page' => $fotografias->currentPage(),
+                        ];
+                    @endphp
                     @foreach ($fotografias as $fotografia)
                         @php
                             $imagem = $fotografia->arquivos->firstWhere('versao_arquivo', 'thumbnail')
@@ -81,7 +87,7 @@
                         @endphp
 
                         <article class="public-catalog-card">
-                            <a href="{{ route('public.fotografias.show', $fotografia) }}" aria-label="Ver detalhes de {{ $fotografia->titulo }}">
+                            <a href="{{ route('public.fotografias.show', ['fotografia' => $fotografia, ...$parametrosDetalhe]) }}" aria-label="Ver detalhes de {{ $fotografia->titulo }}">
                                 <x-public.imagem
                                     :arquivo="$imagem"
                                     :alt="$fotografia->titulo"

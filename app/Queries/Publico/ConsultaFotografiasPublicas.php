@@ -9,6 +9,8 @@ use App\Models\Categoria;
 use App\Models\ItemAcervo;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Pagination\LengthAwarePaginator;
 
@@ -113,6 +115,41 @@ class ConsultaFotografiasPublicas
     public function porIdentificador(int|string $identificador): ?ItemAcervo
     {
         return $this->query()->find($identificador);
+    }
+
+    public function detalhePorIdentificador(int|string $identificador): ?ItemAcervo
+    {
+        return $this->query()
+            ->with([
+                'autor' => fn (BelongsTo $query) => $query
+                    ->select(['autores.id', 'autores.nome']),
+                'categorias' => fn (BelongsToMany $query) => $query
+                    ->select(['categorias.id', 'categorias.titulo'])
+                    ->orderBy('categorias.titulo')
+                    ->orderBy('categorias.id'),
+                'assuntos' => fn (BelongsToMany $query) => $query
+                    ->select(['assuntos.id', 'assuntos.titulo'])
+                    ->orderBy('assuntos.titulo')
+                    ->orderBy('assuntos.id'),
+                'palavrasChave' => fn (BelongsToMany $query) => $query
+                    ->select(['palavras_chave.id', 'palavras_chave.termo'])
+                    ->orderBy('palavras_chave.termo')
+                    ->orderBy('palavras_chave.id'),
+                'pessoas' => fn (BelongsToMany $query) => $query
+                    ->select(['pessoas.id', 'pessoas.nome'])
+                    ->orderBy('pessoas.nome')
+                    ->orderBy('pessoas.id'),
+                'colecoes' => fn (BelongsToMany $query) => $query
+                    ->select(['colecoes.id', 'colecoes.titulo'])
+                    ->where('colecoes.status', 'publicada')
+                    ->orderBy('colecoes.titulo')
+                    ->orderBy('colecoes.id'),
+                'conjuntosContextuais' => fn (BelongsToMany $query) => $query
+                    ->select(['conjuntos_contextuais.id', 'conjuntos_contextuais.titulo'])
+                    ->orderByPivot('ordem')
+                    ->orderBy('conjuntos_contextuais.id'),
+            ])
+            ->find($identificador);
     }
 
     /**

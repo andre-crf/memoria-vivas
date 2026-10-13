@@ -994,6 +994,15 @@
     .public-detail__metadata { display: grid; gap: 1rem; margin-top: 2rem; border-top: 1px solid #dce4e9; padding-top: 1.5rem; color: #536575; }
     .public-detail__metadata dt { font-size: 0.72rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; }
     .public-detail__metadata dd { margin-top: 0.25rem; color: #173e63; }
+    .public-detail__sections { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.5rem; margin-top: clamp(2.5rem, 6vw, 4rem); }
+    .public-detail__section { min-width: 0; border-top: 2px solid #278b91; background: #f8faf9; padding: 1.5rem; }
+    .public-detail__section h2 { margin: 0; color: #173e63; font-size: 1.25rem; }
+    .public-detail__groups { display: grid; gap: 1.25rem; margin-top: 1.25rem; }
+    .public-detail__groups dt { color: #536575; font-size: 0.72rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; }
+    .public-detail__groups dd { margin-top: 0.55rem; }
+    .public-detail__groups ul, .public-detail__list { display: flex; flex-wrap: wrap; gap: 0.5rem; list-style: none; }
+    .public-detail__groups li, .public-detail__list li { border: 1px solid #cbd9dd; border-radius: 999px; background: #fff; padding: 0.4rem 0.7rem; color: #173e63; font-size: 0.82rem; overflow-wrap: anywhere; }
+    .public-detail__list { margin-top: 1.25rem; }
     .public-footer { border-top: 1px solid #dce4e9; background: #173e63; color: #dce9ee; }
     .public-footer__inner { min-height: 4.5rem; font-size: 0.75rem; }
     [x-cloak] { display: none !important; }
@@ -1023,6 +1032,7 @@
     @media (max-width: 900px) {
         .public-catalog-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
         .public-catalog-filters__fields { grid-template-columns: 1fr; }
+        .public-detail__sections { grid-template-columns: 1fr 1fr; }
     }
     @media (max-width: 700px) {
         .public-header__inner, .public-footer__inner { align-items: flex-start; flex-direction: column; justify-content: center; padding-block: 1rem; }
@@ -1044,6 +1054,7 @@
         .public-recent-item__image { min-height: 14rem; max-height: 18rem; }
         .public-recent-item__body { min-height: 15rem; padding: 1.5rem; }
         .public-detail__grid { grid-template-columns: 1fr; gap: 2rem; }
+        .public-detail__sections { grid-template-columns: 1fr; }
         .public-section__grid { grid-template-columns: 1fr; gap: 2rem; }
         .public-catalog-grid { grid-template-columns: 1fr; gap: 1rem; }
     }
