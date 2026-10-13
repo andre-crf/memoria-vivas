@@ -934,6 +934,15 @@
     .public-catalog h1 { max-width: 42rem; margin-top: 0.8rem; color: #173e63; font-family: Georgia, 'Times New Roman', serif; font-size: clamp(2rem, 5vw, 3.5rem); line-height: 1.1; overflow-wrap: anywhere; }
     .public-empty-state { display: grid; gap: 0.45rem; max-width: 42rem; margin-top: 2rem; border: 1px dashed #9fb9c5; border-radius: 0.5rem; padding: 2rem; color: #536575; }
     .public-empty-state strong { color: #173e63; }
+    .public-institutional { min-height: 60vh; border-bottom: 1px solid #dce4e9; background: linear-gradient(115deg, #eaf3f4 0%, #f7f8f5 58%, #fff 100%); }
+    .public-institutional__inner { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(16rem, 0.7fr); align-items: center; gap: clamp(2rem, 7vw, 6rem); padding-block: clamp(5rem, 12vw, 9rem); }
+    .public-institutional__heading h1 { max-width: 48rem; margin-top: 0.9rem; color: #173e63; font-family: Georgia, 'Times New Roman', serif; font-size: clamp(2.6rem, 6vw, 5.2rem); font-weight: 600; letter-spacing: -0.035em; line-height: 1.03; overflow-wrap: anywhere; }
+    .public-institutional__lead { max-width: 39rem; margin-top: 1.4rem; color: #536575; font-size: clamp(1rem, 1.7vw, 1.2rem); line-height: 1.75; }
+    .public-institutional__note { display: flex; align-items: flex-start; gap: 1rem; border-top: 2px solid #278b91; background: rgb(255 255 255 / 0.82); padding: 1.35rem 1.4rem; box-shadow: 0 16px 38px rgb(24 42 63 / 0.07); }
+    .public-institutional__note-mark { display: grid; width: 2rem; height: 2rem; flex: 0 0 auto; place-items: center; border-radius: 50%; background: #eaf3f4; color: #173e63; font-family: Georgia, 'Times New Roman', serif; font-size: 1.15rem; font-weight: 700; }
+    .public-institutional__note h2 { color: #173e63; font-size: 0.85rem; font-weight: 750; }
+    .public-institutional__note p { margin-top: 0.45rem; color: #536575; font-size: 0.82rem; line-height: 1.65; }
+    .public-institutional a:focus-visible { outline: 2px solid #278b91; outline-offset: 3px; }
     .public-hero { border-bottom: 1px solid #dce4e9; background: #eaf3f4; }
     .public-hero__content { padding-block: clamp(5rem, 12vw, 9rem); }
     .public-eyebrow { color: #278b91; font-size: 0.72rem; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; }
@@ -956,5 +965,6 @@
         .public-menu { display: block; }
         .public-nav { justify-content: flex-start; gap: 0.75rem 1rem; }
         .public-section__grid { grid-template-columns: 1fr; gap: 2rem; }
+        .public-institutional__inner { grid-template-columns: 1fr; gap: 2.5rem; }
     }
 }

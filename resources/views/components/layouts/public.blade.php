@@ -28,6 +28,9 @@
                         <nav class="public-nav public-nav--menu" aria-label="Navegação pública">
                             <a href="{{ route('public.home') }}" @if (request()->routeIs('public.home')) aria-current="page" @endif>Início</a>
                             <a href="{{ route('public.home') }}#sobre">Sobre o acervo</a>
+                            <a href="{{ route('public.sobre') }}" @if (request()->routeIs('public.sobre')) aria-current="page" @endif>Sobre nós</a>
+                            <a href="{{ route('public.colaborar') }}" @if (request()->routeIs('public.colaborar')) aria-current="page" @endif>Como colaborar</a>
+                            <a href="{{ route('public.contato') }}" @if (request()->routeIs('public.contato')) aria-current="page" @endif>Contato</a>
                             <a href="{{ route('public.catalogo') }}" @if (request()->routeIs('public.catalogo')) aria-current="page" @endif>Catálogo</a>
                             <a href="{{ route('login') }}">Área administrativa</a>
                         </nav>
@@ -36,6 +39,9 @@
                     <nav class="public-nav public-nav--desktop" aria-label="Navegação pública">
                         <a href="{{ route('public.home') }}" @if (request()->routeIs('public.home')) aria-current="page" @endif>Início</a>
                         <a href="{{ route('public.home') }}#sobre">Sobre o acervo</a>
+                        <a href="{{ route('public.sobre') }}" @if (request()->routeIs('public.sobre')) aria-current="page" @endif>Sobre nós</a>
+                        <a href="{{ route('public.colaborar') }}" @if (request()->routeIs('public.colaborar')) aria-current="page" @endif>Como colaborar</a>
+                        <a href="{{ route('public.contato') }}" @if (request()->routeIs('public.contato')) aria-current="page" @endif>Contato</a>
                         <a href="{{ route('public.catalogo') }}" @if (request()->routeIs('public.catalogo')) aria-current="page" @endif>Catálogo</a>
                         <a href="{{ route('login') }}">Área administrativa</a>
                     </nav>

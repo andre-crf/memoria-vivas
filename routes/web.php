@@ -37,6 +37,15 @@ Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])
     ->name('logout');
 
 Route::view('/publico', 'public.home')->name('public.home');
+Route::view('/publico/sobre', 'public.institucional', [
+    'page' => config('institucional.pages.sobre'),
+])->name('public.sobre');
+Route::view('/publico/colaborar', 'public.institucional', [
+    'page' => config('institucional.pages.colaborar'),
+])->name('public.colaborar');
+Route::view('/publico/contato', 'public.institucional', [
+    'page' => config('institucional.pages.contato'),
+])->name('public.contato');
 Route::get('/publico/catalogo', function (Request $request) {
     return view('public.catalogo', [
         'termo' => trim((string) $request->query('q', '')),
