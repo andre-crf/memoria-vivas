@@ -956,8 +956,32 @@
     .public-section__grid { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); gap: 4rem; }
     .public-section h2 { font-size: clamp(1.8rem, 4vw, 3rem); line-height: 1.12; }
     .public-section__copy { display: grid; gap: 1rem; max-width: 40rem; color: #536575; font-size: 1rem; line-height: 1.75; }
-    .public-footer { border-top: 1px solid #dce4e9; background: #173e63; color: #dce9ee; }
-    .public-footer__inner { min-height: 4.5rem; font-size: 0.75rem; }
+    .public-footer { position: relative; isolation: isolate; overflow: hidden; background: #2364a6; color: #fff; }
+    .public-footer__illustration { position: absolute; z-index: -1; inset: 0 0 3.5rem; background: url('/images/umuarama-panorama-horizontal.png') no-repeat center bottom / min(100%, 96rem) auto; opacity: 0.2; pointer-events: none; }
+    .public-footer__content { display: grid; min-height: clamp(14rem, 18vw, 18rem); grid-template-columns: minmax(0, 1.4fr) minmax(0, 0.8fr) minmax(0, 1fr); gap: 3rem; padding-block: 2rem 3rem; }
+    .public-footer__brand { display: inline-flex; align-items: center; gap: 1rem; }
+    .public-footer__brand img { width: 4rem; height: 4rem; flex: 0 0 auto; border: 2px solid #fff; border-radius: 50%; object-fit: cover; }
+    .public-footer__brand strong { display: block; font-family: Georgia, 'Times New Roman', serif; font-size: 1.5rem; line-height: 1.2; }
+    .public-footer__brand small { display: block; margin-top: 0.3rem; font-size: 0.75rem; }
+    .public-footer__identity p { margin-top: 1.25rem; font-size: 0.88rem; line-height: 1.8; }
+    .public-footer__links { display: grid; align-content: start; justify-items: start; gap: 0.8rem; }
+    .public-footer h2 { margin-bottom: 0.4rem; font-size: 0.92rem; font-weight: 750; }
+    .public-footer__links a, .public-footer__city a { font-size: 0.85rem; line-height: 1.5; }
+    .public-footer__city p { margin-block: 1rem; font-size: 0.88rem; }
+    .public-footer a { overflow-wrap: anywhere; }
+    .public-footer a:hover { text-decoration: underline; text-underline-offset: 0.25rem; }
+    .public-footer a:focus-visible { outline: 3px solid #fff; outline-offset: 5px; }
+    .public-footer__bottom { border-top: 1px solid rgb(255 255 255 / 0.2); background: #173e63; }
+    .public-footer__bottom > div { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem; min-height: 3.5rem; padding-block: 1rem; font-size: 0.75rem; }
+    @media (max-width: 960px) {
+        .public-footer__content { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 2rem; }
+        .public-footer__identity { grid-column: 1 / -1; }
+    }
+    @media (max-width: 480px) {
+        .public-footer__content { grid-template-columns: minmax(0, 1fr); padding-block: 2rem; }
+        .public-footer__brand strong { font-size: 1.3rem; }
+        .public-footer__illustration { background-size: 100% auto; }
+    }
     .public-nav a:focus-visible, .public-button:focus-visible, .public-text-link:focus-visible, .public-menu summary:focus-visible, .public-search input:focus-visible, .public-search button:focus-visible { outline: 3px solid #278b91; outline-offset: 3px; }
     @media (prefers-reduced-motion: reduce) {
         .public-skip-link, .public-nav a::after { transition: none; }

@@ -48,9 +48,32 @@
         <main id="public-main" tabindex="-1">{{ $slot }}</main>
 
         <footer class="public-footer">
-            <div class="public-container public-footer__inner">
-                <span>Memórias Vivas de Umuarama</span>
-                <span>Preservar, organizar e compartilhar memórias.</span>
+            <div class="public-container public-footer__content">
+                <div class="public-footer__identity">
+                    <a href="{{ route('public.home') }}" class="public-footer__brand">
+                        <img src="{{ asset('images/memorias-vivas-logo.jpg') }}" alt="" width="64" height="64">
+                        <span><strong>Memórias Vivas</strong><small>Acervo de Umuarama</small></span>
+                    </a>
+                    <p>Preservar, organizar e compartilhar memórias.<br>As histórias da nossa cidade, mais perto de você.</p>
+                </div>
+                <nav class="public-footer__links" aria-label="Navegação do rodapé">
+                    <h2>Conheça o acervo</h2>
+                    <a href="{{ route('public.home') }}">Início</a>
+                    <a href="{{ route('public.catalogo') }}">Catálogo de fotografias</a>
+                    <a href="{{ route('public.home') }}#sobre">Sobre o projeto</a>
+                </nav>
+                <div class="public-footer__city">
+                    <h2>Nossa memória, nossa cidade</h2>
+                    <p>Umuarama · Paraná</p>
+                    <a href="https://www.umuarama.pr.gov.br/">Portal da Prefeitura <span aria-hidden="true">&nearr;</span></a>
+                </div>
+            </div>
+            <div class="public-footer__illustration" aria-hidden="true"></div>
+            <div class="public-footer__bottom">
+                <div class="public-container">
+                    <span>&copy; {{ date('Y') }} Memórias Vivas de Umuarama</span>
+                    <a href="{{ route('login') }}">Área administrativa</a>
+                </div>
             </div>
         </footer>
     </div>
