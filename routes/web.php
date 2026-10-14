@@ -17,6 +17,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Validator;
 
 Route::get('/', function (): RedirectResponse {
     return Auth::check()
@@ -38,9 +39,19 @@ Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])
 
 Route::view('/publico', 'public.home')->name('public.home');
 Route::get('/publico/catalogo', function (Request $request) {
-    return view('public.catalogo', [
-        'termo' => trim((string) $request->query('q', '')),
+    $validator = Validator::make($request->query(), [
+        'q' => ['nullable', 'string', 'max:200'],
+    ], [
+        'q.string' => 'Digite um texto válido para pesquisar no catálogo.',
+        'q.max' => 'A pesquisa deve ter no máximo 200 caracteres.',
     ]);
+
+    $invalid = $validator->fails();
+
+    return response()->view('public.catalogo', [
+        'termo' => $invalid ? '' : trim($validator->validated()['q'] ?? ''),
+        'searchError' => $validator->errors()->first('q'),
+    ], $invalid ? 422 : 200);
 })->name('public.catalogo');
 
 Route::middleware(['auth', 'admin.access'])

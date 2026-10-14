@@ -1,3 +1,5 @@
+@props(['title' => 'Memórias Vivas', 'searchError' => null])
+
 <x-layouts.app :title="$title ?? 'Memórias Vivas'">
     <div class="public-shell">
         <a class="public-skip-link" href="#public-main">Pular para o conteúdo</a>
@@ -19,11 +21,17 @@
                 </a>
 
                 <div class="public-header__tools">
-                    <form method="GET" action="{{ route('public.catalogo') }}" class="public-search" role="search">
-                        <label class="sr-only" for="public-search">Buscar no catálogo</label>
-                        <input id="public-search" name="q" type="search" value="{{ request('q') }}" placeholder="Buscar no catálogo" autocomplete="off">
-                        <button type="submit">Buscar</button>
-                    </form>
+                    <div class="public-search-group">
+                        <form method="GET" action="{{ route('public.catalogo') }}" class="public-search" role="search">
+                            <label class="sr-only" for="public-search">Buscar no catálogo</label>
+                            @php($searchValue = request()->query('q', ''))
+                            <input id="public-search" name="q" type="search" value="{{ is_string($searchValue) ? $searchValue : '' }}" maxlength="200" @if ($searchError) aria-invalid="true" aria-describedby="catalog-search-error" @endif placeholder="Buscar no catálogo" autocomplete="off">
+                            <button type="submit">Buscar</button>
+                        </form>
+                        @if ($searchError)
+                            <p id="catalog-search-error" class="public-search-error" role="alert">{{ $searchError }}</p>
+                        @endif
+                    </div>
 
                     <details class="public-menu">
                         <summary>Menu</summary>
