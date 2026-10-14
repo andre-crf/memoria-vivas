@@ -75,6 +75,7 @@ class ConsultaFotografiasPublicas
     public function decadasDisponiveis(): array
     {
         return $this->queryElegivel()
+            ->distinct()
             ->get(['tipo_data', 'ano', 'decada'])
             ->map(function (ItemAcervo $fotografia): ?string {
                 if ($fotografia->tipo_data === TipoData::Decada) {

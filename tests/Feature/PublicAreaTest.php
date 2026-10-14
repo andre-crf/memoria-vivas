@@ -70,6 +70,28 @@ class PublicAreaTest extends TestCase
             ->assertSee(route('public.fotografias.show', $fotografias->last()), false);
     }
 
+    public function test_public_home_uses_medium_image_with_safe_fallbacks(): void
+    {
+        $comTodasAsVersoes = $this->fotografia('Fotografia com todas as versões');
+        $thumbnail = $this->arquivo($comTodasAsVersoes, 'thumbnail');
+        $medium = $this->arquivo($comTodasAsVersoes, 'medium');
+        $large = $this->arquivo($comTodasAsVersoes, 'large');
+
+        $somenteThumbnail = $this->fotografia('Fotografia somente thumbnail');
+        $thumbnailFallback = $this->arquivo($somenteThumbnail, 'thumbnail');
+
+        $somenteLarge = $this->fotografia('Fotografia somente large');
+        $largeFallback = $this->arquivo($somenteLarge, 'large');
+
+        $this->get(route('public.home'))
+            ->assertOk()
+            ->assertSee(route('publico.imagens.show', $medium), false)
+            ->assertDontSee(route('publico.imagens.show', $thumbnail), false)
+            ->assertDontSee(route('publico.imagens.show', $large), false)
+            ->assertSee(route('publico.imagens.show', $thumbnailFallback), false)
+            ->assertSee(route('publico.imagens.show', $largeFallback), false);
+    }
+
     public function test_public_photograph_detail_is_available_only_for_eligible_records(): void
     {
         $fotografia = $this->fotografia('Detalhe público');
@@ -124,6 +146,21 @@ class PublicAreaTest extends TestCase
             'tipo_data' => 'desconhecida',
             'status' => 'publicado',
             'visibilidade' => Visibilidade::Publico,
+        ]);
+    }
+
+    private function arquivo(ItemAcervo $fotografia, string $versao): Arquivo
+    {
+        return Arquivo::create([
+            'item_acervo_id' => $fotografia->id,
+            'provider' => 'local',
+            'storage_path' => "acervo/{$fotografia->id}/{$versao}.jpg",
+            'mime_type' => 'image/jpeg',
+            'file_size' => 100,
+            'tipo_arquivo' => 'imagem',
+            'versao_arquivo' => $versao,
+            'width' => $versao === 'thumbnail' ? 320 : 1024,
+            'height' => $versao === 'thumbnail' ? 240 : 768,
         ]);
     }
 }
