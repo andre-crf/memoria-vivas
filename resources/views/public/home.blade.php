@@ -81,13 +81,21 @@
             </div>
 
             @if ($fotografias->isNotEmpty())
-                <div class="public-carousel" data-carousel tabindex="0" aria-roledescription="carrossel" aria-label="Fotografias recentes">
-                    <button type="button" class="public-carousel__control public-carousel__control--prev" data-carousel-prev aria-label="Fotografia anterior">&larr;</button>
+                <div class="public-carousel" data-carousel @if ($fotografias->count() > 1) tabindex="0" @endif aria-roledescription="carrossel" aria-label="Fotografias recentes">
+                    @if ($fotografias->count() > 1)
+                        <button type="button" class="public-carousel__control public-carousel__control--prev" data-carousel-prev aria-label="Fotografia anterior">&larr;</button>
+                    @endif
                     <div class="public-carousel__viewport">
                         <div class="public-carousel__track" data-carousel-track>
                             @foreach ($fotografias as $fotografia)
                                 @php($imagem = $fotografia->imagemAdministrativa(['medium', 'thumbnail', 'large']))
-                                <article class="public-carousel__slide" data-carousel-slide aria-label="{{ $loop->iteration }} de {{ $fotografias->count() }}">
+                                <article
+                                    class="public-carousel__slide"
+                                    data-carousel-slide
+                                    aria-label="{{ $loop->iteration }} de {{ $fotografias->count() }}"
+                                    aria-hidden="{{ $loop->first ? 'false' : 'true' }}"
+                                    @if (! $loop->first) inert @endif
+                                >
                                     <a href="{{ route('public.fotografias.show', $fotografia) }}" class="public-recent-item">
                                         <div class="public-recent-item__image">
                                             @if ($imagem)
@@ -106,8 +114,10 @@
                             @endforeach
                         </div>
                     </div>
-                    <button type="button" class="public-carousel__control public-carousel__control--next" data-carousel-next aria-label="Próxima fotografia">&rarr;</button>
-                    <div class="public-carousel__dots" data-carousel-dots aria-label="Selecionar fotografia"></div>
+                    @if ($fotografias->count() > 1)
+                        <button type="button" class="public-carousel__control public-carousel__control--next" data-carousel-next aria-label="Próxima fotografia">&rarr;</button>
+                        <div class="public-carousel__dots" data-carousel-dots aria-label="Selecionar fotografia"></div>
+                    @endif
                 </div>
             @else
                 <div class="public-empty-state public-empty-state--recent">
@@ -130,25 +140,35 @@
             const update = (index) => {
                 current = (index + slides.length) % slides.length;
                 track.style.transform = `translateX(-${current * 100}%)`;
-                slides.forEach((slide, slideIndex) => slide.setAttribute('aria-hidden', slideIndex === current ? 'false' : 'true'));
-                [...dots.children].forEach((dot, dotIndex) => dot.setAttribute('aria-current', dotIndex === current ? 'true' : 'false'));
+                slides.forEach((slide, slideIndex) => {
+                    const active = slideIndex === current;
+                    slide.setAttribute('aria-hidden', active ? 'false' : 'true');
+                    slide.inert = !active;
+                });
+                if (dots) {
+                    [...dots.children].forEach((dot, dotIndex) => dot.setAttribute('aria-current', dotIndex === current ? 'true' : 'false'));
+                }
             };
 
-            slides.forEach((slide, index) => {
-                const dot = document.createElement('button');
-                dot.type = 'button';
-                dot.className = 'public-carousel__dot';
-                dot.setAttribute('aria-label', `Exibir fotografia ${index + 1}`);
-                dot.addEventListener('click', () => update(index));
-                dots.append(dot);
-            });
+            if (dots) {
+                slides.forEach((slide, index) => {
+                    const dot = document.createElement('button');
+                    dot.type = 'button';
+                    dot.className = 'public-carousel__dot';
+                    dot.setAttribute('aria-label', `Exibir fotografia ${index + 1}`);
+                    dot.addEventListener('click', () => update(index));
+                    dots.append(dot);
+                });
+            }
 
-            carousel.querySelector('[data-carousel-prev]').addEventListener('click', () => update(current - 1));
-            carousel.querySelector('[data-carousel-next]').addEventListener('click', () => update(current + 1));
-            carousel.addEventListener('keydown', (event) => {
-                if (event.key === 'ArrowLeft') update(current - 1);
-                if (event.key === 'ArrowRight') update(current + 1);
-            });
+            if (slides.length > 1) {
+                carousel.querySelector('[data-carousel-prev]').addEventListener('click', () => update(current - 1));
+                carousel.querySelector('[data-carousel-next]').addEventListener('click', () => update(current + 1));
+                carousel.addEventListener('keydown', (event) => {
+                    if (event.key === 'ArrowLeft') update(current - 1);
+                    if (event.key === 'ArrowRight') update(current + 1);
+                });
+            }
             update(0);
         });
     </script>

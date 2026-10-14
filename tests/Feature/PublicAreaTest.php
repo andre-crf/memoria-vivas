@@ -93,6 +93,21 @@ class PublicAreaTest extends TestCase
             ->assertSee(route('publico.imagens.show', $largeFallback), false);
     }
 
+    public function test_public_home_avoids_redundant_carousel_controls_for_one_photograph(): void
+    {
+        $fotografia = $this->fotografia('Fotografia única');
+        $this->arquivo($fotografia, 'medium');
+
+        $this->get(route('public.home'))
+            ->assertOk()
+            ->assertSee('data-carousel', false)
+            ->assertSee('aria-hidden="false"', false)
+            ->assertDontSee('class="public-carousel__control public-carousel__control--prev"', false)
+            ->assertDontSee('class="public-carousel__control public-carousel__control--next"', false)
+            ->assertDontSee('class="public-carousel__dots"', false)
+            ->assertDontSee('class="public-carousel" data-carousel tabindex="0"', false);
+    }
+
     public function test_public_photograph_detail_is_available_only_for_eligible_records(): void
     {
         $fotografia = $this->fotografia('Detalhe público');

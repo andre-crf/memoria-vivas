@@ -910,8 +910,7 @@
     .public-skip-link { position: fixed; z-index: 50; top: 0.75rem; left: 0.75rem; transform: translateY(-180%); border-radius: 0.375rem; background: #173e63; padding: 0.7rem 0.9rem; color: #fff; font-size: 0.8rem; font-weight: 750; transition: transform 140ms ease; }
     .public-skip-link:focus { transform: translateY(0); }
     .public-header { position: relative; z-index: 20; border-bottom: 1px solid #dce4e9; background: #fff; }
-    .public-header__inner,
-    .public-footer__inner { display: flex; align-items: center; justify-content: space-between; gap: 1.5rem; min-height: 5rem; }
+    .public-header__inner { display: flex; align-items: center; justify-content: space-between; gap: 1.5rem; min-height: 5rem; }
     .public-brand { display: inline-flex; min-width: 0; align-items: center; gap: 0.75rem; color: #173e63; }
     .public-brand__logo { width: 3.25rem; height: 3.25rem; flex: 0 0 auto; border: 2px solid #dce4e9; border-radius: 50%; object-fit: cover; }
     .public-brand strong, .public-brand small { display: block; }
@@ -1092,7 +1091,7 @@
         .public-nav { justify-content: flex-start; }
     }
     @media (max-width: 700px) {
-        .public-header__inner, .public-footer__inner { align-items: flex-start; flex-direction: column; justify-content: center; padding-block: 1rem; }
+        .public-header__inner { align-items: flex-start; flex-direction: column; justify-content: center; padding-block: 1rem; }
         .public-header__tools { width: 100%; align-items: stretch; flex-wrap: wrap; justify-content: flex-start; gap: 0.75rem; }
         .public-search-group { flex: 1 1 15rem; }
         .public-search { min-width: 0; width: 100%; }
@@ -1115,7 +1114,6 @@
         .public-detail__sections { grid-template-columns: 1fr; }
         .public-section__grid { grid-template-columns: 1fr; gap: 2rem; }
         .public-catalog-grid { grid-template-columns: 1fr; gap: 1rem; }
-        .public-nav--desktop a { border-bottom: 0; padding-block: 0; }
         .public-institutional__inner { grid-template-columns: 1fr; gap: 2.5rem; }
     }
 }

@@ -10,4 +10,10 @@ export default function globalSetup() {
         env: { ...process.env, ...e2eEnvironment },
         stdio: 'inherit',
     });
+
+    execFileSync('php', ['artisan', 'db:seed', '--class=Database\\Seeders\\E2ePublicCarouselSeeder', '--force'], {
+        cwd: process.cwd(),
+        env: { ...process.env, ...e2eEnvironment },
+        stdio: 'inherit',
+    });
 }

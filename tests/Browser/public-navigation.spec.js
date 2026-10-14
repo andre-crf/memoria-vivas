@@ -4,9 +4,15 @@ test('global search preserves the term and the mobile menu supports keyboard nav
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto('/publico/contato');
 
-    for (let index = 0; index < 4; index++) {
-        await page.keyboard.press('Tab');
-    }
+    await page.keyboard.press('Tab');
+    await expect(page.getByRole('link', { name: 'Pular para o conteúdo' })).toBeFocused();
+    await page.keyboard.press('Tab');
+    await expect(page.locator('.public-brand')).toBeFocused();
+    await page.keyboard.press('Tab');
+    await expect(page.getByRole('searchbox', { name: 'Buscar no catálogo' })).toBeFocused();
+    await page.keyboard.press('Tab');
+    await expect(page.getByRole('button', { name: 'Buscar no catálogo' })).toBeFocused();
+    await page.keyboard.press('Tab');
 
     const menu = page.locator('.public-menu summary');
     await expect(menu).toBeFocused();
@@ -22,6 +28,35 @@ test('global search preserves the term and the mobile menu supports keyboard nav
     await expect(page).toHaveURL(/\/publico\/catalogo\?q=pra%C3%A7a\+central$/);
     await expect(page.getByText('Resultados para “praça central”.', { exact: true })).toBeVisible();
     await expect(page.getByRole('searchbox', { name: 'Buscar no catálogo' })).toHaveValue('praça central');
+});
+
+test('public carousel keeps only the visible photograph interactive', async ({ page }) => {
+    await page.goto('/publico');
+
+    const carousel = page.locator('[data-carousel]');
+    const slides = carousel.locator('[data-carousel-slide]');
+    const firstSlide = slides.nth(0);
+    const secondSlide = slides.nth(1);
+
+    await expect(slides).toHaveCount(3);
+    await expect(firstSlide).toHaveAttribute('aria-hidden', 'false');
+    await expect(firstSlide).not.toHaveAttribute('inert', '');
+    await expect(secondSlide).toHaveAttribute('aria-hidden', 'true');
+    await expect(secondSlide).toHaveAttribute('inert', '');
+
+    await carousel.getByRole('button', { name: 'Próxima fotografia' }).click();
+    await expect(firstSlide).toHaveAttribute('aria-hidden', 'true');
+    await expect(firstSlide).toHaveAttribute('inert', '');
+    await expect(secondSlide).toHaveAttribute('aria-hidden', 'false');
+    await expect(secondSlide).not.toHaveAttribute('inert', '');
+
+    await secondSlide.getByRole('link').focus();
+    await expect(secondSlide.getByRole('link')).toBeFocused();
+
+    await carousel.focus();
+    await page.keyboard.press('ArrowRight');
+    await expect(slides.nth(2)).toHaveAttribute('aria-hidden', 'false');
+    await expect(secondSlide).toHaveAttribute('inert', '');
 });
 
 test('unknown pages offer a clear route back into the public area', async ({ page }) => {
