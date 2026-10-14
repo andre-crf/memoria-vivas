@@ -86,7 +86,7 @@
                     <div class="public-carousel__viewport">
                         <div class="public-carousel__track" data-carousel-track>
                             @foreach ($fotografias as $fotografia)
-                                @php($imagem = $fotografia->imagemAdministrativa(['large', 'medium', 'thumbnail']))
+                                @php($imagem = $fotografia->imagemAdministrativa(['medium', 'thumbnail', 'large']))
                                 <article class="public-carousel__slide" data-carousel-slide aria-label="{{ $loop->iteration }} de {{ $fotografias->count() }}">
                                     <a href="{{ route('public.fotografias.show', $fotografia) }}" class="public-recent-item">
                                         <div class="public-recent-item__image">
