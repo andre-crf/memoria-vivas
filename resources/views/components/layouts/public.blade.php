@@ -1,6 +1,8 @@
 <x-layouts.app :title="$title ?? 'Memórias Vivas'">
     <div class="public-shell">
-        <header class="public-header">
+        <a class="public-skip-link" href="#public-main">Pular para o conteúdo</a>
+
+        <header class="public-header" aria-label="Cabeçalho público">
             <div class="public-container public-header__inner">
                 <a href="{{ route('public.home') }}" class="public-brand">
                     <img
@@ -43,7 +45,7 @@
             </div>
         </header>
 
-        <main>{{ $slot }}</main>
+        <main id="public-main" tabindex="-1">{{ $slot }}</main>
 
         <footer class="public-footer">
             <div class="public-container public-footer__inner">

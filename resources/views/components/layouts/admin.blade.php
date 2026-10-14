@@ -61,7 +61,13 @@
             <div class="admin-header__primary">
                 <div class="admin-header__inner admin-header__bar">
                     <a href="{{ route('admin.dashboard') }}" class="admin-brand">
-                        <span class="admin-brand__mark" aria-hidden="true">MV</span>
+                        <img
+                            src="{{ asset('images/memorias-vivas-logo.jpg') }}"
+                            alt=""
+                            width="48"
+                            height="48"
+                            class="admin-brand__mark"
+                        >
                         <span class="admin-brand__text">
                             <span class="admin-brand__title">Memórias Vivas</span>
                             <span class="admin-brand__subtitle">Acervo de Umuarama</span>

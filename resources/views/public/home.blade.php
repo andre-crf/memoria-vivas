@@ -1,12 +1,27 @@
 <x-layouts.public title="Memórias Vivas | Acervo público">
     <section class="public-hero">
-        <div class="public-container public-hero__content">
-            <p class="public-eyebrow">Acervo público</p>
-            <h1>Memórias Vivas de Umuarama</h1>
-            <p class="public-hero__lead">
-                Um espaço para conhecer, preservar e compartilhar registros da memória de Umuarama.
-            </p>
-            <a href="#sobre" class="public-button">Conheça o projeto</a>
+        <div class="public-container public-hero__grid">
+            <div class="public-hero__content">
+                <p class="public-eyebrow">Acervo público</p>
+                <h1>Memórias Vivas de Umuarama</h1>
+                <p class="public-hero__lead">
+                    Um espaço para conhecer, preservar e compartilhar registros da memória de Umuarama.
+                </p>
+                <div class="public-hero__actions">
+                    <a href="{{ route('public.catalogo') }}" class="public-button">Explorar o catálogo <span aria-hidden="true">&rarr;</span></a>
+                    <a href="#sobre" class="public-text-link">Sobre o projeto</a>
+                </div>
+            </div>
+
+            <div class="public-hero__identity" aria-label="Identidade visual do projeto">
+                <img
+                    src="{{ asset('images/memorias-vivas-logo.jpg') }}"
+                    alt="Logo Memórias Vivas de Umuarama"
+                    width="180"
+                    height="180"
+                >
+                <p>Preservar o passado para ampliar o acesso às histórias da cidade.</p>
+            </div>
         </div>
     </section>
 
