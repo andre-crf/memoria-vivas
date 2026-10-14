@@ -1,4 +1,4 @@
-<x-layouts.public title="Catálogo | Memórias Vivas" :catalog-query="$filtros->parametros()">
+<x-layouts.public title="Catálogo | Memórias Vivas" :catalog-query="$filtros->parametros()" :search-error="$searchError ?? null">
     <section class="public-section public-catalog">
         <div class="public-container">
             <p class="public-eyebrow">Catálogo</p>

@@ -242,7 +242,7 @@ class CatalogoPublicoTest extends TestCase
             ->assertDontSee('Nenhuma fotografia pública disponível');
     }
 
-    public function test_campo_de_busca_preserva_termo_normalizado_e_ignora_parametro_nao_escalar(): void
+    public function test_campo_de_busca_preserva_termo_normalizado_e_rejeita_parametro_nao_escalar(): void
     {
         $fotografia = $this->fotografia(['titulo' => 'Praça Central']);
         $this->arquivo($fotografia, 'thumbnail');
@@ -253,8 +253,9 @@ class CatalogoPublicoTest extends TestCase
             ->assertSee('Praça Central');
 
         $this->get(route('public.catalogo', ['q' => ['inválido']]))
-            ->assertOk()
+            ->assertStatus(422)
             ->assertSee('value=""', false)
+            ->assertSee('Digite um texto válido para pesquisar no catálogo.')
             ->assertSee('Praça Central');
     }
 

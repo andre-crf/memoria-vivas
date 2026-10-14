@@ -5,26 +5,34 @@ namespace App\Http\Controllers\Publico;
 use App\Http\Controllers\Controller;
 use App\Queries\Publico\ConsultaFotografiasPublicas;
 use App\Queries\Publico\FiltrosCatalogoPublico;
-use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Validator;
 
 class CatalogoController extends Controller
 {
     private const FOTOGRAFIAS_POR_PAGINA = 12;
 
-    public function __invoke(Request $request, ConsultaFotografiasPublicas $consulta): View
+    public function __invoke(Request $request, ConsultaFotografiasPublicas $consulta): Response
     {
+        $validator = Validator::make($request->query(), [
+            'q' => ['nullable', 'string', 'max:200'],
+        ], [
+            'q.string' => 'Digite um texto válido para pesquisar no catálogo.',
+            'q.max' => 'A pesquisa deve ter no máximo 200 caracteres.',
+        ]);
+        $pesquisaInvalida = $validator->fails();
         $decadas = $consulta->decadasDisponiveis();
         $categorias = $consulta->categoriasDisponiveis();
         $assuntos = $consulta->assuntosDisponiveis();
         $filtros = new FiltrosCatalogoPublico(
-            termo: $this->texto($request, 'q'),
+            termo: $pesquisaInvalida ? '' : trim((string) ($validator->validated()['q'] ?? '')),
             decada: $this->opcaoTextual($request, 'decada', $decadas),
             categoriaId: $this->opcaoNumerica($request, 'categoria', $categorias->modelKeys()),
             assuntoId: $this->opcaoNumerica($request, 'assunto', $assuntos->modelKeys()),
         );
 
-        return view('public.catalogo', [
+        return response()->view('public.catalogo', [
             'fotografias' => $consulta
                 ->paginadas(self::FOTOGRAFIAS_POR_PAGINA, $filtros)
                 ->appends($filtros->parametros()),
@@ -32,7 +40,8 @@ class CatalogoController extends Controller
             'decadas' => $decadas,
             'categorias' => $categorias,
             'assuntos' => $assuntos,
-        ]);
+            'searchError' => $validator->errors()->first('q'),
+        ], $pesquisaInvalida ? 422 : 200);
     }
 
     private function texto(Request $request, string $parametro): string
