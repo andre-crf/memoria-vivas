@@ -38,7 +38,7 @@
                         <nav class="public-nav public-nav--menu" aria-label="Navegação pública">
                             <a href="{{ route('public.home') }}" @if (request()->routeIs('public.home')) aria-current="page" @endif>Início</a>
                             <a href="{{ route('public.home') }}#sobre">Sobre o acervo</a>
-                            <a href="{{ route('public.catalogo') }}" @if (request()->routeIs('public.catalogo')) aria-current="page" @endif>Catálogo</a>
+                            <a href="{{ route('public.catalogo') }}" @if (request()->routeIs('public.catalogo', 'public.fotografias.*')) aria-current="page" @endif>Catálogo</a>
                             <a href="{{ route('login') }}">Área administrativa</a>
                         </nav>
                     </details>
@@ -46,7 +46,7 @@
                     <nav class="public-nav public-nav--desktop" aria-label="Navegação pública">
                         <a href="{{ route('public.home') }}" @if (request()->routeIs('public.home')) aria-current="page" @endif>Início</a>
                         <a href="{{ route('public.home') }}#sobre">Sobre o acervo</a>
-                        <a href="{{ route('public.catalogo') }}" @if (request()->routeIs('public.catalogo')) aria-current="page" @endif>Catálogo</a>
+                        <a href="{{ route('public.catalogo') }}" @if (request()->routeIs('public.catalogo', 'public.fotografias.*')) aria-current="page" @endif>Catálogo</a>
                         <a href="{{ route('login') }}">Área administrativa</a>
                     </nav>
                 </div>

@@ -644,6 +644,16 @@
         position: relative;
     }
 
+    :where(button, summary, select, input[type='checkbox'], input[type='radio'], input[type='file'], a[href]) { cursor: pointer; }
+    :where(button, input, select):disabled { cursor: not-allowed; }
+    .quick-create__trigger { color: #216f74; font-size: 0.8rem; font-weight: 750; padding-block: 0.6rem; }
+    .quick-create__status { display: block; color: #536575; font-size: 0.75rem; }
+    .quick-create__dialog { margin: auto; width: min(30rem, calc(100% - 2rem)); max-height: calc(100dvh - 2rem); overflow-y: auto; border: 1px solid #bfd2d8; border-radius: 0.5rem; background: #fff; color: #172638; padding: 1.25rem; }
+    .quick-create__dialog::backdrop { background: rgb(0 0 0 / 0.45); }
+    .quick-create__dialog-heading { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+    .quick-create__dialog-heading h2 { font-size: 1.15rem; font-weight: 700; }
+    .quick-create__dialog-heading button { width: 2.5rem; height: 2.5rem; font-size: 1.6rem; }
+
     .quick-create > summary {
         cursor: pointer;
         list-style: none;
@@ -938,6 +948,50 @@
     .public-catalog h1 { max-width: 42rem; margin-top: 0.8rem; color: #173e63; font-family: Georgia, 'Times New Roman', serif; font-size: clamp(2rem, 5vw, 3.5rem); line-height: 1.1; overflow-wrap: anywhere; }
     .public-empty-state { display: grid; gap: 0.45rem; max-width: 42rem; margin-top: 2rem; border: 1px dashed #9fb9c5; border-radius: 0.5rem; padding: 2rem; color: #536575; }
     .public-empty-state strong { color: #173e63; }
+    .public-catalog__count { margin-top: 2rem; color: #536575; font-size: 0.9rem; }
+    .public-catalog__grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.5rem; margin-top: 1rem; }
+    .public-photo { min-width: 0; overflow: hidden; border: 1px solid #dce4e9; border-radius: 0.375rem; background: #fff; }
+    .public-photo > a { display: block; height: 100%; }
+    .public-photo:hover { border-color: #278b91; }
+    .public-photo a:focus-visible { outline: 3px solid #278b91; outline-offset: -3px; }
+    .public-photo__media { position: relative; display: grid; aspect-ratio: 4 / 3; place-items: center; overflow: hidden; background: #eaf3f4; }
+    .public-photo__media img { position: absolute; inset: 0; z-index: 1; width: 100%; height: 100%; object-fit: contain; background: #eaf3f4; }
+    .public-photo__media img:not([hidden]) + span { display: none; }
+    .public-photo__media span, .public-photo-detail__image span { color: #536575; font-size: 0.85rem; }
+    .public-photo__body { padding: 1rem; overflow-wrap: anywhere; }
+    .public-photo .public-photo__body h2 { margin: 0; font-family: inherit; font-size: 1.05rem; line-height: 1.4; }
+    .public-photo__body p { margin-top: 0.45rem; color: #536575; font-size: 0.85rem; }
+    .public-catalog__pagination { margin-top: 2rem; }
+    .public-photo-detail__grid { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); align-items: start; gap: 2rem; margin-top: 2rem; }
+    .public-photo-detail__image { display: grid; min-height: 12rem; background: #eaf3f4; place-items: center; }
+    .public-photo-detail__image img { width: 100%; height: auto; max-height: 70vh; object-fit: contain; }
+    .public-photo-detail__image img:not([hidden]) + span { display: none; }
+    .public-photo-detail__viewer { min-width: 0; }
+    .public-photo-detail__expand { position: relative; width: 100%; cursor: zoom-in; }
+    .public-photo-detail__expand:focus-visible { outline: 3px solid #278b91; outline-offset: 4px; }
+    .public-photo-detail__image .public-photo-detail__expand-icon { position: absolute; right: 0.75rem; bottom: 0.75rem; display: grid; width: 2.75rem; height: 2.75rem; place-items: center; border-radius: 0.375rem; background: #173e63; color: #fff; font-size: 1.5rem; }
+    .public-image-viewer { position: fixed; inset: 0; margin: 0; width: 100vw; height: 100dvh; max-width: none; max-height: none; border: 0; padding: 0; background: #111816; color: #fff; }
+    .public-image-viewer[open] { display: flex; flex-direction: column; }
+    .public-image-viewer::backdrop { background: #111816; }
+    .public-image-viewer__toolbar { display: flex; flex: 0 0 auto; align-items: center; justify-content: space-between; gap: 1rem; min-height: 4rem; padding: 0.5rem 1rem; padding-top: max(0.5rem, env(safe-area-inset-top)); border-bottom: 1px solid #39443f; }
+    .public-image-viewer .public-image-viewer__toolbar h2 { min-width: 0; margin: 0; color: #fff; font-family: inherit; font-size: 1rem; font-weight: 600; line-height: 1.4; overflow-wrap: anywhere; max-height: 4rem; overflow-y: auto; }
+    .public-image-viewer__toolbar > div { display: flex; flex: 0 0 auto; gap: 0.5rem; }
+    .public-image-viewer__toolbar button { display: grid; width: 2.75rem; height: 2.75rem; place-items: center; border: 1px solid #65766b; border-radius: 0.375rem; color: #fff; font-size: 1.6rem; }
+    .public-image-viewer__toolbar button:hover { background: #39443f; }
+    .public-image-viewer__toolbar button:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
+    .public-image-viewer__viewport { flex: 1; min-height: 0; overflow: auto; overscroll-behavior: contain; }
+    .public-image-viewer__surface { display: grid; width: 100%; height: 100%; place-items: center; padding: 1rem; }
+    .public-image-viewer__surface img { width: auto; height: auto; max-width: 100%; max-height: calc(100dvh - 8rem); object-fit: contain; }
+    .public-image-viewer__viewport.is-zoomed .public-image-viewer__surface { width: max-content; height: max-content; min-width: 100%; min-height: 100%; }
+    .public-image-viewer__viewport.is-zoomed img { max-width: none; max-height: none; }
+    .public-photo-detail__content { min-width: 0; overflow-wrap: anywhere; }
+    .public-photo-detail h1 { margin-top: 0.75rem; color: #173e63; font-family: Georgia, serif; font-size: 2rem; line-height: 1.2; }
+    .public-photo-detail__caption { margin-top: 1.5rem; white-space: pre-line; color: #536575; line-height: 1.75; }
+    .public-photo-detail dl { margin-top: 1.5rem; display: grid; gap: 1rem; }
+    .public-photo-detail dt { font-size: 0.85rem; font-weight: 700; color: #173e63; }
+    .public-photo-detail dd { margin-top: 0.25rem; color: #536575; }
+    @media (max-width: 960px) { .public-catalog__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (max-width: 600px) { .public-catalog__grid, .public-photo-detail__grid { grid-template-columns: minmax(0, 1fr); } }
     .public-hero { border-bottom: 1px solid #dce4e9; background: #eaf3f4; }
     .public-hero__grid { display: grid; min-height: min(43rem, calc(100vh - 5rem)); grid-template-columns: minmax(0, 1.35fr) minmax(14rem, 0.65fr); align-items: center; gap: 4rem; }
     .public-hero__content { padding-block: clamp(4rem, 10vw, 8rem); }

@@ -46,7 +46,7 @@ class PublicNavigationTest extends TestCase
             ->assertSee('Busca por “praça”.')
             ->assertSee('value="praça"', false)
             ->assertSee('aria-current="page"', false)
-            ->assertSee('Nenhum item público disponível ainda');
+            ->assertSee('Nenhuma fotografia encontrada para esta busca');
     }
 
     public function test_search_rejects_array_and_oversized_terms_without_server_errors(): void

@@ -12,12 +12,11 @@ use App\Http\Controllers\Admin\PerfilController;
 use App\Http\Controllers\Admin\PessoaController;
 use App\Http\Controllers\Admin\UsuarioController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
+use App\Http\Controllers\Publico\CatalogoController;
 use App\Http\Controllers\Publico\ImagemPublicaController;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Validator;
 
 Route::get('/', function (): RedirectResponse {
     return Auth::check()
@@ -38,21 +37,9 @@ Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])
     ->name('logout');
 
 Route::view('/publico', 'public.home')->name('public.home');
-Route::get('/publico/catalogo', function (Request $request) {
-    $validator = Validator::make($request->query(), [
-        'q' => ['nullable', 'string', 'max:200'],
-    ], [
-        'q.string' => 'Digite um texto válido para pesquisar no catálogo.',
-        'q.max' => 'A pesquisa deve ter no máximo 200 caracteres.',
-    ]);
-
-    $invalid = $validator->fails();
-
-    return response()->view('public.catalogo', [
-        'termo' => $invalid ? '' : trim($validator->validated()['q'] ?? ''),
-        'searchError' => $validator->errors()->first('q'),
-    ], $invalid ? 422 : 200);
-})->name('public.catalogo');
+Route::get('/publico/catalogo', [CatalogoController::class, 'index'])->name('public.catalogo');
+Route::get('/publico/fotografias/{fotografia}', [CatalogoController::class, 'show'])
+    ->whereNumber('fotografia')->name('public.fotografias.show');
 
 Route::middleware(['auth', 'admin.access'])
     ->prefix('admin')

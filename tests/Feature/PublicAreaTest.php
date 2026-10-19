@@ -43,6 +43,6 @@ class PublicAreaTest extends TestCase
             ->get(route('public.catalogo', ['q' => 'praça']))
             ->assertOk()
             ->assertSee('Busca por “praça”.')
-            ->assertSee('Nenhum item público disponível ainda');
+            ->assertSee('Nenhuma fotografia encontrada para esta busca');
     }
 }
