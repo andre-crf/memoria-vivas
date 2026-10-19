@@ -15,7 +15,7 @@
 
             <div class="public-hero__identity" aria-label="Identidade visual do projeto">
                 <img
-                    src="{{ asset('images/memorias-vivas-logo.jpg') }}"
+                    src="{{ asset('images/memorias-vivas-logo.png') }}"
                     alt="Logo Memórias Vivas de Umuarama"
                     width="180"
                     height="180"

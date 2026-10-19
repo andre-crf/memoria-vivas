@@ -498,8 +498,7 @@
         padding: 1rem 1.5rem;
     }
 
-    .catalog-disclosure > summary::-webkit-details-marker,
-    .quick-create > summary::-webkit-details-marker {
+    .catalog-disclosure > summary::-webkit-details-marker {
         display: none;
     }
 
@@ -644,19 +643,32 @@
         position: relative;
     }
 
-    .quick-create > summary {
+    .quick-create__trigger {
+        border: 0;
+        background: transparent;
+        padding: 0;
         cursor: pointer;
-        list-style: none;
         color: #216f74;
         font-size: 0.75rem;
         font-weight: 750;
+    }
+
+    .quick-create__trigger:hover {
+        color: #17575b;
+        text-decoration: underline;
+    }
+
+    .quick-create__trigger:focus-visible,
+    .quick-create__dialog button:focus-visible {
+        outline: 3px solid #278b91;
+        outline-offset: 3px;
     }
 
     .catalog-picker > .quick-create {
         margin-top: 0.75rem;
     }
 
-    .catalog-author > .quick-create > summary {
+    .catalog-author > .quick-create > .quick-create__trigger {
         display: inline-flex;
         min-height: 2.65rem;
         align-items: center;
@@ -665,14 +677,61 @@
         padding: 0.6rem 0.85rem;
     }
 
+    .quick-create__dialog {
+        width: min(28rem, calc(100% - 2rem));
+        max-height: calc(100dvh - 2rem);
+        overflow-y: auto;
+        border: 0;
+        border-radius: 0.5rem;
+        background: #fff;
+        padding: 0;
+        color: #172638;
+        box-shadow: 0 24px 64px rgb(15 23 42 / 0.28);
+    }
+
+    .quick-create__dialog::backdrop {
+        background: rgb(15 23 42 / 0.55);
+    }
+
+    .quick-create__dialog-heading {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        border-bottom: 1px solid #dce4e9;
+        padding: 1rem 1.25rem;
+    }
+
+    .quick-create__dialog-heading h2 {
+        font-family: Georgia, 'Times New Roman', serif;
+        font-size: 1.1rem;
+        font-weight: 700;
+    }
+
+    .quick-create__dialog-heading button {
+        display: grid;
+        width: 2rem;
+        height: 2rem;
+        cursor: pointer;
+        place-items: center;
+        border: 0;
+        border-radius: 50%;
+        background: transparent;
+        color: #536575;
+        font-size: 1.35rem;
+        line-height: 1;
+    }
+
+    .quick-create__dialog-heading button:hover {
+        background: #edf3f4;
+        color: #172638;
+    }
+
     .quick-create__body {
         display: grid;
         gap: 0.75rem;
-        margin-top: 0.6rem;
-        border: 1px solid #bfd2d8;
-        border-radius: 0.375rem;
-        background: #f2f8f8;
-        padding: 0.8rem;
+        background: #f8fbfb;
+        padding: 1.25rem;
     }
 
     .catalog-author .quick-create__body {
@@ -696,6 +755,7 @@
 
     .quick-create__actions button,
     .catalog-actions button {
+        cursor: pointer;
         border-radius: 0.375rem;
         background: #173e63;
         padding: 0.62rem 0.9rem;
@@ -727,6 +787,7 @@
     }
 
     .catalog-file-input::file-selector-button {
+        cursor: pointer;
         margin-right: 0.75rem;
         border: 0;
         border-radius: 0.25rem;

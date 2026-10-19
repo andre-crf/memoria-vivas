@@ -14,7 +14,7 @@
             <div class="public-container public-header__inner">
                 <a href="{{ route('public.home') }}" class="public-brand">
                     <img
-                        src="{{ asset('images/memorias-vivas-logo.jpg') }}"
+                        src="{{ asset('images/memorias-vivas-logo.png') }}"
                         alt="Memórias Vivas de Umuarama"
                         width="48"
                         height="48"
@@ -75,7 +75,7 @@
             <div class="public-container public-footer__content">
                 <div class="public-footer__identity">
                     <a href="{{ route('public.home') }}" class="public-footer__brand">
-                        <img src="{{ asset('images/memorias-vivas-logo.jpg') }}" alt="" width="64" height="64">
+                        <img src="{{ asset('images/memorias-vivas-logo.png') }}" alt="" width="64" height="64">
                         <span><strong>Memórias Vivas</strong><small>Acervo de Umuarama</small></span>
                     </a>
                     <p>Preservar, organizar e compartilhar memórias.<br>As histórias da nossa cidade, mais perto de você.</p>

@@ -256,7 +256,7 @@ test('public photograph viewer supports keyboard, zoom and mobile fullscreen', a
     await page.locator('#status').selectOption('publicado');
     await page.locator('#visibilidade').selectOption('publico');
     await page.getByText('Arquivo original', { exact: true }).click();
-    await page.locator('#arquivo_original').setInputFiles('public/images/memorias-vivas-logo.jpg');
+    await page.locator('#arquivo_original').setInputFiles('public/images/memorias-vivas-logo.png');
     await page.getByRole('button', { name: 'Salvar fotografia' }).click();
     await expect(page).toHaveURL(/\/admin\/fotografias$/);
     await page.goto('/publico/catalogo');

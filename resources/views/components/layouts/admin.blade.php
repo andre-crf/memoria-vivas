@@ -62,7 +62,7 @@
                 <div class="admin-header__inner admin-header__bar">
                     <a href="{{ route('admin.dashboard') }}" class="admin-brand">
                         <img
-                            src="{{ asset('images/memorias-vivas-logo.jpg') }}"
+                            src="{{ asset('images/memorias-vivas-logo.png') }}"
                             alt=""
                             width="48"
                             height="48"

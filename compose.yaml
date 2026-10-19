@@ -39,7 +39,7 @@ services:
     volumes:
       - .:/var/www
     ports:
-      - "5173:5173"
+      - "5174:5174"
     command: tail -f /dev/null
 
   mysql:
