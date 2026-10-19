@@ -9,6 +9,7 @@ use App\Services\Arquivos\StorageMutationJournal;
 use GdImage;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use Imagick;
 use RuntimeException;
 use Throwable;
 
@@ -175,8 +176,28 @@ class OptimizedImageVersions
             'image/jpeg' => imagecreatefromjpeg($sourcePath) ?: null,
             'image/png' => imagecreatefrompng($sourcePath) ?: null,
             'image/webp' => imagecreatefromwebp($sourcePath) ?: null,
+            'image/tiff', 'image/x-tiff' => $this->createTiffSource($sourcePath),
             default => null,
         };
+    }
+
+    private function createTiffSource(string $sourcePath): ?GdImage
+    {
+        if (! extension_loaded('imagick')) {
+            throw new RuntimeException('A extensão Imagick é necessária para gerar versões de imagens TIFF.');
+        }
+
+        $image = new Imagick;
+
+        try {
+            // Um TIFF pode ter várias páginas; a fotografia usa a primeira.
+            $image->readImage($sourcePath.'[0]');
+            $image->setImageFormat('png');
+
+            return imagecreatefromstring($image->getImageBlob()) ?: null;
+        } finally {
+            $image->clear();
+        }
     }
 
     /**

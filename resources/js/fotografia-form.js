@@ -25,6 +25,17 @@ export default function registerPhotographyForm(Alpine) {
         isVisible(field) {
             return (this.fieldsByPrecision[this.precision] ?? []).includes(field);
         },
+
+        init() {
+            this.clearIncompatibleFields();
+            this.$watch('precision', () => this.clearIncompatibleFields());
+        },
+
+        clearIncompatibleFields() {
+            this.$root.querySelectorAll('input[data-date-field]').forEach((input) => {
+                if (!this.isVisible(input.dataset.dateField)) input.value = '';
+            });
+        },
     }));
 
     Alpine.data('relationshipPicker', (initialSelectedCount) => ({
@@ -67,10 +78,12 @@ export default function registerPhotographyForm(Alpine) {
     Alpine.data('filePreview', () => ({
         file: null,
         previewUrl: null,
+        previewFailed: false,
 
         selectFile(event) {
             this.revokePreview();
             this.file = event.target.files?.[0] ?? null;
+            this.previewFailed = false;
 
             if (this.isImage) {
                 this.previewUrl = URL.createObjectURL(this.file);
@@ -105,7 +118,20 @@ export default function registerPhotographyForm(Alpine) {
         },
 
         get status() {
+            if (this.previewFailed) return 'Este formato não pode ser visualizado pelo navegador. O arquivo continua selecionado.';
             return this.isImage ? 'Imagem pronta para envio.' : 'Arquivo pronto para envio.';
+        },
+    }));
+    Alpine.data('quickCatalogModal', () => ({
+        open() {
+            this.$refs.dialog.showModal();
+            this.$nextTick(() => this.$refs.dialog.querySelector('input, select')?.focus());
+        },
+        close() {
+            this.$refs.dialog.close();
+        },
+        restoreFocus() {
+            this.$refs.trigger.focus();
         },
     }));
 }

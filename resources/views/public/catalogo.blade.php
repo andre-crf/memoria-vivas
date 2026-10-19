@@ -57,7 +57,7 @@
             @if ($fotografias->isEmpty())
                 <div class="public-empty-state">
                     @if ($filtros->possuiCriterios())
-                        <strong>Nenhuma fotografia encontrada</strong>
+                        <strong>Nenhuma fotografia encontrada para esta busca</strong>
                         @if ($filtros->termo !== '' && $filtros->possuiClassificacoes())
                             <span>Não encontramos resultados para “{{ $filtros->termo }}” com os critérios selecionados.</span>
                         @elseif ($filtros->termo !== '')

@@ -6,8 +6,10 @@ use App\Enums\Visibilidade;
 use App\Models\Arquivo;
 use App\Models\ItemAcervo;
 use App\Models\User;
+use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
@@ -115,6 +117,32 @@ class AdminFotografiaOriginalUploadTest extends TestCase
         }
     }
 
+    public function test_upgrade_of_legacy_original_name_column_allows_image_derivations(): void
+    {
+        Schema::table('arquivos', function (Blueprint $table) {
+            $table->string('nome_original')->nullable(false)->change();
+        });
+
+        $migration = require database_path('migrations/2026_10_19_000001_allow_null_original_name_for_derivations.php');
+        $migration->up();
+        $migration->up();
+
+        Storage::fake('local');
+        $this->actingAs($this->usuarioInterno())
+            ->post(route('admin.fotografias.store'), $this->validPayload([
+                'titulo' => 'Imagem em banco atualizado',
+                'arquivo_original' => UploadedFile::fake()->image('foto.png', 640, 480),
+            ]))
+            ->assertRedirect(route('admin.fotografias.index'))
+            ->assertSessionHasNoErrors();
+
+        $item = ItemAcervo::where('titulo', 'Imagem em banco atualizado')->firstOrFail();
+        $this->assertCount(4, $item->arquivos);
+        $this->assertNotNull($item->thumbnailAdministrativa());
+        $this->assertNotNull($item->visualizacaoAdministrativa());
+        $this->assertSame(3, $item->arquivos->whereNull('nome_original')->count());
+    }
+
     public function test_internal_user_can_attach_original_file_during_edit_when_missing(): void
     {
         Storage::fake('local');
@@ -140,6 +168,55 @@ class AdminFotografiaOriginalUploadTest extends TestCase
             ['large', 'medium', 'original', 'thumbnail'],
             Arquivo::where('item_acervo_id', $fotografia->id)->pluck('versao_arquivo')->sort()->values()->all(),
         );
+    }
+
+    public function test_tiff_generates_derivations_during_creation_edit_and_replacement(): void
+    {
+        if (! extension_loaded('imagick')) {
+            $this->markTestSkipped('Execute no Docker com Imagick para validar TIFF.');
+        }
+
+        Storage::fake('local');
+        $this->actingAs($this->usuarioInterno());
+
+        $makeTiff = function (string $color): UploadedFile {
+            $image = new \Imagick;
+            try {
+                $image->newImage(640, 480, $color);
+                $image->setImageFormat('tiff');
+
+                return UploadedFile::fake()->createWithContent('fotografia.tiff', $image->getImagesBlob());
+            } finally {
+                $image->clear();
+            }
+        };
+
+        $this->post(route('admin.fotografias.store'), $this->validPayload([
+            'titulo' => 'Original TIFF',
+            'arquivo_original' => $makeTiff('red'),
+        ]))->assertRedirect(route('admin.fotografias.index'))->assertSessionHasNoErrors();
+
+        $created = ItemAcervo::where('titulo', 'Original TIFF')->firstOrFail();
+        $edited = $this->fotografia();
+        $this->put(route('admin.fotografias.update', $edited), $this->validPayload([
+            'arquivo_original' => $makeTiff('green'),
+        ]))->assertRedirect(route('admin.fotografias.show', $edited))->assertSessionHasNoErrors();
+
+        foreach ([$created, $edited] as $item) {
+            $this->assertSame(['large', 'medium', 'original', 'thumbnail'], $item->arquivos()->orderBy('versao_arquivo')->pluck('versao_arquivo')->sort()->values()->all());
+            foreach ($item->arquivos as $file) {
+                Storage::disk('local')->assertExists($file->storage_path);
+            }
+        }
+
+        $oldPaths = $created->arquivos()->pluck('storage_path');
+        $this->put(route('admin.fotografias.replace-original', $created), [
+            'arquivo_original' => $makeTiff('blue'),
+        ])->assertRedirect(route('admin.fotografias.show', $created))->assertSessionHasNoErrors();
+        $this->assertCount(4, $created->arquivos()->get());
+        foreach ($oldPaths as $path) {
+            Storage::disk('local')->assertMissing($path);
+        }
     }
 
     public function test_original_pdf_upload_does_not_generate_optimized_image_versions(): void

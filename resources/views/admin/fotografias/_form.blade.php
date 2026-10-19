@@ -118,7 +118,7 @@
                 @foreach (['dia' => 'Dia', 'mes' => 'Mês', 'ano' => 'Ano', 'decada' => 'Década'] as $field => $label)
                     <label class="catalog-label" for="{{ $field }}" x-show="isVisible(@js($field))">
                         <span>{{ $label }}</span>
-                        <input id="{{ $field }}" name="{{ $field }}" type="{{ $field === 'decada' ? 'text' : 'number' }}" value="{{ $value($field) }}"
+                        <input id="{{ $field }}" name="{{ $field }}" data-date-field="{{ $field }}" type="{{ $field === 'decada' ? 'text' : 'number' }}" value="{{ $value($field) }}"
                             @if ($field === 'dia') min="1" max="31" @endif @if ($field === 'mes') min="1" max="12" @endif
                             @if ($field === 'ano') min="1000" max="{{ date('Y') }}" step="1" @endif @if ($field === 'decada') inputmode="numeric" maxlength="4" pattern="[0-9]{4}" @endif
                             class="{{ $fieldClass }}" :disabled="!isVisible(@js($field))">
@@ -166,7 +166,7 @@
                 <div class="catalog-file-preview" x-show="file !== null" style="display: none;">
                     <div class="catalog-file-preview__media">
                         <template x-if="isImage">
-                            <img :src="previewUrl" :alt="`Pré-visualização de ${file.name}`">
+                            <img :src="previewUrl" :alt="`Pré-visualização de ${file.name}`" x-on:error="previewFailed = true" x-show="!previewFailed">
                         </template>
                         <template x-if="file !== null && !isImage">
                             <span>PDF</span>

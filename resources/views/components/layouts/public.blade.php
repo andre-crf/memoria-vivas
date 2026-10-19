@@ -51,7 +51,7 @@
                             <a href="{{ route('public.sobre') }}" @if (request()->routeIs('public.sobre')) aria-current="page" @endif>Sobre nós</a>
                             <a href="{{ route('public.colaborar') }}" @if (request()->routeIs('public.colaborar')) aria-current="page" @endif>Como colaborar</a>
                             <a href="{{ route('public.contato') }}" @if (request()->routeIs('public.contato')) aria-current="page" @endif>Contato</a>
-                            <a href="{{ route('public.catalogo') }}" @if (request()->routeIs('public.catalogo')) aria-current="page" @endif>Catálogo</a>
+                            <a href="{{ route('public.catalogo') }}" @if (request()->routeIs('public.catalogo', 'public.fotografias.*')) aria-current="page" @endif>Catálogo</a>
                             <a href="{{ route('login') }}">Área administrativa</a>
                         </nav>
                     </details>
@@ -62,7 +62,7 @@
                         <a href="{{ route('public.sobre') }}" @if (request()->routeIs('public.sobre')) aria-current="page" @endif>Sobre nós</a>
                         <a href="{{ route('public.colaborar') }}" @if (request()->routeIs('public.colaborar')) aria-current="page" @endif>Como colaborar</a>
                         <a href="{{ route('public.contato') }}" @if (request()->routeIs('public.contato')) aria-current="page" @endif>Contato</a>
-                        <a href="{{ route('public.catalogo') }}" @if (request()->routeIs('public.catalogo')) aria-current="page" @endif>Catálogo</a>
+                        <a href="{{ route('public.catalogo') }}" @if (request()->routeIs('public.catalogo', 'public.fotografias.*')) aria-current="page" @endif>Catálogo</a>
                         <a href="{{ route('login') }}">Área administrativa</a>
                     </nav>
                 </div>

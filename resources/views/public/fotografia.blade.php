@@ -9,12 +9,34 @@
         <div class="public-container">
             <a href="{{ $retornoCatalogo }}" class="public-back-link">&larr; Voltar ao catálogo</a>
             <div class="public-detail__grid">
-                <x-public.imagem
-                    :arquivo="$imagem"
-                    :alt="$fotografia->titulo"
-                    loading="eager"
-                    class="public-detail__image"
-                />
+                <div class="public-detail__viewer" x-data="publicPhotoViewer()">
+                    <button type="button" class="public-detail__image public-detail__expand" x-ref="trigger" @click="open()" :disabled="!available" aria-haspopup="dialog" aria-label="Ampliar fotografia: {{ $fotografia->titulo }}" title="Ver imagem em tela cheia">
+                        <img
+                            src="{{ route('publico.imagens.show', $imagem) }}"
+                            alt="{{ $fotografia->titulo }}"
+                            @if ($imagem->width) width="{{ $imagem->width }}" @endif
+                            @if ($imagem->height) height="{{ $imagem->height }}" @endif
+                            loading="eager"
+                            x-on:error="available = false; $el.hidden = true"
+                        >
+                        <span x-show="!available">Imagem indisponível</span>
+                        <span class="public-detail__expand-icon" x-show="available" aria-hidden="true">&#x26F6;</span>
+                    </button>
+                    <dialog class="public-image-viewer" x-ref="viewer" aria-labelledby="viewer-title" @close="restore()">
+                        <div class="public-image-viewer__toolbar">
+                            <h2 id="viewer-title">{{ $fotografia->titulo }}</h2>
+                            <div>
+                                <button type="button" @click="zoomed = !zoomed" :aria-pressed="zoomed" :aria-label="zoomed ? 'Ajustar imagem à tela' : 'Ver imagem no tamanho original'" :title="zoomed ? 'Ajustar à tela' : 'Tamanho original'"><span aria-hidden="true" x-text="zoomed ? '−' : '+'">+</span></button>
+                                <button type="button" x-ref="close" @click="close()" aria-label="Fechar visualização" title="Fechar (Esc)"><span aria-hidden="true">&times;</span></button>
+                            </div>
+                        </div>
+                        <div class="public-image-viewer__viewport" :class="{ 'is-zoomed': zoomed }">
+                            <div class="public-image-viewer__surface">
+                                <img src="{{ route('publico.imagens.show', $imagem) }}" alt="{{ $fotografia->titulo }}" @if ($imagem->width) width="{{ $imagem->width }}" @endif @if ($imagem->height) height="{{ $imagem->height }}" @endif loading="lazy">
+                            </div>
+                        </div>
+                    </dialog>
+                </div>
 
                 <div class="public-detail__content">
                     <p class="public-eyebrow">Fotografia do acervo</p>

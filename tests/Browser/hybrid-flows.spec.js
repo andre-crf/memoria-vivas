@@ -84,9 +84,13 @@ test('quick catalogs, Alpine state and traditional photograph POST work together
     await existingOption.getByRole('checkbox').check();
     await expect(categoryPicker.locator('.catalog-picker__count')).toHaveText('1 selecionado(s)');
 
-    await categoryPicker.locator('details.quick-create summary').click();
-    await categoryPicker.getByLabel('Título').fill(newCategory);
-    await categoryPicker.getByRole('button', { name: 'Criar e selecionar' }).click();
+    await page.getByLabel(/Título obrigatório/).fill(photographTitle);
+    await categoryPicker.getByRole('button', { name: '+ Criar categoria' }).click();
+    const categoryDialog = page.getByRole('dialog', { name: 'Criar categoria', exact: true });
+    await categoryDialog.getByLabel('Título').fill(newCategory);
+    await categoryDialog.getByRole('button', { name: 'Criar e selecionar' }).click();
+    await expect(categoryDialog).toBeHidden();
+    await expect(page.getByLabel(/Título obrigatório/)).toHaveValue(photographTitle);
     await expect(categoryPicker.getByText('Criado e selecionado.')).toHaveText('Criado e selecionado.');
 
     const newOption = categoryPicker.locator('label.catalog-option').filter({ hasText: newCategory });
@@ -103,10 +107,12 @@ test('quick catalogs, Alpine state and traditional photograph POST work together
     await expect(existingOption).toBeVisible();
 
     const author = page.locator('.catalog-author');
-    await author.locator('details.quick-create summary').click();
-    await author.getByLabel('Nome').fill(newAuthor);
-    await author.getByLabel('Tipo').selectOption('pessoa');
-    await author.getByRole('button', { name: 'Criar e selecionar' }).click();
+    await author.getByRole('button', { name: '+ Cadastrar novo autor' }).click();
+    const authorDialog = page.getByRole('dialog', { name: 'Cadastrar novo autor', exact: true });
+    await authorDialog.getByLabel('Nome').fill(newAuthor);
+    await authorDialog.getByLabel('Tipo').selectOption('pessoa');
+    await authorDialog.getByRole('button', { name: 'Criar e selecionar' }).click();
+    await expect(authorDialog).toBeHidden();
     await expect(author.getByText('Criado e selecionado.')).toHaveText('Criado e selecionado.');
     await expect(author.locator('select[name="autor_id"] option:checked')).toContainText(newAuthor);
 
@@ -139,6 +145,9 @@ test('quick catalogs, Alpine state and traditional photograph POST work together
     await expect(day).toBeDisabled();
     await expect(month).toBeDisabled();
     await expect(year).toBeDisabled();
+    await expect(day).toHaveValue('');
+    await expect(month).toHaveValue('');
+    await expect(year).toHaveValue('');
     await expect(decade).toBeEnabled();
     await decade.fill('1980');
 
@@ -165,7 +174,7 @@ test('local image preview updates when the selected file changes', async ({ page
         'base64',
     );
     const secondImage = Buffer.from(
-        'iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAQAAABFaP0WAAAADUlEQVR42mNk+M/wHwAEAQH/8E3hAAAAAElFTkSuQmCC',
+        'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=',
         'base64',
     );
 
@@ -180,6 +189,7 @@ test('local image preview updates when the selected file changes', async ({ page
     await expect(preview.getByText('primeira.png', { exact: true })).toBeVisible();
     await expect(preview.getByText(/image\/png · .* MB/)).toBeVisible();
     await expect(image).toBeVisible();
+    await expect.poll(() => image.evaluate((img) => img.naturalWidth)).toBeGreaterThan(0);
     const firstUrl = await image.getAttribute('src');
 
     await input.setInputFiles({ name: 'segunda.png', mimeType: 'image/png', buffer: secondImage });
@@ -187,4 +197,91 @@ test('local image preview updates when the selected file changes', async ({ page
     await expect(preview.getByText('primeira.png', { exact: true })).toHaveCount(0);
     await expect(image).toBeVisible();
     await expect(image).not.toHaveAttribute('src', firstUrl ?? '');
+    await expect.poll(() => image.evaluate((img) => img.naturalWidth)).toBeGreaterThan(0);
+    await input.setInputFiles([]);
+    await expect(preview).toBeHidden();
+});
+
+for (const mode of ['cadastro', 'edição']) {
+    test(`modals preserve photograph fields and select all four catalogs during ${mode}`, async ({ page }) => {
+        test.setTimeout(60_000);
+        const title = unique(`Fotografia ${mode}`);
+        await page.goto('/admin/fotografias/create');
+        await page.getByLabel(/Título obrigatório/).fill(title);
+        if (mode === 'edição') {
+            await page.getByRole('button', { name: 'Salvar fotografia' }).click();
+            const row = page.locator('tr').filter({ hasText: title });
+            await row.getByRole('link', { name: 'Editar', exact: true }).click();
+        }
+        const errors = [];
+        page.on('pageerror', (error) => errors.push(error.message));
+        await page.getByText('Classificações', { exact: true }).click();
+        for (const [catalog, field, triggerName] of [
+            ['autor', 'Nome', '+ Cadastrar novo autor'],
+            ['categoria', 'Título', '+ Criar categoria'],
+            ['assunto', 'Título', '+ Criar assunto'],
+            ['palavra-chave', 'Termo', '+ Criar palavra-chave'],
+        ]) {
+            const trigger = page.getByRole('button', { name: triggerName, exact: true });
+            await trigger.click();
+            const dialog = page.getByRole('dialog');
+            await expect(dialog).toBeVisible();
+            await page.keyboard.press('Escape');
+            await expect(dialog).toBeHidden();
+            await expect(trigger).toBeFocused();
+            await trigger.click();
+            await dialog.getByRole('button', { name: 'Criar e selecionar' }).click();
+            await expect(dialog.locator('.catalog-error')).toBeVisible();
+            const name = unique(`${catalog} ${mode}`);
+            await dialog.getByLabel(field).fill(name);
+            await dialog.getByRole('button', { name: 'Criar e selecionar' }).click();
+            await expect(dialog).toBeHidden();
+            await expect(page.getByLabel(/Título obrigatório/)).toHaveValue(title);
+            if (catalog === 'autor') {
+                await expect(page.locator('#autor_id option:checked')).toContainText(name);
+            } else {
+                await expect(page.locator('label.catalog-option').filter({ hasText: name }).getByRole('checkbox')).toBeChecked();
+            }
+        }
+        await page.getByRole('button', { name: mode === 'cadastro' ? 'Salvar fotografia' : 'Salvar alterações' }).click();
+        await expect(page).not.toHaveURL(/\/(create|edit)$/);
+        expect(errors).toEqual([]);
+    });
+}
+
+test('public photograph viewer supports keyboard, zoom and mobile fullscreen', async ({ page }, testInfo) => {
+    const title = unique('Fotografia pública ampliada');
+    await page.goto('/admin/fotografias/create');
+    await page.getByLabel(/Título obrigatório/).fill(title);
+    await page.locator('#status').selectOption('publicado');
+    await page.locator('#visibilidade').selectOption('publico');
+    await page.getByText('Arquivo original', { exact: true }).click();
+    await page.locator('#arquivo_original').setInputFiles('public/images/memorias-vivas-logo.jpg');
+    await page.getByRole('button', { name: 'Salvar fotografia' }).click();
+    await expect(page).toHaveURL(/\/admin\/fotografias$/);
+    await page.goto('/publico/catalogo');
+    await page.locator('.public-photo a').filter({ hasText: title }).click();
+    const trigger = page.getByRole('button', { name: `Ampliar fotografia: ${title}`, exact: true });
+    const viewer = page.getByRole('dialog', { name: title, exact: true });
+    await trigger.press('Enter');
+    await expect(viewer).toBeVisible();
+    await expect(viewer.getByRole('button', { name: 'Fechar visualização' })).toBeFocused();
+    await expect.poll(() => viewer.locator('img').evaluate((img) => img.complete && img.naturalWidth > 0)).toBe(true);
+    await viewer.getByRole('button', { name: 'Ver imagem no tamanho original' }).click();
+    await expect(viewer.getByRole('button', { name: 'Ajustar imagem à tela' })).toHaveAttribute('aria-pressed', 'true');
+    await page.keyboard.press('Escape');
+    await expect(viewer).toBeHidden();
+    await expect(trigger).toBeFocused();
+    await expect(page.locator('html')).not.toHaveCSS('overflow', 'hidden');
+
+    await page.setViewportSize({ width: 390, height: 844 });
+    await trigger.click();
+    await expect(viewer).toBeVisible();
+    const bounds = await viewer.boundingBox();
+    expect(bounds?.width).toBe(390);
+    expect(bounds?.height).toBe(844);
+    await page.screenshot({ path: testInfo.outputPath('viewer-mobile.png') });
+    await viewer.getByRole('button', { name: 'Fechar visualização' }).click();
+    await expect(viewer).toBeHidden();
+    await expect(trigger).toBeFocused();
 });

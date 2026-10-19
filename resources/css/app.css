@@ -941,6 +941,25 @@
     .public-catalog h1 { max-width: 42rem; margin-top: 0.8rem; color: #173e63; font-family: Georgia, 'Times New Roman', serif; font-size: clamp(2rem, 5vw, 3.5rem); line-height: 1.1; overflow-wrap: anywhere; }
     .public-empty-state { display: grid; gap: 0.45rem; max-width: 42rem; margin-top: 2rem; border: 1px dashed #9fb9c5; border-radius: 0.5rem; padding: 2rem; color: #536575; }
     .public-empty-state strong { color: #173e63; }
+    .public-detail__viewer { min-width: 0; }
+    .public-detail__expand { position: relative; width: 100%; cursor: zoom-in; }
+    .public-detail__expand:disabled { cursor: not-allowed; }
+    .public-detail__expand:focus-visible { outline: 3px solid #278b91; outline-offset: 4px; }
+    .public-detail__expand-icon { position: absolute; right: 0.75rem; bottom: 0.75rem; display: grid; width: 2.75rem; height: 2.75rem; place-items: center; border-radius: 0.375rem; background: #173e63; color: #fff; font-size: 1.5rem; }
+    .public-image-viewer { position: fixed; inset: 0; margin: 0; width: 100vw; height: 100dvh; max-width: none; max-height: none; border: 0; padding: 0; background: #111816; color: #fff; }
+    .public-image-viewer[open] { display: flex; flex-direction: column; }
+    .public-image-viewer::backdrop { background: #111816; }
+    .public-image-viewer__toolbar { display: flex; flex: 0 0 auto; align-items: center; justify-content: space-between; gap: 1rem; min-height: 4rem; padding: 0.5rem 1rem; padding-top: max(0.5rem, env(safe-area-inset-top)); border-bottom: 1px solid #39443f; }
+    .public-image-viewer .public-image-viewer__toolbar h2 { min-width: 0; max-height: 4rem; margin: 0; overflow-y: auto; color: #fff; font-family: inherit; font-size: 1rem; font-weight: 600; line-height: 1.4; overflow-wrap: anywhere; }
+    .public-image-viewer__toolbar > div { display: flex; flex: 0 0 auto; gap: 0.5rem; }
+    .public-image-viewer__toolbar button { display: grid; width: 2.75rem; height: 2.75rem; place-items: center; border: 1px solid #65766b; border-radius: 0.375rem; color: #fff; font-size: 1.6rem; }
+    .public-image-viewer__toolbar button:hover { background: #39443f; }
+    .public-image-viewer__toolbar button:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
+    .public-image-viewer__viewport { flex: 1; min-height: 0; overflow: auto; overscroll-behavior: contain; }
+    .public-image-viewer__surface { display: grid; width: 100%; height: 100%; place-items: center; padding: 1rem; }
+    .public-image-viewer__surface img { width: auto; height: auto; max-width: 100%; max-height: calc(100dvh - 8rem); object-fit: contain; }
+    .public-image-viewer__viewport.is-zoomed .public-image-viewer__surface { width: max-content; height: max-content; min-width: 100%; min-height: 100%; }
+    .public-image-viewer__viewport.is-zoomed img { max-width: none; max-height: none; }
     .public-institutional { min-height: 60vh; border-bottom: 1px solid #dce4e9; background: linear-gradient(115deg, #eaf3f4 0%, #f7f8f5 58%, #fff 100%); }
     .public-institutional__inner { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(16rem, 0.7fr); align-items: center; gap: clamp(2rem, 7vw, 6rem); padding-block: clamp(5rem, 12vw, 9rem); }
     .public-institutional__heading h1 { max-width: 48rem; margin-top: 0.9rem; color: #173e63; font-family: Georgia, 'Times New Roman', serif; font-size: clamp(2.6rem, 6vw, 5.2rem); font-weight: 600; letter-spacing: -0.035em; line-height: 1.03; overflow-wrap: anywhere; }
