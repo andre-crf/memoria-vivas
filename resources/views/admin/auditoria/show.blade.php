@@ -3,7 +3,7 @@
         <section class="mb-6">
             <a
                 href="{{ route('admin.auditoria.index', $navigationQuery) }}"
-                class="text-sm font-semibold text-[#173F35] hover:text-[#0f2b24]"
+                class="text-sm font-semibold text-[#173E63] hover:text-[#102D48]"
             >
                 Voltar para auditoria
             </a>
@@ -101,7 +101,7 @@
                                     </div>
                                     <a
                                         href="{{ route('admin.auditoria.show', array_merge(['evento' => $correlatedEvent], $navigationQuery)) }}"
-                                        class="shrink-0 text-sm font-semibold text-[#173F35] hover:text-[#0f2b24]"
+                                        class="shrink-0 text-sm font-semibold text-[#173E63] hover:text-[#102D48]"
                                     >
                                         Ver evento
                                     </a>

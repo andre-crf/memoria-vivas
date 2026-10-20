@@ -1,6 +1,6 @@
 <x-layouts.app title="Entrar | Memórias Vivas">
     <main class="grid min-h-screen lg:grid-cols-[minmax(0,0.92fr)_minmax(480px,0.68fr)]">
-        <section class="hidden bg-[#173F35] text-stone-50 lg:flex lg:flex-col lg:justify-between">
+        <section class="hidden bg-[#173E63] text-stone-50 lg:flex lg:flex-col lg:justify-between">
             <div class="px-12 pt-12">
                 <p class="text-sm font-semibold uppercase tracking-[0.18em] text-[#D6C17A]">Memórias Vivas</p>
             </div>
@@ -48,7 +48,7 @@
                                 autocomplete="email"
                                 required
                                 autofocus
-                                class="mt-2 block w-full rounded-md border border-stone-300 bg-white px-3 py-2.5 text-sm text-stone-950 outline-none transition focus:border-[#173F35] focus:ring-2 focus:ring-[#173F35]/20"
+                                class="mt-2 block w-full rounded-md border border-stone-300 bg-white px-3 py-2.5 text-sm text-stone-950 outline-none transition focus:border-[#173E63] focus:ring-2 focus:ring-[#173E63]/20"
                             >
                             @error('email')
                                 <p class="mt-2 text-sm text-red-700">{{ $message }}</p>
@@ -63,7 +63,7 @@
                                 type="password"
                                 autocomplete="current-password"
                                 required
-                                class="mt-2 block w-full rounded-md border border-stone-300 bg-white px-3 py-2.5 text-sm text-stone-950 outline-none transition focus:border-[#173F35] focus:ring-2 focus:ring-[#173F35]/20"
+                                class="mt-2 block w-full rounded-md border border-stone-300 bg-white px-3 py-2.5 text-sm text-stone-950 outline-none transition focus:border-[#173E63] focus:ring-2 focus:ring-[#173E63]/20"
                             >
                             @error('password')
                                 <p class="mt-2 text-sm text-red-700">{{ $message }}</p>
@@ -75,14 +75,14 @@
                                 name="remember"
                                 type="checkbox"
                                 value="1"
-                                class="h-4 w-4 rounded border-stone-300 text-[#173F35] focus:ring-[#173F35]"
+                                class="h-4 w-4 rounded border-stone-300 text-[#173E63] focus:ring-[#173E63]"
                             >
                             Manter conectado
                         </label>
 
                         <button
                             type="submit"
-                            class="flex w-full items-center justify-center rounded-md bg-[#173F35] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#0F2F27] focus:outline-none focus:ring-2 focus:ring-[#173F35] focus:ring-offset-2"
+                            class="flex w-full items-center justify-center rounded-md bg-[#173E63] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#102D48] focus:outline-none focus:ring-2 focus:ring-[#173E63] focus:ring-offset-2"
                         >
                             Entrar no admin
                         </button>

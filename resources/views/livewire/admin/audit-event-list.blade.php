@@ -21,17 +21,17 @@
 
             <div>
                 <label for="data_inicio" class="block text-sm font-medium text-stone-700">Data inicial</label>
-                <input id="data_inicio" type="date" wire:model.live="data_inicio" class="mt-1 block w-full rounded-md border-stone-300 text-sm shadow-sm focus:border-[#173F35] focus:ring-[#173F35]">
+                <input id="data_inicio" type="date" wire:model.live="data_inicio" class="mt-1 block w-full rounded-md border-stone-300 text-sm shadow-sm focus:border-[#173E63] focus:ring-[#173E63]">
             </div>
 
             <div>
                 <label for="data_fim" class="block text-sm font-medium text-stone-700">Data final</label>
-                <input id="data_fim" type="date" wire:model.live="data_fim" class="mt-1 block w-full rounded-md border-stone-300 text-sm shadow-sm focus:border-[#173F35] focus:ring-[#173F35]">
+                <input id="data_fim" type="date" wire:model.live="data_fim" class="mt-1 block w-full rounded-md border-stone-300 text-sm shadow-sm focus:border-[#173E63] focus:ring-[#173E63]">
             </div>
 
             <div>
                 <label for="responsavel" class="block text-sm font-medium text-stone-700">Responsável</label>
-                <select id="responsavel" wire:model.live="responsavel" class="mt-1 block w-full rounded-md border-stone-300 text-sm shadow-sm focus:border-[#173F35] focus:ring-[#173F35]">
+                <select id="responsavel" wire:model.live="responsavel" class="mt-1 block w-full rounded-md border-stone-300 text-sm shadow-sm focus:border-[#173E63] focus:ring-[#173E63]">
                     <option value="">Todos os responsáveis</option>
                     <option value="system">Sistema/sem usuário</option>
                     @foreach ($usuarios as $usuario)
@@ -42,7 +42,7 @@
 
             <div>
                 <label for="acao" class="block text-sm font-medium text-stone-700">Ação</label>
-                <select id="acao" wire:model.live="acao" class="mt-1 block w-full rounded-md border-stone-300 text-sm shadow-sm focus:border-[#173F35] focus:ring-[#173F35]">
+                <select id="acao" wire:model.live="acao" class="mt-1 block w-full rounded-md border-stone-300 text-sm shadow-sm focus:border-[#173E63] focus:ring-[#173E63]">
                     <option value="">Todas as ações</option>
                     @foreach ($acoes as $acaoOption)
                         <option value="{{ $acaoOption->value }}">{{ $acaoOption->label() }}</option>
@@ -52,7 +52,7 @@
 
             <div>
                 <label for="entidade" class="block text-sm font-medium text-stone-700">Entidade</label>
-                <select id="entidade" wire:model.live="entidade" class="mt-1 block w-full rounded-md border-stone-300 text-sm shadow-sm focus:border-[#173F35] focus:ring-[#173F35]">
+                <select id="entidade" wire:model.live="entidade" class="mt-1 block w-full rounded-md border-stone-300 text-sm shadow-sm focus:border-[#173E63] focus:ring-[#173E63]">
                     <option value="">Todas as entidades</option>
                     @foreach ($entidades as $entidadeOption)
                         <option value="{{ $entidadeOption->value }}">{{ $entidadeOption->label() }}</option>
@@ -62,13 +62,13 @@
 
             <div>
                 <label for="entidade_id" class="block text-sm font-medium text-stone-700">ID da entidade</label>
-                <input id="entidade_id" type="text" maxlength="191" wire:model.live.debounce.300ms="entidade_id" placeholder="Ex.: 42" class="mt-1 block w-full rounded-md border-stone-300 text-sm shadow-sm focus:border-[#173F35] focus:ring-[#173F35]">
+                <input id="entidade_id" type="text" maxlength="191" wire:model.live.debounce.300ms="entidade_id" placeholder="Ex.: 42" class="mt-1 block w-full rounded-md border-stone-300 text-sm shadow-sm focus:border-[#173E63] focus:ring-[#173E63]">
                 <p class="mt-1 text-xs text-stone-500">Selecione também o tipo da entidade.</p>
             </div>
 
             <div class="flex flex-wrap items-center gap-2 md:col-span-2 xl:col-span-3">
-                <button type="submit" class="inline-flex items-center justify-center rounded-md bg-[#173F35] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#0f2b24] focus:outline-none focus:ring-2 focus:ring-[#173F35] focus:ring-offset-2">Filtrar</button>
-                <button type="button" wire:click="clearFilters" class="inline-flex items-center justify-center rounded-md border border-stone-300 px-4 py-2 text-sm font-semibold text-stone-700 transition hover:bg-stone-100 focus:outline-none focus:ring-2 focus:ring-[#173F35] focus:ring-offset-2">Limpar filtros</button>
+                <button type="submit" class="inline-flex items-center justify-center rounded-md bg-[#173E63] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#102D48] focus:outline-none focus:ring-2 focus:ring-[#173E63] focus:ring-offset-2">Filtrar</button>
+                <button type="button" wire:click="clearFilters" class="inline-flex items-center justify-center rounded-md border border-stone-300 px-4 py-2 text-sm font-semibold text-stone-700 transition hover:bg-stone-100 focus:outline-none focus:ring-2 focus:ring-[#173E63] focus:ring-offset-2">Limpar filtros</button>
                 <p class="text-xs text-stone-500">
                     Período interpretado no fuso <span class="font-medium text-stone-700">{{ $fusoExibicao }}</span>.
                 </p>
@@ -119,7 +119,7 @@
                                     <p class="mt-1 text-xs text-stone-500">{{ $evento->subject_type->label() }} · #{{ $evento->subject_id }}</p>
                                 </td>
                                 <td class="whitespace-nowrap px-5 py-4 text-right">
-                                    <a href="{{ route('admin.auditoria.show', array_merge(['evento' => $evento], $navigationQuery)) }}" class="text-sm font-semibold text-[#173F35] hover:text-[#0f2b24]">Ver detalhes</a>
+                                    <a href="{{ route('admin.auditoria.show', array_merge(['evento' => $evento], $navigationQuery)) }}" class="text-sm font-semibold text-[#173E63] hover:text-[#102D48]">Ver detalhes</a>
                                 </td>
                             </tr>
                         @endforeach

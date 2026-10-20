@@ -13,14 +13,14 @@
                 @can('restore', new \App\Models\ItemAcervo)
                     <a
                         href="{{ route('admin.fotografias.trashed') }}"
-                        class="inline-flex items-center justify-center rounded-md border border-stone-300 px-4 py-2 text-sm font-semibold text-stone-700 transition hover:bg-stone-100 focus:outline-none focus:ring-2 focus:ring-[#173F35] focus:ring-offset-2"
+                        class="inline-flex items-center justify-center rounded-md border border-stone-300 px-4 py-2 text-sm font-semibold text-stone-700 transition hover:bg-stone-100 focus:outline-none focus:ring-2 focus:ring-[#173E63] focus:ring-offset-2"
                     >
                         Lixeira
                     </a>
                 @endcan
                 <a
                     href="{{ route('admin.fotografias.create') }}"
-                    class="inline-flex items-center justify-center rounded-md bg-[#173F35] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#0f2b24] focus:outline-none focus:ring-2 focus:ring-[#173F35] focus:ring-offset-2"
+                    class="inline-flex items-center justify-center rounded-md bg-[#173E63] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#102D48] focus:outline-none focus:ring-2 focus:ring-[#173E63] focus:ring-offset-2"
                 >
                     Nova fotografia
                 </a>
@@ -28,7 +28,7 @@
         </section>
 
         @if (session('success'))
-            <div class="mb-6 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm font-medium text-green-800">
+            <div class="mb-6 rounded-lg border border-[#cbdde5] bg-[#eaf3f4] px-4 py-3 text-sm font-medium text-[#173E63]">
                 {{ session('success') }}
             </div>
         @endif
@@ -95,13 +95,13 @@
                                         <div class="flex justify-end gap-2">
                                             <a
                                                 href="{{ route('admin.fotografias.show', $fotografia) }}"
-                                                class="rounded-md border border-stone-300 px-3 py-2 text-sm font-medium text-stone-700 transition hover:bg-stone-100 focus:outline-none focus:ring-2 focus:ring-[#173F35] focus:ring-offset-2"
+                                                class="rounded-md border border-stone-300 px-3 py-2 text-sm font-medium text-stone-700 transition hover:bg-stone-100 focus:outline-none focus:ring-2 focus:ring-[#173E63] focus:ring-offset-2"
                                             >
                                                 Visualizar
                                             </a>
                                             <a
                                                 href="{{ route('admin.fotografias.edit', $fotografia) }}"
-                                                class="rounded-md border border-stone-300 px-3 py-2 text-sm font-medium text-stone-700 transition hover:bg-stone-100 focus:outline-none focus:ring-2 focus:ring-[#173F35] focus:ring-offset-2"
+                                                class="rounded-md border border-stone-300 px-3 py-2 text-sm font-medium text-stone-700 transition hover:bg-stone-100 focus:outline-none focus:ring-2 focus:ring-[#173E63] focus:ring-offset-2"
                                             >
                                                 Editar
                                             </a>

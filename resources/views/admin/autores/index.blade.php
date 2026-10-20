@@ -16,14 +16,14 @@
 
             <a
                 href="{{ route('admin.autores.create') }}"
-                class="inline-flex items-center justify-center rounded-md bg-[#173F35] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#0f2b24] focus:outline-none focus:ring-2 focus:ring-[#173F35] focus:ring-offset-2"
+                class="inline-flex items-center justify-center rounded-md bg-[#173E63] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#102D48] focus:outline-none focus:ring-2 focus:ring-[#173E63] focus:ring-offset-2"
             >
                 Novo autor
             </a>
         </div>
 
         @if (session('success'))
-            <div class="mt-6 rounded-md border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">
+            <div class="mt-6 rounded-md border border-[#cbdde5] bg-[#eaf3f4] px-4 py-3 text-sm text-[#173E63]">
                 {{ session('success') }}
             </div>
         @endif

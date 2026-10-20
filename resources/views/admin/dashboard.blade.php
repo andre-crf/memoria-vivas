@@ -35,7 +35,7 @@
                     @if ($card['href'])
                         <a
                             href="{{ $card['href'] }}"
-                            class="mt-6 inline-flex text-sm font-semibold text-[#173F35] hover:text-[#0f2b24]"
+                            class="mt-6 inline-flex text-sm font-semibold text-[#173E63] hover:text-[#102D48]"
                         >
                             Ver todos
                         </a>
@@ -60,7 +60,7 @@
                                     <span class="text-stone-600">{{ number_format($item['total'], 0, ',', '.') }} · {{ $item['percent'] }}%</span>
                                 </div>
                                 <div class="h-2 rounded-full bg-stone-100">
-                                    <div class="h-2 rounded-full bg-[#173F35]" style="width: {{ max($item['percent'], 3) }}%"></div>
+                                    <div class="h-2 rounded-full bg-[#173E63]" style="width: {{ max($item['percent'], 3) }}%"></div>
                                 </div>
                             </div>
                         @endforeach
@@ -98,7 +98,7 @@
                 </div>
                 <a
                     href="{{ route('admin.fotografias.index') }}"
-                    class="inline-flex items-center justify-center rounded-md border border-stone-300 px-4 py-2 text-sm font-semibold text-stone-700 transition hover:bg-stone-100 focus:outline-none focus:ring-2 focus:ring-[#173F35] focus:ring-offset-2"
+                    class="inline-flex items-center justify-center rounded-md border border-stone-300 px-4 py-2 text-sm font-semibold text-stone-700 transition hover:bg-stone-100 focus:outline-none focus:ring-2 focus:ring-[#173E63] focus:ring-offset-2"
                 >
                     Ver fotografias
                 </a>

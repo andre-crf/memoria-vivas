@@ -4,7 +4,7 @@
             <div>
                 <a
                     href="{{ route('admin.fotografias.index') }}"
-                    class="text-sm font-semibold text-[#173F35] hover:text-[#0f2b24]"
+                    class="text-sm font-semibold text-[#173E63] hover:text-[#102D48]"
                 >
                     Voltar para fotografias
                 </a>
@@ -24,7 +24,7 @@
                 @can('update', $fotografia)
                     <a
                         href="{{ route('admin.fotografias.edit', $fotografia) }}"
-                        class="inline-flex items-center justify-center rounded-md border border-stone-300 px-4 py-2 text-sm font-semibold text-stone-700 transition hover:bg-stone-100 focus:outline-none focus:ring-2 focus:ring-[#173F35] focus:ring-offset-2"
+                        class="inline-flex items-center justify-center rounded-md border border-stone-300 px-4 py-2 text-sm font-semibold text-stone-700 transition hover:bg-stone-100 focus:outline-none focus:ring-2 focus:ring-[#173E63] focus:ring-offset-2"
                     >
                         Editar
                     </a>
@@ -52,7 +52,7 @@
         </section>
 
         @if (session('success'))
-            <div class="mb-6 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm font-medium text-green-800">
+            <div class="mb-6 rounded-lg border border-[#cbdde5] bg-[#eaf3f4] px-4 py-3 text-sm font-medium text-[#173E63]">
                 {{ session('success') }}
             </div>
         @endif
@@ -228,7 +228,7 @@
                                         </div>
                                         <a
                                             href="{{ route('admin.auditoria.show', $eventoAuditoria) }}"
-                                            class="shrink-0 text-sm font-semibold text-[#173F35] hover:text-[#0f2b24]"
+                                            class="shrink-0 text-sm font-semibold text-[#173E63] hover:text-[#102D48]"
                                         >
                                             Ver detalhes
                                         </a>
@@ -329,7 +329,7 @@
                                         type="file"
                                         accept=".jpg,.jpeg,.png,.webp,.tif,.tiff,.pdf,image/jpeg,image/png,image/webp,image/tiff,application/pdf"
                                         required
-                                        class="mt-2 block w-full rounded-md border border-stone-300 bg-white px-3 py-2 text-sm text-stone-700 file:mr-4 file:rounded-md file:border-0 file:bg-[#173F35] file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-[#0f2b24] focus:outline-none focus:ring-2 focus:ring-[#173F35] focus:ring-offset-2"
+                                        class="mt-2 block w-full rounded-md border border-stone-300 bg-white px-3 py-2 text-sm text-stone-700 file:mr-4 file:rounded-md file:border-0 file:bg-[#173E63] file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-[#102D48] focus:outline-none focus:ring-2 focus:ring-[#173E63] focus:ring-offset-2"
                                     >
                                     <p class="mt-2 text-xs leading-5 text-stone-500">
                                         O novo arquivo será validado, substituirá o original atual e recriará as versões otimizadas.
@@ -341,7 +341,7 @@
 
                                 <button
                                     type="submit"
-                                    class="inline-flex items-center justify-center rounded-md border border-stone-300 px-4 py-2 text-sm font-semibold text-stone-700 transition hover:bg-stone-100 focus:outline-none focus:ring-2 focus:ring-[#173F35] focus:ring-offset-2"
+                                    class="inline-flex items-center justify-center rounded-md border border-stone-300 px-4 py-2 text-sm font-semibold text-stone-700 transition hover:bg-stone-100 focus:outline-none focus:ring-2 focus:ring-[#173E63] focus:ring-offset-2"
                                 >
                                     Substituir arquivo
                                 </button>

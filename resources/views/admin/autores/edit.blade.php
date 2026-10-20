@@ -50,7 +50,7 @@
                     value="{{ old('nome', $autor->nome) }}"
                     required
                     maxlength="255"
-                    class="mt-2 block w-full rounded-md border border-stone-300 px-3 py-2 text-sm text-stone-900 shadow-sm outline-none transition focus:border-[#173F35] focus:ring-2 focus:ring-[#173F35]"
+                    class="mt-2 block w-full rounded-md border border-stone-300 px-3 py-2 text-sm text-stone-900 shadow-sm outline-none transition focus:border-[#173E63] focus:ring-2 focus:ring-[#173E63]"
                 >
             </div>
 
@@ -66,7 +66,7 @@
                     id="tipo"
                     name="tipo"
                     required
-                    class="mt-2 block w-full rounded-md border border-stone-300 px-3 py-2 text-sm text-stone-900 shadow-sm outline-none transition focus:border-[#173F35] focus:ring-2 focus:ring-[#173F35]"
+                    class="mt-2 block w-full rounded-md border border-stone-300 px-3 py-2 text-sm text-stone-900 shadow-sm outline-none transition focus:border-[#173E63] focus:ring-2 focus:ring-[#173E63]"
                 >
                     <option value="">Selecione</option>
 
@@ -98,7 +98,7 @@
                     id="observacao"
                     name="observacao"
                     rows="4"
-                    class="mt-2 block w-full rounded-md border border-stone-300 px-3 py-2 text-sm text-stone-900 shadow-sm outline-none transition focus:border-[#173F35] focus:ring-2 focus:ring-[#173F35]"
+                    class="mt-2 block w-full rounded-md border border-stone-300 px-3 py-2 text-sm text-stone-900 shadow-sm outline-none transition focus:border-[#173E63] focus:ring-2 focus:ring-[#173E63]"
                 >{{ old('observacao', $autor->observacao) }}</textarea>
             </div>
 
@@ -112,7 +112,7 @@
 
                 <button
                     type="submit"
-                    class="rounded-md bg-[#173F35] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#0f2b24] focus:outline-none focus:ring-2 focus:ring-[#173F35] focus:ring-offset-2"
+                    class="rounded-md bg-[#173E63] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#102D48] focus:outline-none focus:ring-2 focus:ring-[#173E63] focus:ring-offset-2"
                 >
                     Salvar alterações
                 </button>

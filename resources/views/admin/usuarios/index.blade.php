@@ -6,11 +6,11 @@
                 <h2 class="mt-1 text-2xl font-semibold text-stone-950">Usuários</h2>
                 <p class="mt-2 max-w-2xl text-sm leading-6 text-stone-600">Gerencie as contas com acesso à área administrativa.</p>
             </div>
-            <a href="{{ route('admin.usuarios.create') }}" class="inline-flex items-center justify-center rounded-md bg-[#173F35] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#0f2b24] focus:outline-none focus:ring-2 focus:ring-[#173F35] focus:ring-offset-2">Novo usuário</a>
+            <a href="{{ route('admin.usuarios.create') }}" class="inline-flex items-center justify-center rounded-md bg-[#173E63] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#102D48] focus:outline-none focus:ring-2 focus:ring-[#173E63] focus:ring-offset-2">Novo usuário</a>
         </section>
 
         @if (session('success'))
-            <div class="mb-6 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm font-medium text-green-800">{{ session('success') }}</div>
+            <div class="mb-6 rounded-lg border border-[#cbdde5] bg-[#eaf3f4] px-4 py-3 text-sm font-medium text-[#173E63]">{{ session('success') }}</div>
         @endif
 
         <section class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm">
@@ -46,7 +46,7 @@
                                         </span>
                                     </td>
                                     <td class="px-5 py-4 text-right">
-                                        <a href="{{ route('admin.usuarios.edit', $usuario) }}" class="rounded-md border border-stone-300 px-3 py-2 text-sm font-medium text-stone-700 transition hover:bg-stone-100 focus:outline-none focus:ring-2 focus:ring-[#173F35] focus:ring-offset-2">Editar</a>
+                                        <a href="{{ route('admin.usuarios.edit', $usuario) }}" class="rounded-md border border-stone-300 px-3 py-2 text-sm font-medium text-stone-700 transition hover:bg-stone-100 focus:outline-none focus:ring-2 focus:ring-[#173E63] focus:ring-offset-2">Editar</a>
                                     </td>
                                 </tr>
                             @endforeach

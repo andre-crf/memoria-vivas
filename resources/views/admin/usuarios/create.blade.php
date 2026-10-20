@@ -17,17 +17,17 @@
                 @csrf
                 <div>
                     <label for="nome" class="block text-sm font-medium text-stone-900">Nome</label>
-                    <input id="nome" name="nome" type="text" value="{{ old('nome') }}" required maxlength="255" autofocus class="mt-2 block w-full rounded-md border border-stone-300 px-3 py-2 text-sm text-stone-900 shadow-sm outline-none transition focus:border-[#173F35] focus:ring-2 focus:ring-[#173F35]">
+                    <input id="nome" name="nome" type="text" value="{{ old('nome') }}" required maxlength="255" autofocus class="mt-2 block w-full rounded-md border border-stone-300 px-3 py-2 text-sm text-stone-900 shadow-sm outline-none transition focus:border-[#173E63] focus:ring-2 focus:ring-[#173E63]">
                     @error('nome') <p class="mt-2 text-sm text-red-700">{{ $message }}</p> @enderror
                 </div>
                 <div>
                     <label for="email" class="block text-sm font-medium text-stone-900">E-mail</label>
-                    <input id="email" name="email" type="email" value="{{ old('email') }}" required maxlength="255" class="mt-2 block w-full rounded-md border border-stone-300 px-3 py-2 text-sm text-stone-900 shadow-sm outline-none transition focus:border-[#173F35] focus:ring-2 focus:ring-[#173F35]">
+                    <input id="email" name="email" type="email" value="{{ old('email') }}" required maxlength="255" class="mt-2 block w-full rounded-md border border-stone-300 px-3 py-2 text-sm text-stone-900 shadow-sm outline-none transition focus:border-[#173E63] focus:ring-2 focus:ring-[#173E63]">
                     @error('email') <p class="mt-2 text-sm text-red-700">{{ $message }}</p> @enderror
                 </div>
                 <div>
                     <label for="role" class="block text-sm font-medium text-stone-900">Perfil</label>
-                    <select id="role" name="role" required class="mt-2 block w-full rounded-md border border-stone-300 px-3 py-2 text-sm text-stone-900 shadow-sm outline-none transition focus:border-[#173F35] focus:ring-2 focus:ring-[#173F35]">
+                    <select id="role" name="role" required class="mt-2 block w-full rounded-md border border-stone-300 px-3 py-2 text-sm text-stone-900 shadow-sm outline-none transition focus:border-[#173E63] focus:ring-2 focus:ring-[#173E63]">
                         <option value="operador" @selected(old('role', 'operador') === 'operador')>Operador</option>
                         <option value="admin" @selected(old('role') === 'admin')>Administrador</option>
                     </select>
@@ -35,16 +35,16 @@
                 </div>
                 <div>
                     <label for="password" class="block text-sm font-medium text-stone-900">Senha inicial</label>
-                    <input id="password" name="password" type="password" required minlength="8" autocomplete="new-password" class="mt-2 block w-full rounded-md border border-stone-300 px-3 py-2 text-sm text-stone-900 shadow-sm outline-none transition focus:border-[#173F35] focus:ring-2 focus:ring-[#173F35]">
+                    <input id="password" name="password" type="password" required minlength="8" autocomplete="new-password" class="mt-2 block w-full rounded-md border border-stone-300 px-3 py-2 text-sm text-stone-900 shadow-sm outline-none transition focus:border-[#173E63] focus:ring-2 focus:ring-[#173E63]">
                     @error('password') <p class="mt-2 text-sm text-red-700">{{ $message }}</p> @enderror
                 </div>
                 <div>
                     <label for="password_confirmation" class="block text-sm font-medium text-stone-900">Confirmar senha inicial</label>
-                    <input id="password_confirmation" name="password_confirmation" type="password" required minlength="8" autocomplete="new-password" class="mt-2 block w-full rounded-md border border-stone-300 px-3 py-2 text-sm text-stone-900 shadow-sm outline-none transition focus:border-[#173F35] focus:ring-2 focus:ring-[#173F35]">
+                    <input id="password_confirmation" name="password_confirmation" type="password" required minlength="8" autocomplete="new-password" class="mt-2 block w-full rounded-md border border-stone-300 px-3 py-2 text-sm text-stone-900 shadow-sm outline-none transition focus:border-[#173E63] focus:ring-2 focus:ring-[#173E63]">
                 </div>
                 <div class="flex items-center justify-end gap-3 border-t border-stone-200 pt-6">
-                    <a href="{{ route('admin.usuarios.index') }}" class="rounded-md border border-stone-300 px-4 py-2 text-sm font-medium text-stone-700 transition hover:bg-stone-100 focus:outline-none focus:ring-2 focus:ring-[#173F35] focus:ring-offset-2">Cancelar</a>
-                    <button type="submit" class="rounded-md bg-[#173F35] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#0f2b24] focus:outline-none focus:ring-2 focus:ring-[#173F35] focus:ring-offset-2">Cadastrar usuário</button>
+                    <a href="{{ route('admin.usuarios.index') }}" class="rounded-md border border-stone-300 px-4 py-2 text-sm font-medium text-stone-700 transition hover:bg-stone-100 focus:outline-none focus:ring-2 focus:ring-[#173E63] focus:ring-offset-2">Cancelar</a>
+                    <button type="submit" class="rounded-md bg-[#173E63] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#102D48] focus:outline-none focus:ring-2 focus:ring-[#173E63] focus:ring-offset-2">Cadastrar usuário</button>
                 </div>
             </form>
         </section>

@@ -4,7 +4,7 @@
             <div>
                 <a
                     href="{{ route('admin.fotografias.index') }}"
-                    class="text-sm font-semibold text-[#173F35] hover:text-[#0f2b24]"
+                    class="text-sm font-semibold text-[#173E63] hover:text-[#102D48]"
                 >
                     Voltar para fotografias
                 </a>
@@ -17,7 +17,7 @@
         </section>
 
         @if (session('success'))
-            <div class="mb-6 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm font-medium text-green-800">
+            <div class="mb-6 rounded-lg border border-[#cbdde5] bg-[#eaf3f4] px-4 py-3 text-sm font-medium text-[#173E63]">
                 {{ session('success') }}
             </div>
         @endif
@@ -105,7 +105,7 @@
                                                     @method('PATCH')
                                                     <button
                                                         type="submit"
-                                                        class="rounded-md border border-[#2F8F6F]/30 px-3 py-2 text-sm font-medium text-[#1F6F55] transition hover:bg-[#E7F5EF] focus:outline-none focus:ring-2 focus:ring-[#1F6F55] focus:ring-offset-2"
+                                                        class="rounded-md border border-[#173E63]/30 px-3 py-2 text-sm font-medium text-[#173E63] transition hover:bg-[#EAF3F4] focus:outline-none focus:ring-2 focus:ring-[#173E63] focus:ring-offset-2"
                                                     >
                                                         Restaurar
                                                     </button>

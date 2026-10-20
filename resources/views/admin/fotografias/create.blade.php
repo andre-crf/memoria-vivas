@@ -3,7 +3,7 @@
         <section class="mb-6">
             <a
                 href="{{ route('admin.fotografias.index') }}"
-                class="text-sm font-semibold text-[#173F35] hover:text-[#0f2b24]"
+                class="text-sm font-semibold text-[#173E63] hover:text-[#102D48]"
             >
                 Voltar para fotografias
             </a>
