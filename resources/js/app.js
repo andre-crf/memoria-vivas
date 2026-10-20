@@ -2,10 +2,12 @@ import { Alpine, Livewire } from '../../vendor/livewire/livewire/dist/livewire.e
 import registerConfirmationDialog from './confirmation-dialog.js';
 import registerPhotographyForm from './fotografia-form.js';
 import registerPublicPhotoViewer from './public-photo-viewer.js';
+import registerContributionForm from './contribution-form.js';
 import './data-hora.js';
 
 registerConfirmationDialog(Alpine);
 registerPhotographyForm(Alpine);
 registerPublicPhotoViewer(Alpine);
+registerContributionForm(Alpine);
 
 Livewire.start();

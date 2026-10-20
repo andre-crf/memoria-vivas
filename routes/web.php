@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\AssuntoController;
 use App\Http\Controllers\Admin\AuditoriaController;
 use App\Http\Controllers\Admin\AutorController;
 use App\Http\Controllers\Admin\CategoriaController;
+use App\Http\Controllers\Admin\ContribuicaoController as AdminContribuicaoController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\FotografiaController;
 use App\Http\Controllers\Admin\PalavraChaveController;
@@ -13,6 +14,7 @@ use App\Http\Controllers\Admin\PessoaController;
 use App\Http\Controllers\Admin\UsuarioController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Publico\CatalogoController;
+use App\Http\Controllers\Publico\ContribuicaoController as PublicContribuicaoController;
 use App\Http\Controllers\Publico\FotografiaController as PublicFotografiaController;
 use App\Http\Controllers\Publico\HomeController as PublicHomeController;
 use App\Http\Controllers\Publico\ImagemPublicaController;
@@ -39,12 +41,10 @@ Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])
     ->name('logout');
 
 Route::get('/publico', PublicHomeController::class)->name('public.home');
-Route::view('/publico/sobre', 'public.institucional', [
-    'page' => config('institucional.pages.sobre'),
-])->name('public.sobre');
-Route::view('/publico/colaborar', 'public.institucional', [
-    'page' => config('institucional.pages.colaborar'),
-])->name('public.colaborar');
+Route::view('/publico/sobre', 'public.sobre')->name('public.sobre');
+Route::view('/publico/colaborar', 'public.colaborar')->name('public.colaborar');
+Route::post('/publico/colaborar', [PublicContribuicaoController::class, 'store'])
+    ->middleware('throttle:5,60')->name('public.colaborar.store');
 Route::view('/publico/contato', 'public.institucional', [
     'page' => config('institucional.pages.contato'),
 ])->name('public.contato');
@@ -61,6 +61,9 @@ Route::middleware(['auth', 'admin.access'])
         Route::get('/auditoria', [AuditoriaController::class, 'index'])->name('auditoria.index');
         Route::get('/auditoria/{evento}', [AuditoriaController::class, 'show'])->name('auditoria.show');
         Route::get('/arquivos/{arquivo}', [ArquivoController::class, 'show'])->name('arquivos.show');
+        Route::get('/contribuicoes', [AdminContribuicaoController::class, 'index'])->name('contribuicoes.index');
+        Route::get('/contribuicoes/{contribuicao}', [AdminContribuicaoController::class, 'show'])->name('contribuicoes.show');
+        Route::get('/contribuicoes/{contribuicao}/arquivos/{arquivo}', [AdminContribuicaoController::class, 'download'])->name('contribuicoes.arquivos.download');
 
         Route::prefix('perfil')
             ->name('perfil.')

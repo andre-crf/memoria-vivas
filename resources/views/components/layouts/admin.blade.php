@@ -11,6 +11,11 @@
             'active' => 'admin.fotografias.*',
         ],
         [
+            'label' => 'Contribuições',
+            'route' => 'admin.contribuicoes.index',
+            'active' => 'admin.contribuicoes.*',
+        ],
+        [
             'label' => 'Categorias',
             'route' => 'admin.categorias.index',
             'active' => 'admin.categorias.*',
