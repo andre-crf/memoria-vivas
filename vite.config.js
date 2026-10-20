@@ -9,6 +9,12 @@ export default defineConfig({
         strictPort: true,
         origin: "http://localhost:5174",
 
+        // Sem isso o laravel-vite-plugin usa o `origin` acima como única origem liberada,
+        // e a aplicação em localhost:8080 (nginx) não consegue carregar os assets.
+        cors: {
+            origin: /^https?:\/\/(?:localhost|127\.0\.0\.1)(?::\d+)?$/,
+        },
+
         hmr: {
             host: "localhost",
         },
