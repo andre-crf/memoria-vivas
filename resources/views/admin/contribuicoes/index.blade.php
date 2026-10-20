@@ -1,6 +1,6 @@
 <x-layouts.admin title="Contribuições | Memórias Vivas">
     <div class="mx-auto max-w-7xl px-6 py-8">
-        <p class="text-sm font-semibold text-[#173E63]">Acervo</p>
+        <p class="text-sm font-semibold text-institutional">Acervo</p>
         <h1 class="mt-2 text-3xl font-semibold text-stone-950">Contribuições recebidas</h1>
         <p class="mt-2 text-sm text-stone-600">Fotografias enviadas pelo público. Os arquivos são privados e ainda não fazem parte do catálogo.</p>
 
@@ -19,7 +19,7 @@
                                 <td class="px-5 py-4 text-stone-700">{{ $contribuicao->nome }}</td>
                                 <td class="px-5 py-4 text-stone-700">{{ $contribuicao->arquivos_count }}</td>
                                 <td class="px-5 py-4 text-stone-700"><x-data-hora :valor="$contribuicao->created_at" formato="curto" /></td>
-                                <td class="px-5 py-4"><a class="font-semibold text-[#173E63] underline" href="{{ route('admin.contribuicoes.show', $contribuicao) }}">Ver detalhes</a></td>
+                                <td class="px-5 py-4"><a class="font-semibold text-institutional underline" href="{{ route('admin.contribuicoes.show', $contribuicao) }}">Ver detalhes</a></td>
                             </tr>
                         @endforeach
                     </tbody>

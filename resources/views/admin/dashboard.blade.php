@@ -12,7 +12,7 @@
 <x-layouts.admin title="Admin | Memórias Vivas">
     <div class="mx-auto max-w-7xl px-6 py-8">
         <section class="mb-8">
-            <p class="text-sm font-medium text-[#6B5E2E]">Dashboard</p>
+            <p class="text-sm font-medium text-heritage-700">Dashboard</p>
             <h1 class="mt-2 text-4xl font-semibold text-stone-950">Olá, {{ $perfil }}!</h1>
             <p class="mt-3 max-w-2xl text-sm leading-6 text-stone-600">
                 Acompanhe o estado real da catalogação e acesse os fluxos administrativos já disponíveis.
@@ -27,7 +27,7 @@
                             <p class="text-3xl font-semibold text-stone-950">{{ number_format($card['value'], 0, ',', '.') }}</p>
                             <p class="mt-1 text-sm font-medium text-stone-700">{{ $card['label'] }}</p>
                         </div>
-                        <span class="grid h-12 w-12 place-items-center rounded-full bg-[#E8E2C9] text-sm font-bold text-[#4A3F18]">
+                        <span class="grid h-12 w-12 place-items-center rounded-full bg-heritage-100 text-sm font-bold text-heritage-900">
                             {{ strtoupper(substr($card['label'], 0, 1)) }}
                         </span>
                     </div>
@@ -35,7 +35,7 @@
                     @if ($card['href'])
                         <a
                             href="{{ $card['href'] }}"
-                            class="mt-6 inline-flex text-sm font-semibold text-[#173E63] hover:text-[#102D48]"
+                            class="mt-6 inline-flex text-sm font-semibold text-institutional hover:text-institutional-strong"
                         >
                             Ver todos
                         </a>
@@ -60,7 +60,7 @@
                                     <span class="text-stone-600">{{ number_format($item['total'], 0, ',', '.') }} · {{ $item['percent'] }}%</span>
                                 </div>
                                 <div class="h-2 rounded-full bg-stone-100">
-                                    <div class="h-2 rounded-full bg-[#173E63]" style="width: {{ max($item['percent'], 3) }}%"></div>
+                                    <div class="h-2 rounded-full bg-institutional" style="width: {{ max($item['percent'], 3) }}%"></div>
                                 </div>
                             </div>
                         @endforeach
@@ -81,7 +81,7 @@
                                     <span class="text-stone-600">{{ number_format($item['total'], 0, ',', '.') }} · {{ $item['percent'] }}%</span>
                                 </div>
                                 <div class="h-2 rounded-full bg-stone-100">
-                                    <div class="h-2 rounded-full bg-[#6B5E2E]" style="width: {{ max($item['percent'], 3) }}%"></div>
+                                    <div class="h-2 rounded-full bg-heritage-700" style="width: {{ max($item['percent'], 3) }}%"></div>
                                 </div>
                             </div>
                         @endforeach
@@ -98,7 +98,7 @@
                 </div>
                 <a
                     href="{{ route('admin.fotografias.index') }}"
-                    class="inline-flex items-center justify-center rounded-md border border-stone-300 px-4 py-2 text-sm font-semibold text-stone-700 transition hover:bg-stone-100 focus:outline-none focus:ring-2 focus:ring-[#173E63] focus:ring-offset-2"
+                    class="inline-flex items-center justify-center rounded-md border border-stone-300 px-4 py-2 text-sm font-semibold text-stone-700 transition hover:bg-stone-100 focus:outline-none focus:ring-2 focus:ring-institutional focus:ring-offset-2"
                 >
                     Ver fotografias
                 </a>
@@ -146,7 +146,7 @@
                                 <span class="rounded-full bg-stone-100 px-3 py-1 text-xs font-semibold text-stone-700">
                                     {{ $item->statusLabel() }}
                                 </span>
-                                <span class="rounded-full bg-[#E8E2C9] px-3 py-1 text-xs font-semibold text-[#4A3F18]">
+                                <span class="rounded-full bg-heritage-100 px-3 py-1 text-xs font-semibold text-heritage-900">
                                     {{ ucfirst($item->tipo_item) }}
                                 </span>
                             </div>

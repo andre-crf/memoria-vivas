@@ -3,12 +3,12 @@
         <section class="mb-6">
             <a
                 href="{{ route('admin.fotografias.index') }}"
-                class="text-sm font-semibold text-[#173E63] hover:text-[#102D48]"
+                class="text-sm font-semibold text-institutional hover:text-institutional-strong"
             >
                 Voltar para fotografias
             </a>
 
-            <p class="mt-4 text-sm font-medium text-[#6B5E2E]">Acervo</p>
+            <p class="mt-4 text-sm font-medium text-heritage-700">Acervo</p>
             <h1 class="mt-1 text-2xl font-semibold text-stone-950">Cadastrar fotografia</h1>
             <p class="mt-2 max-w-2xl text-sm leading-6 text-stone-600">
                 Registre os dados básicos de catalogação do novo item fotográfico.

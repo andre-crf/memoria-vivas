@@ -1,11 +1,11 @@
 <x-layouts.admin title="Contribuição | Memórias Vivas">
     <div class="mx-auto max-w-4xl px-6 py-8">
-        <a href="{{ route('admin.contribuicoes.index') }}" class="text-sm font-semibold text-[#173E63] underline">&larr; Voltar às contribuições</a>
-        <p class="mt-8 text-sm font-semibold text-[#173E63]">Recebida em <x-data-hora :valor="$contribuicao->created_at" formato="curto" /></p>
+        <a href="{{ route('admin.contribuicoes.index') }}" class="text-sm font-semibold text-institutional underline">&larr; Voltar às contribuições</a>
+        <p class="mt-8 text-sm font-semibold text-institutional">Recebida em <x-data-hora :valor="$contribuicao->created_at" formato="curto" /></p>
         <h1 class="mt-2 text-3xl font-semibold text-stone-950">{{ $contribuicao->titulo }}</h1>
         <dl class="mt-8 grid gap-5 border-y border-stone-200 py-6 text-sm sm:grid-cols-2">
             <div><dt class="font-semibold text-stone-600">Colaborador</dt><dd class="mt-1 text-stone-900">{{ $contribuicao->nome }}</dd></div>
-            <div><dt class="font-semibold text-stone-600">E-mail</dt><dd class="mt-1"><a class="break-all text-[#173E63] underline" href="mailto:{{ $contribuicao->email }}">{{ $contribuicao->email }}</a></dd></div>
+            <div><dt class="font-semibold text-stone-600">E-mail</dt><dd class="mt-1"><a class="break-all text-institutional underline" href="mailto:{{ $contribuicao->email }}">{{ $contribuicao->email }}</a></dd></div>
             <div><dt class="font-semibold text-stone-600">Local</dt><dd class="mt-1 text-stone-900">{{ $contribuicao->local ?: 'Não informado' }}</dd></div>
             <div><dt class="font-semibold text-stone-600">Época</dt><dd class="mt-1 text-stone-900">{{ $contribuicao->periodo ?: 'Não informada' }}</dd></div>
         </dl>
@@ -16,7 +16,7 @@
             @foreach ($contribuicao->arquivos as $arquivo)
                 <li class="flex flex-wrap items-center justify-between gap-3 py-4 text-sm">
                     <span class="min-w-0 break-all text-stone-800">{{ $arquivo->nome_original }} <span class="text-stone-500">({{ number_format($arquivo->tamanho / 1048576, 1, ',', '.') }} MB)</span></span>
-                    <a class="font-semibold text-[#173E63] underline" href="{{ route('admin.contribuicoes.arquivos.download', [$contribuicao, $arquivo]) }}">Baixar imagem</a>
+                    <a class="font-semibold text-institutional underline" href="{{ route('admin.contribuicoes.arquivos.download', [$contribuicao, $arquivo]) }}">Baixar imagem</a>
                 </li>
             @endforeach
         </ul>

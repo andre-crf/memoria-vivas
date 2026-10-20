@@ -3,7 +3,7 @@
     <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div class="flex flex-col justify-between gap-4 md:flex-row md:items-end">
             <div>
-                <p class="text-sm font-medium text-[#6B5E2E]">Catalogação</p>
+                <p class="text-sm font-medium text-heritage-700">Catalogação</p>
 
                 <h2 class="mt-1 text-2xl font-semibold text-stone-950">
                     Autores
@@ -16,14 +16,14 @@
 
             <a
                 href="{{ route('admin.autores.create') }}"
-                class="inline-flex items-center justify-center rounded-md bg-[#173E63] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#102D48] focus:outline-none focus:ring-2 focus:ring-[#173E63] focus:ring-offset-2"
+                class="inline-flex items-center justify-center rounded-md bg-institutional px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-institutional-strong focus:outline-none focus:ring-2 focus:ring-institutional focus:ring-offset-2"
             >
                 Novo autor
             </a>
         </div>
 
         @if (session('success'))
-            <div class="mt-6 rounded-md border border-[#cbdde5] bg-[#eaf3f4] px-4 py-3 text-sm text-[#173E63]">
+            <div class="mt-6 rounded-md border border-institutional-muted bg-institutional-soft px-4 py-3 text-sm text-institutional">
                 {{ session('success') }}
             </div>
         @endif

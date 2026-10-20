@@ -2,7 +2,7 @@
     <div class="mx-auto max-w-7xl px-6 py-8">
         <section class="mb-6 flex flex-col justify-between gap-4 md:flex-row md:items-end">
             <div>
-                <p class="text-sm font-medium text-[#6B5E2E]">Catalogação</p>
+                <p class="text-sm font-medium text-heritage-700">Catalogação</p>
                 <h2 class="mt-1 text-2xl font-semibold text-stone-950">Pessoas identificadas</h2>
                 <p class="mt-2 max-w-2xl text-sm leading-6 text-stone-600">
                     Pessoas identificadas nos itens do acervo e suas observações complementares.
@@ -11,14 +11,14 @@
 
             <a
                 href="{{ route('admin.pessoas.create') }}"
-                class="inline-flex items-center justify-center rounded-md bg-[#173E63] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#102D48] focus:outline-none focus:ring-2 focus:ring-[#173E63] focus:ring-offset-2"
+                class="inline-flex items-center justify-center rounded-md bg-institutional px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-institutional-strong focus:outline-none focus:ring-2 focus:ring-institutional focus:ring-offset-2"
             >
                 Nova pessoa
             </a>
         </section>
 
         @if (session('success'))
-            <div class="mb-6 rounded-lg border border-[#cbdde5] bg-[#eaf3f4] px-4 py-3 text-sm font-medium text-[#173E63]">
+            <div class="mb-6 rounded-lg border border-institutional-muted bg-institutional-soft px-4 py-3 text-sm font-medium text-institutional">
                 {{ session('success') }}
             </div>
         @endif
@@ -56,7 +56,7 @@
                                     </td>
 
                                     <td class="whitespace-nowrap px-5 py-4">
-                                        <span class="inline-flex rounded-full bg-[#E8E2C9] px-2.5 py-1 text-xs font-medium text-[#4A3F18]">
+                                        <span class="inline-flex rounded-full bg-heritage-100 px-2.5 py-1 text-xs font-medium text-heritage-900">
                                             {{ $pessoa->itens_acervo_count }}
                                         </span>
                                     </td>
@@ -65,7 +65,7 @@
                                         <div class="flex justify-end gap-2">
                                             <a
                                                 href="{{ route('admin.pessoas.edit', $pessoa) }}"
-                                                class="rounded-md border border-stone-300 px-3 py-2 text-sm font-medium text-stone-700 transition hover:bg-stone-100 focus:outline-none focus:ring-2 focus:ring-[#173E63] focus:ring-offset-2"
+                                                class="rounded-md border border-stone-300 px-3 py-2 text-sm font-medium text-stone-700 transition hover:bg-stone-100 focus:outline-none focus:ring-2 focus:ring-institutional focus:ring-offset-2"
                                             >
                                                 Editar
                                             </a>

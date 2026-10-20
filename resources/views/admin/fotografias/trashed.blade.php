@@ -4,11 +4,11 @@
             <div>
                 <a
                     href="{{ route('admin.fotografias.index') }}"
-                    class="text-sm font-semibold text-[#173E63] hover:text-[#102D48]"
+                    class="text-sm font-semibold text-institutional hover:text-institutional-strong"
                 >
                     Voltar para fotografias
                 </a>
-                <p class="mt-4 text-sm font-medium text-[#6B5E2E]">Acervo</p>
+                <p class="mt-4 text-sm font-medium text-heritage-700">Acervo</p>
                 <h1 class="mt-2 text-3xl font-semibold text-stone-950">Lixeira de fotografias</h1>
                 <p class="mt-2 max-w-2xl text-sm leading-6 text-stone-600">
                     Fotografias excluídas logicamente e disponíveis para restauração administrativa.
@@ -17,7 +17,7 @@
         </section>
 
         @if (session('success'))
-            <div class="mb-6 rounded-lg border border-[#cbdde5] bg-[#eaf3f4] px-4 py-3 text-sm font-medium text-[#173E63]">
+            <div class="mb-6 rounded-lg border border-institutional-muted bg-institutional-soft px-4 py-3 text-sm font-medium text-institutional">
                 {{ session('success') }}
             </div>
         @endif
@@ -82,7 +82,7 @@
                                         </span>
                                     </td>
                                     <td class="whitespace-nowrap px-5 py-4">
-                                        <span class="inline-flex rounded-full bg-[#E8E2C9] px-2.5 py-1 text-xs font-medium text-[#4A3F18]">
+                                        <span class="inline-flex rounded-full bg-heritage-100 px-2.5 py-1 text-xs font-medium text-heritage-900">
                                             {{ $fotografia->visibilidade->label() }}
                                         </span>
                                     </td>
@@ -105,7 +105,7 @@
                                                     @method('PATCH')
                                                     <button
                                                         type="submit"
-                                                        class="rounded-md border border-[#173E63]/30 px-3 py-2 text-sm font-medium text-[#173E63] transition hover:bg-[#EAF3F4] focus:outline-none focus:ring-2 focus:ring-[#173E63] focus:ring-offset-2"
+                                                        class="rounded-md border border-institutional/30 px-3 py-2 text-sm font-medium text-institutional transition hover:bg-institutional-soft focus:outline-none focus:ring-2 focus:ring-institutional focus:ring-offset-2"
                                                     >
                                                         Restaurar
                                                     </button>

@@ -4,17 +4,17 @@
             <div>
                 <a
                     href="{{ route('admin.fotografias.index') }}"
-                    class="text-sm font-semibold text-[#173E63] hover:text-[#102D48]"
+                    class="text-sm font-semibold text-institutional hover:text-institutional-strong"
                 >
                     Voltar para fotografias
                 </a>
-                <p class="mt-4 text-sm font-medium text-[#6B5E2E]">Fotografia #{{ $fotografia->id }}</p>
+                <p class="mt-4 text-sm font-medium text-heritage-700">Fotografia #{{ $fotografia->id }}</p>
                 <h1 class="mt-2 max-w-4xl break-words text-3xl font-semibold text-stone-950">{{ $fotografia->titulo }}</h1>
                 <div class="mt-3 flex flex-wrap gap-2">
                     <span class="inline-flex rounded-full bg-stone-100 px-2.5 py-1 text-xs font-semibold text-stone-700">
                         {{ $fotografia->statusLabel() }}
                     </span>
-                    <span class="inline-flex rounded-full bg-[#E8E2C9] px-2.5 py-1 text-xs font-semibold text-[#4A3F18]">
+                    <span class="inline-flex rounded-full bg-heritage-100 px-2.5 py-1 text-xs font-semibold text-heritage-900">
                         {{ $fotografia->visibilidade->label() }}
                     </span>
                 </div>
@@ -24,7 +24,7 @@
                 @can('update', $fotografia)
                     <a
                         href="{{ route('admin.fotografias.edit', $fotografia) }}"
-                        class="inline-flex items-center justify-center rounded-md border border-stone-300 px-4 py-2 text-sm font-semibold text-stone-700 transition hover:bg-stone-100 focus:outline-none focus:ring-2 focus:ring-[#173E63] focus:ring-offset-2"
+                        class="inline-flex items-center justify-center rounded-md border border-stone-300 px-4 py-2 text-sm font-semibold text-stone-700 transition hover:bg-stone-100 focus:outline-none focus:ring-2 focus:ring-institutional focus:ring-offset-2"
                     >
                         Editar
                     </a>
@@ -52,7 +52,7 @@
         </section>
 
         @if (session('success'))
-            <div class="mb-6 rounded-lg border border-[#cbdde5] bg-[#eaf3f4] px-4 py-3 text-sm font-medium text-[#173E63]">
+            <div class="mb-6 rounded-lg border border-institutional-muted bg-institutional-soft px-4 py-3 text-sm font-medium text-institutional">
                 {{ session('success') }}
             </div>
         @endif
@@ -228,7 +228,7 @@
                                         </div>
                                         <a
                                             href="{{ route('admin.auditoria.show', $eventoAuditoria) }}"
-                                            class="shrink-0 text-sm font-semibold text-[#173E63] hover:text-[#102D48]"
+                                            class="shrink-0 text-sm font-semibold text-institutional hover:text-institutional-strong"
                                         >
                                             Ver detalhes
                                         </a>
@@ -329,7 +329,7 @@
                                         type="file"
                                         accept=".jpg,.jpeg,.png,.webp,.tif,.tiff,.pdf,image/jpeg,image/png,image/webp,image/tiff,application/pdf"
                                         required
-                                        class="mt-2 block w-full rounded-md border border-stone-300 bg-white px-3 py-2 text-sm text-stone-700 file:mr-4 file:rounded-md file:border-0 file:bg-[#173E63] file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-[#102D48] focus:outline-none focus:ring-2 focus:ring-[#173E63] focus:ring-offset-2"
+                                        class="mt-2 block w-full rounded-md border border-stone-300 bg-white px-3 py-2 text-sm text-stone-700 file:mr-4 file:rounded-md file:border-0 file:bg-institutional file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-institutional-strong focus:outline-none focus:ring-2 focus:ring-institutional focus:ring-offset-2"
                                     >
                                     <p class="mt-2 text-xs leading-5 text-stone-500">
                                         O novo arquivo será validado, substituirá o original atual e recriará as versões otimizadas.
@@ -341,7 +341,7 @@
 
                                 <button
                                     type="submit"
-                                    class="inline-flex items-center justify-center rounded-md border border-stone-300 px-4 py-2 text-sm font-semibold text-stone-700 transition hover:bg-stone-100 focus:outline-none focus:ring-2 focus:ring-[#173E63] focus:ring-offset-2"
+                                    class="inline-flex items-center justify-center rounded-md border border-stone-300 px-4 py-2 text-sm font-semibold text-stone-700 transition hover:bg-stone-100 focus:outline-none focus:ring-2 focus:ring-institutional focus:ring-offset-2"
                                 >
                                     Substituir arquivo
                                 </button>

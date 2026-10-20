@@ -1,7 +1,7 @@
 <x-layouts.admin title="Meu perfil | Memórias Vivas">
     <div class="mx-auto max-w-5xl px-6 py-8">
         <section class="mb-6">
-            <p class="text-sm font-medium text-[#6B5E2E]">Minha conta</p>
+            <p class="text-sm font-medium text-heritage-700">Minha conta</p>
             <h2 class="mt-1 text-2xl font-semibold text-stone-950">Meu perfil</h2>
             <p class="mt-2 text-sm leading-6 text-stone-600">Consulte seus dados de acesso e mantenha suas informações pessoais atualizadas.</p>
         </section>
@@ -14,7 +14,7 @@
                 </div>
 
                 @if (session('profile_success'))
-                    <div class="mt-5 rounded-md border border-[#cbdde5] bg-[#eaf3f4] p-4 text-sm font-medium text-[#173E63]" role="status">
+                    <div class="mt-5 rounded-md border border-institutional-muted bg-institutional-soft p-4 text-sm font-medium text-institutional" role="status">
                         {{ session('profile_success') }}
                     </div>
                 @endif
@@ -31,13 +31,13 @@
 
                     <div>
                         <label for="nome" class="block text-sm font-medium text-stone-900">Nome</label>
-                        <input id="nome" name="nome" type="text" value="{{ old('nome', $usuario->nome) }}" required maxlength="255" autocomplete="name" autofocus class="mt-2 block w-full rounded-md border border-stone-300 px-3 py-2 text-sm text-stone-900 shadow-sm outline-none transition focus:border-[#173E63] focus:ring-2 focus:ring-[#173E63]">
+                        <input id="nome" name="nome" type="text" value="{{ old('nome', $usuario->nome) }}" required maxlength="255" autocomplete="name" autofocus class="mt-2 block w-full rounded-md border border-stone-300 px-3 py-2 text-sm text-stone-900 shadow-sm outline-none transition focus:border-institutional focus:ring-2 focus:ring-institutional">
                         @error('nome', 'profileUpdate') <p class="mt-2 text-sm text-red-700">{{ $message }}</p> @enderror
                     </div>
 
                     <div>
                         <label for="email" class="block text-sm font-medium text-stone-900">E-mail</label>
-                        <input id="email" name="email" type="email" value="{{ old('email', $usuario->email) }}" required maxlength="255" autocomplete="email" class="mt-2 block w-full rounded-md border border-stone-300 px-3 py-2 text-sm text-stone-900 shadow-sm outline-none transition focus:border-[#173E63] focus:ring-2 focus:ring-[#173E63]">
+                        <input id="email" name="email" type="email" value="{{ old('email', $usuario->email) }}" required maxlength="255" autocomplete="email" class="mt-2 block w-full rounded-md border border-stone-300 px-3 py-2 text-sm text-stone-900 shadow-sm outline-none transition focus:border-institutional focus:ring-2 focus:ring-institutional">
                         @error('email', 'profileUpdate') <p class="mt-2 text-sm text-red-700">{{ $message }}</p> @enderror
                     </div>
 
@@ -53,7 +53,7 @@
                     </dl>
 
                     <div class="flex justify-end border-t border-stone-200 pt-6">
-                        <button type="submit" class="rounded-md bg-[#173E63] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#102D48] focus:outline-none focus:ring-2 focus:ring-[#173E63] focus:ring-offset-2">Salvar dados pessoais</button>
+                        <button type="submit" class="rounded-md bg-institutional px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-institutional-strong focus:outline-none focus:ring-2 focus:ring-institutional focus:ring-offset-2">Salvar dados pessoais</button>
                     </div>
                 </form>
             </section>
@@ -65,7 +65,7 @@
                 </div>
 
                 @if (session('password_success'))
-                    <div class="mt-5 rounded-md border border-[#cbdde5] bg-[#eaf3f4] p-4 text-sm font-medium text-[#173E63]" role="status">
+                    <div class="mt-5 rounded-md border border-institutional-muted bg-institutional-soft p-4 text-sm font-medium text-institutional" role="status">
                         {{ session('password_success') }}
                     </div>
                 @endif
@@ -82,24 +82,24 @@
 
                     <div>
                         <label for="current_password" class="block text-sm font-medium text-stone-900">Senha atual</label>
-                        <input id="current_password" name="current_password" type="password" required autocomplete="current-password" class="mt-2 block w-full rounded-md border border-stone-300 px-3 py-2 text-sm text-stone-900 shadow-sm outline-none transition focus:border-[#173E63] focus:ring-2 focus:ring-[#173E63]">
+                        <input id="current_password" name="current_password" type="password" required autocomplete="current-password" class="mt-2 block w-full rounded-md border border-stone-300 px-3 py-2 text-sm text-stone-900 shadow-sm outline-none transition focus:border-institutional focus:ring-2 focus:ring-institutional">
                         @error('current_password', 'passwordUpdate') <p class="mt-2 text-sm text-red-700">{{ $message }}</p> @enderror
                     </div>
 
                     <div>
                         <label for="password" class="block text-sm font-medium text-stone-900">Nova senha</label>
-                        <input id="password" name="password" type="password" required minlength="8" autocomplete="new-password" class="mt-2 block w-full rounded-md border border-stone-300 px-3 py-2 text-sm text-stone-900 shadow-sm outline-none transition focus:border-[#173E63] focus:ring-2 focus:ring-[#173E63]">
+                        <input id="password" name="password" type="password" required minlength="8" autocomplete="new-password" class="mt-2 block w-full rounded-md border border-stone-300 px-3 py-2 text-sm text-stone-900 shadow-sm outline-none transition focus:border-institutional focus:ring-2 focus:ring-institutional">
                         <p class="mt-2 text-xs text-stone-500">Use pelo menos 8 caracteres.</p>
                         @error('password', 'passwordUpdate') <p class="mt-2 text-sm text-red-700">{{ $message }}</p> @enderror
                     </div>
 
                     <div>
                         <label for="password_confirmation" class="block text-sm font-medium text-stone-900">Confirmar nova senha</label>
-                        <input id="password_confirmation" name="password_confirmation" type="password" required minlength="8" autocomplete="new-password" class="mt-2 block w-full rounded-md border border-stone-300 px-3 py-2 text-sm text-stone-900 shadow-sm outline-none transition focus:border-[#173E63] focus:ring-2 focus:ring-[#173E63]">
+                        <input id="password_confirmation" name="password_confirmation" type="password" required minlength="8" autocomplete="new-password" class="mt-2 block w-full rounded-md border border-stone-300 px-3 py-2 text-sm text-stone-900 shadow-sm outline-none transition focus:border-institutional focus:ring-2 focus:ring-institutional">
                     </div>
 
                     <div class="flex justify-end border-t border-stone-200 pt-6">
-                        <button type="submit" class="rounded-md bg-[#173E63] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#102D48] focus:outline-none focus:ring-2 focus:ring-[#173E63] focus:ring-offset-2">Atualizar senha</button>
+                        <button type="submit" class="rounded-md bg-institutional px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-institutional-strong focus:outline-none focus:ring-2 focus:ring-institutional focus:ring-offset-2">Atualizar senha</button>
                     </div>
                 </form>
             </section>

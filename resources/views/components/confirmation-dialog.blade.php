@@ -18,7 +18,7 @@
                 <button
                     x-ref="cancel"
                     type="button"
-                    class="inline-flex items-center justify-center rounded-md border border-stone-300 px-4 py-2 text-sm font-semibold text-stone-700 transition hover:bg-stone-100 focus:outline-none focus:ring-2 focus:ring-[#173E63] focus:ring-offset-2"
+                    class="inline-flex items-center justify-center rounded-md border border-stone-300 px-4 py-2 text-sm font-semibold text-stone-700 transition hover:bg-stone-100 focus:outline-none focus:ring-2 focus:ring-institutional focus:ring-offset-2"
                     @click="cancel()"
                 >
                     Cancelar
@@ -26,7 +26,7 @@
                 <button
                     type="button"
                     class="inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-semibold text-white shadow-sm transition focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
-                    :class="variant === 'danger' ? 'bg-red-700 hover:bg-red-800 focus:ring-red-700' : 'bg-[#173E63] hover:bg-[#102D48] focus:ring-[#173E63]'"
+                    :class="variant === 'danger' ? 'bg-red-700 hover:bg-red-800 focus:ring-red-700' : 'bg-institutional hover:bg-institutional-strong focus:ring-institutional'"
                     :disabled="submitting"
                     @click="approve()"
                     x-text="confirmLabel"

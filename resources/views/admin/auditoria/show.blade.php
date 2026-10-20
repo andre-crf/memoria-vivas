@@ -3,14 +3,14 @@
         <section class="mb-6">
             <a
                 href="{{ route('admin.auditoria.index', $navigationQuery) }}"
-                class="text-sm font-semibold text-[#173E63] hover:text-[#102D48]"
+                class="text-sm font-semibold text-institutional hover:text-institutional-strong"
             >
                 Voltar para auditoria
             </a>
-            <p class="mt-4 text-sm font-medium text-[#6B5E2E]">Evento de auditoria #{{ $evento->id }}</p>
+            <p class="mt-4 text-sm font-medium text-heritage-700">Evento de auditoria #{{ $evento->id }}</p>
             <div class="mt-2 flex flex-wrap items-center gap-3">
                 <h1 class="text-3xl font-semibold text-stone-950">{{ $evento->action->label() }}</h1>
-                <span class="inline-flex rounded-full bg-[#E8E2C9] px-2.5 py-1 text-xs font-semibold text-[#4A3F18]">
+                <span class="inline-flex rounded-full bg-heritage-100 px-2.5 py-1 text-xs font-semibold text-heritage-900">
                     {{ $evento->subject_type->label() }}
                 </span>
             </div>
@@ -101,7 +101,7 @@
                                     </div>
                                     <a
                                         href="{{ route('admin.auditoria.show', array_merge(['evento' => $correlatedEvent], $navigationQuery)) }}"
-                                        class="shrink-0 text-sm font-semibold text-[#173E63] hover:text-[#102D48]"
+                                        class="shrink-0 text-sm font-semibold text-institutional hover:text-institutional-strong"
                                     >
                                         Ver evento
                                     </a>

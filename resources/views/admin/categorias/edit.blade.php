@@ -1,7 +1,7 @@
 <x-layouts.admin title="Editar categoria | Memórias Vivas">
     <div class="mx-auto max-w-3xl px-6 py-8">
             <section class="mb-6">
-                <p class="text-sm font-medium text-[#6B5E2E]">
+                <p class="text-sm font-medium text-heritage-700">
                     Acervo
                 </p>
 
@@ -52,7 +52,7 @@
                             value="{{ old('titulo', $categoria->titulo) }}"
                             required
                             maxlength="255"
-                            class="mt-2 block w-full rounded-md border border-stone-300 px-3 py-2 text-sm text-stone-900 shadow-sm focus:border-[#6B5E2E] focus:outline-none focus:ring-1 focus:ring-[#6B5E2E]"
+                            class="mt-2 block w-full rounded-md border border-stone-300 px-3 py-2 text-sm text-stone-900 shadow-sm focus:border-heritage-700 focus:outline-none focus:ring-1 focus:ring-heritage-700"
                         >
                     </div>
 
@@ -68,7 +68,7 @@
                             id="descricao"
                             name="descricao"
                             rows="5"
-                            class="mt-2 block w-full rounded-md border border-stone-300 px-3 py-2 text-sm text-stone-900 shadow-sm focus:border-[#6B5E2E] focus:outline-none focus:ring-1 focus:ring-[#6B5E2E]"
+                            class="mt-2 block w-full rounded-md border border-stone-300 px-3 py-2 text-sm text-stone-900 shadow-sm focus:border-heritage-700 focus:outline-none focus:ring-1 focus:ring-heritage-700"
                         >{{ old('descricao', $categoria->descricao) }}</textarea>
                     </div>
 
@@ -82,7 +82,7 @@
 
                         <button
                             type="submit"
-                            class="rounded-md bg-[#6B5E2E] px-4 py-2 text-sm font-medium text-white hover:opacity-90"
+                            class="rounded-md bg-heritage-700 px-4 py-2 text-sm font-medium text-white hover:opacity-90"
                         >
                             Salvar alterações
                         </button>

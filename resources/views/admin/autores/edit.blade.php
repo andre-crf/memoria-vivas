@@ -2,7 +2,7 @@
 
     <div class="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:px-8">
         <div>
-            <p class="text-sm font-medium text-[#6B5E2E]">Catalogação</p>
+            <p class="text-sm font-medium text-heritage-700">Catalogação</p>
 
             <h2 class="mt-1 text-2xl font-semibold text-stone-950">
                 Editar autor
@@ -50,7 +50,7 @@
                     value="{{ old('nome', $autor->nome) }}"
                     required
                     maxlength="255"
-                    class="mt-2 block w-full rounded-md border border-stone-300 px-3 py-2 text-sm text-stone-900 shadow-sm outline-none transition focus:border-[#173E63] focus:ring-2 focus:ring-[#173E63]"
+                    class="mt-2 block w-full rounded-md border border-stone-300 px-3 py-2 text-sm text-stone-900 shadow-sm outline-none transition focus:border-institutional focus:ring-2 focus:ring-institutional"
                 >
             </div>
 
@@ -66,7 +66,7 @@
                     id="tipo"
                     name="tipo"
                     required
-                    class="mt-2 block w-full rounded-md border border-stone-300 px-3 py-2 text-sm text-stone-900 shadow-sm outline-none transition focus:border-[#173E63] focus:ring-2 focus:ring-[#173E63]"
+                    class="mt-2 block w-full rounded-md border border-stone-300 px-3 py-2 text-sm text-stone-900 shadow-sm outline-none transition focus:border-institutional focus:ring-2 focus:ring-institutional"
                 >
                     <option value="">Selecione</option>
 
@@ -98,7 +98,7 @@
                     id="observacao"
                     name="observacao"
                     rows="4"
-                    class="mt-2 block w-full rounded-md border border-stone-300 px-3 py-2 text-sm text-stone-900 shadow-sm outline-none transition focus:border-[#173E63] focus:ring-2 focus:ring-[#173E63]"
+                    class="mt-2 block w-full rounded-md border border-stone-300 px-3 py-2 text-sm text-stone-900 shadow-sm outline-none transition focus:border-institutional focus:ring-2 focus:ring-institutional"
                 >{{ old('observacao', $autor->observacao) }}</textarea>
             </div>
 
@@ -112,7 +112,7 @@
 
                 <button
                     type="submit"
-                    class="rounded-md bg-[#173E63] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#102D48] focus:outline-none focus:ring-2 focus:ring-[#173E63] focus:ring-offset-2"
+                    class="rounded-md bg-institutional px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-institutional-strong focus:outline-none focus:ring-2 focus:ring-institutional focus:ring-offset-2"
                 >
                     Salvar alterações
                 </button>
