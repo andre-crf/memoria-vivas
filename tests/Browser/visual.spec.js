@@ -84,6 +84,9 @@ for (const [viewportName, viewport] of Object.entries(viewports)) {
                 await capture(page, `${name}-${viewportName}`);
             }
 
+            await page.goto('/publico/catalogo?q=inexistente');
+            await capture(page, `publico-catalogo-vazio-${viewportName}`);
+
             await page.goto(`/publico/catalogo?q=${'a'.repeat(201)}`);
             await capture(page, `publico-busca-erro-${viewportName}`);
 

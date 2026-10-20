@@ -5,5 +5,5 @@
 @if ($attributes->has('href'))
     <a {{ $attributes->class($classes) }}>{{ $slot }}</a>
 @else
-    <button {{ $attributes->merge(['type' => 'button'])->class($classes) }}>{{ $slot }}</button>
+    <button {{ $attributes->merge(['type' => 'button'])->class([$classes, 'cursor-pointer']) }}>{{ $slot }}</button>
 @endif

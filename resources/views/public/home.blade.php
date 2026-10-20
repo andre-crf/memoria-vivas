@@ -1,6 +1,6 @@
 <x-layouts.public title="Memórias Vivas | Acervo público">
     @php
-        $h2 = 'mt-[0.8rem] text-[length:clamp(1.8rem,4vw,3rem)] leading-[1.12]';
+        $h2 = 'mt-[0.8rem] text-[length:clamp(1.8rem,4vw,3rem)] leading-[1.12] font-semibold';
         $carouselControl = 'absolute bottom-2 z-1 grid size-10 place-items-center rounded-full border border-mist-500 bg-white text-[1.1rem] text-institutional hover:border-institutional hover:bg-institutional hover:text-white md:top-1/2 md:bottom-auto md:-translate-y-1/2';
     @endphp
 
@@ -8,7 +8,7 @@
         <x-public.container class="grid grid-cols-1 items-center gap-8 md:min-h-[min(43rem,calc(100vh-5rem))] md:grid-cols-[minmax(0,1.35fr)_minmax(14rem,0.65fr)] md:gap-16">
             <div class="py-[clamp(4rem,10vw,8rem)]">
                 <x-public.eyebrow>Acervo público</x-public.eyebrow>
-                <x-public.heading as="h1" class="mt-[0.8rem] max-w-[42rem] text-[length:clamp(2.4rem,6vw,5rem)] leading-[1.05]">Memórias Vivas de Umuarama</x-public.heading>
+                <x-public.heading as="h1" class="mt-[0.8rem] max-w-[42rem] text-[length:clamp(2.4rem,6vw,5rem)] leading-[1.05] font-semibold">Memórias Vivas de Umuarama</x-public.heading>
                 <p class="mt-[1.35rem] max-w-[37rem] text-[1.08rem] leading-[1.7] text-ink-600">
                     Um espaço para conhecer, preservar e compartilhar registros da memória de Umuarama.
                 </p>
