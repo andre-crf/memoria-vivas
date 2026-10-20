@@ -34,6 +34,7 @@
     /* Fundos e bordas */
     --color-paper: #f8f7f2;
     --color-mist-50: #f8faf9;
+    --color-mist-75: #f1f6f6;
     --color-mist-100: #f5f8fa;
     --color-mist-150: #edf0f2;
     --color-mist-200: #dce4e9;
@@ -165,8 +166,6 @@
     .public-collaborate-checklist { display: grid; gap: 0; margin: 0; padding: 0; list-style: none; }
     .public-collaborate-checklist li { position: relative; border-top: 1px solid var(--color-mist-400); padding: 1rem 0 1rem 2rem; color: var(--color-ink-800); font-size: 0.95rem; line-height: 1.65; }
     .public-collaborate-checklist li::before { position: absolute; top: 1.2rem; left: 0; width: 0.65rem; height: 0.65rem; border: 2px solid var(--color-institutional); border-radius: 50%; content: ''; }
-    .public-collaborate-invite__inner > div > p:last-child { max-width: 44rem; margin-top: 1rem; color: var(--color-ink-600); font-size: 0.95rem; line-height: 1.7; }
-    .public-collaborate-invite__inner p a { color: var(--color-institutional); font-weight: 700; text-decoration: underline; text-underline-offset: 0.2em; }
     .public-contribution { scroll-margin-top: 2rem; }
     .public-contribution__grid { display: grid; grid-template-columns: minmax(0, 0.72fr) minmax(0, 1fr); gap: clamp(2rem, 6vw, 6rem); }
     .public-contribution__intro { align-self: start; position: sticky; top: 2rem; }
@@ -207,57 +206,17 @@
     .public-contribution__error-summary { margin-bottom: 1.5rem; }
     .public-contribution__success { border-color: var(--color-institutional); background: var(--color-institutional-soft); color: var(--color-institutional); }
     .public-contribution__success p { margin-block: 0.6rem 1rem; }
-    .public-hero { border-bottom: 1px solid var(--color-mist-200); background: var(--color-institutional-soft); }
-    .public-hero__grid { display: grid; min-height: min(43rem, calc(100vh - 5rem)); grid-template-columns: minmax(0, 1.35fr) minmax(14rem, 0.65fr); align-items: center; gap: 4rem; }
-    .public-hero__content { padding-block: clamp(4rem, 10vw, 8rem); }
     .public-eyebrow { color: var(--color-institutional); font-size: 0.72rem; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; }
-    .public-hero h1, .public-section h2 { max-width: 42rem; margin-top: 0.8rem; color: var(--color-institutional); font-family: Georgia, 'Times New Roman', serif; font-weight: 600; overflow-wrap: anywhere; }
-    .public-hero h1 { font-size: clamp(2.4rem, 6vw, 5rem); line-height: 1.05; }
-    .public-hero__lead { max-width: 37rem; margin-top: 1.35rem; color: var(--color-ink-600); font-size: 1.08rem; line-height: 1.7; }
-    .public-hero__actions { display: flex; flex-wrap: wrap; align-items: center; gap: 1.25rem; margin-top: 2rem; }
+    .public-section h2 { max-width: 42rem; margin-top: 0.8rem; color: var(--color-institutional); font-family: Georgia, 'Times New Roman', serif; font-weight: 600; overflow-wrap: anywhere; }
     .public-button { display: inline-flex; align-items: center; gap: 0.75rem; border-radius: 0.375rem; background: var(--color-institutional); padding: 0.78rem 1rem; color: #fff; font-size: 0.82rem; font-weight: 700; }
     .public-button:hover { background: var(--color-institutional-strong); }
     .public-button span { font-size: 1rem; line-height: 1; }
     .public-text-link { color: var(--color-institutional); font-size: 0.82rem; font-weight: 750; text-decoration: underline; text-decoration-color: var(--color-mist-500); text-underline-offset: 0.25rem; }
     .public-text-link:hover { text-decoration-color: var(--color-institutional); }
-    .public-hero__identity { display: grid; justify-items: center; gap: 1.25rem; max-width: 19rem; border-left: 1px solid var(--color-mist-500); padding: 2rem 0 2rem 3rem; color: var(--color-ink-600); text-align: center; }
-    .public-hero__identity img { width: clamp(9rem, 18vw, 13rem); height: clamp(9rem, 18vw, 13rem); border: 0.7rem solid #fff; border-radius: 50%; object-fit: cover; box-shadow: 0 1rem 2rem rgb(23 62 99 / 0.12); }
-    .public-hero__identity p { max-width: 16rem; font-family: Georgia, 'Times New Roman', serif; font-size: 1rem; line-height: 1.5; }
     .public-section { padding-block: clamp(4rem, 8vw, 7rem); background: #fff; }
-    .public-section__grid { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); gap: 4rem; }
     .public-section h2 { font-size: clamp(1.8rem, 4vw, 3rem); line-height: 1.12; }
     .public-section__copy { display: grid; gap: 1rem; max-width: 40rem; color: var(--color-ink-600); font-size: 1rem; line-height: 1.75; }
-    .public-section__heading { display: flex; align-items: end; justify-content: space-between; gap: 2rem; }
-    .public-section__heading h2 { margin-top: 0.8rem; color: var(--color-institutional); font-family: Georgia, 'Times New Roman', serif; font-size: clamp(1.8rem, 4vw, 3rem); line-height: 1.12; }
-    .public-section__heading .public-text-link { flex: 0 0 auto; margin-bottom: 0.35rem; }
     .public-section--tinted { border-top: 1px solid var(--color-mist-200); background: #f1f6f6; }
-    .public-introduction { display: grid; grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr); gap: 4rem; }
-    .public-introduction h2 { max-width: 30rem; margin-top: 0.8rem; color: var(--color-institutional); font-family: Georgia, 'Times New Roman', serif; font-size: clamp(1.8rem, 4vw, 3rem); line-height: 1.12; }
-    .public-introduction__items { display: grid; gap: 1.25rem; }
-    .public-introduction__item { display: grid; grid-template-columns: 2.5rem minmax(0, 1fr); gap: 1rem; border-top: 1px solid #cbd9dd; padding-top: 1.15rem; }
-    .public-introduction__number { color: var(--color-institutional); font-size: 0.72rem; font-weight: 800; letter-spacing: 0.08em; }
-    .public-introduction__item h3 { color: var(--color-institutional); font-size: 1rem; }
-    .public-introduction__item p { margin-top: 0.35rem; color: var(--color-ink-600); font-size: 0.9rem; line-height: 1.6; }
-    .public-carousel { position: relative; margin-top: 2.25rem; padding-inline: 3.25rem; }
-    .public-carousel__viewport { overflow: hidden; }
-    .public-carousel__track { display: flex; transition: transform 220ms ease; }
-    .public-carousel__slide { min-width: 100%; }
-    .public-recent-item { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(15rem, 0.75fr); min-height: 22rem; border: 1px solid var(--color-mist-200); background: #fff; color: var(--color-ink-950); }
-    .public-recent-item:hover { border-color: var(--color-mist-500); box-shadow: 0 0.75rem 2rem rgb(23 62 99 / 0.08); }
-    .public-recent-item__image { display: grid; min-height: 22rem; place-items: center; overflow: hidden; background: var(--color-mist-250); color: var(--color-ink-600); }
-    .public-recent-item__image img { width: 100%; height: 100%; object-fit: cover; }
-    .public-recent-item__body { display: flex; flex-direction: column; justify-content: center; padding: clamp(1.5rem, 4vw, 3rem); }
-    .public-recent-item__body h3 { color: var(--color-institutional); font-family: Georgia, 'Times New Roman', serif; font-size: clamp(1.45rem, 3vw, 2.25rem); line-height: 1.15; overflow-wrap: anywhere; }
-    .public-recent-item__body p { margin-top: 0.8rem; color: var(--color-ink-600); font-size: 0.9rem; }
-    .public-recent-item__link { margin-top: 2rem; color: var(--color-institutional); font-size: 0.8rem; font-weight: 800; }
-    .public-carousel__control { position: absolute; z-index: 1; top: 50%; display: grid; width: 2.5rem; height: 2.5rem; place-items: center; transform: translateY(-50%); border: 1px solid var(--color-mist-500); border-radius: 50%; background: #fff; color: var(--color-institutional); font-size: 1.1rem; }
-    .public-carousel__control:hover { border-color: var(--color-institutional); background: var(--color-institutional); color: #fff; }
-    .public-carousel__control--prev { left: 0; }
-    .public-carousel__control--next { right: 0; }
-    .public-carousel__dots { display: flex; justify-content: center; gap: 0.45rem; margin-top: 1.25rem; }
-    .public-carousel__dot { width: 0.55rem; height: 0.55rem; border-radius: 50%; background: #b7c9cd; }
-    .public-carousel__dot[aria-current='true'] { background: var(--color-institutional); box-shadow: 0 0 0 3px var(--color-institutional-muted); }
-    .public-empty-state--recent { margin-top: 2.25rem; }
     .public-detail__grid { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(16rem, 0.75fr); gap: clamp(2rem, 6vw, 5rem); margin-top: 2rem; }
     .public-detail__image { display: grid; min-height: 22rem; place-items: center; overflow: hidden; background: var(--color-mist-250); color: var(--color-ink-600); }
     .public-detail__image img { width: 100%; height: 100%; max-height: 42rem; object-fit: contain; }
@@ -311,10 +270,6 @@
     }
     .public-button:focus-visible, .public-text-link:focus-visible { outline: 3px solid var(--color-institutional); outline-offset: 3px; }
     @media (max-width: 700px) {
-        .public-hero__grid, .public-introduction { grid-template-columns: 1fr; gap: 2rem; }
-        .public-hero__grid { min-height: auto; }
-        .public-hero__identity { justify-items: start; border-top: 1px solid var(--color-mist-500); border-left: 0; padding: 2rem 0 3rem; text-align: left; }
-        .public-hero__identity p { max-width: 20rem; }
         .public-about-hero__inner { min-height: auto; grid-template-columns: 1fr; gap: 0; padding-block: 2.25rem; }
         .public-about-hero h1 { font-size: clamp(2.25rem, 9vw, 3.5rem); }
         .public-about-hero__lead { font-size: 1rem; }
@@ -329,17 +284,8 @@
         .public-contribution__intro { position: static; }
         .public-contribution__notes { margin-top: 1.5rem; }
         .public-contribution__previews { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-        .public-section__heading { align-items: flex-start; flex-direction: column; gap: 1rem; }
-        .public-carousel { padding-inline: 0; }
-        .public-carousel__control { top: auto; bottom: 0.5rem; transform: none; }
-        .public-carousel__control--prev { left: 1rem; }
-        .public-carousel__control--next { right: 1rem; }
-        .public-recent-item { grid-template-columns: 1fr; }
-        .public-recent-item__image { min-height: 14rem; max-height: 18rem; }
-        .public-recent-item__body { min-height: 15rem; padding: 1.5rem; }
         .public-detail__grid { grid-template-columns: 1fr; gap: 2rem; }
         .public-detail__sections { grid-template-columns: 1fr; }
-        .public-section__grid { grid-template-columns: 1fr; gap: 2rem; }
         .public-catalog-grid { grid-template-columns: 1fr; gap: 1rem; }
         .public-institutional__inner { grid-template-columns: 1fr; gap: 2.5rem; }
     }
