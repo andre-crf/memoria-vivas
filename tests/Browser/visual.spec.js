@@ -84,6 +84,9 @@ for (const [viewportName, viewport] of Object.entries(viewports)) {
                 await capture(page, `${name}-${viewportName}`);
             }
 
+            await page.goto(`/publico/catalogo?q=${'a'.repeat(201)}`);
+            await capture(page, `publico-busca-erro-${viewportName}`);
+
             await page.goto('/publico/contato');
             if (viewportName === 'mobile') {
                 await page.getByTestId('public-menu').locator('summary').click();
