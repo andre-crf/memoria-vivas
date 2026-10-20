@@ -63,8 +63,7 @@
                                 class="min-w-0 flex-1 bg-transparent px-[0.7rem] py-[0.58rem] text-[0.78rem] text-ink-950 outline-none">
                             @foreach (['decada', 'categoria', 'assunto'] as $parametro)
                                 @if (isset($catalogQuery[$parametro]))
-                                    <input type="hidden" name="{{ $parametro }}"
-                                        value="{{ $catalogQuery[$parametro] }}">
+                                    <input type="hidden" name="{{ $parametro }}" value="{{ $catalogQuery[$parametro] }}">
                                 @endif
                             @endforeach
                             <button type="submit" aria-label="Buscar no catálogo"
