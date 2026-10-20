@@ -98,6 +98,12 @@ for (const [viewportName, viewport] of Object.entries(viewports)) {
                 await page.goto(url);
                 await capture(page, `${name}-${viewportName}`);
             }
+
+            if (viewportName === 'mobile') {
+                await page.goto('/admin/categorias');
+                await page.getByText('Menu', { exact: true }).click();
+                await capture(page, `admin-menu-aberto-${viewportName}`);
+            }
         });
 
         test('formulário de fotografia aberto', async ({ page }) => {

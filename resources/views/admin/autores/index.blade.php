@@ -35,7 +35,7 @@
                 </p>
             </div>
         @else
-            <div class="mt-6 overflow-hidden rounded-lg border border-stone-200 bg-white">
+            <div class="mt-6 overflow-hidden rounded-lg border border-stone-200 bg-white shadow-[0_18px_40px_rgb(28_25_23/0.05)]">
                 <div class="overflow-x-auto">
                     <table class="min-w-full divide-y divide-stone-200">
                         <thead class="bg-stone-50">

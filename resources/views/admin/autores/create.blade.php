@@ -30,7 +30,7 @@
         <form
             method="POST"
             action="{{ route('admin.autores.store') }}"
-            class="mt-6 space-y-6 rounded-lg border border-stone-200 bg-white p-6"
+            class="mt-6 space-y-6 rounded-lg border border-stone-200 bg-white p-6 shadow-[0_18px_40px_rgb(28_25_23/0.05)]"
         >
             @csrf
 

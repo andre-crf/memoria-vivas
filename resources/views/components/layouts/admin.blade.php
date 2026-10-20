@@ -61,60 +61,58 @@
 @endphp
 
 <x-layouts.app :title="$title ?? 'Administração | Memórias Vivas'">
-    <div class="admin-shell">
-        <header class="admin-header">
-            <div class="admin-header__primary">
-                <div class="admin-header__inner admin-header__bar">
-                    <a href="{{ route('admin.dashboard') }}" class="admin-brand">
+    @php($focusRing = 'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-institutional')
+
+    <div class="min-h-screen bg-admin-shell text-stone-900">
+        <header class="sticky top-0 z-40 shadow-[0_3px_18px_rgb(24_42_63/0.08)]">
+            <div class="bg-institutional text-white">
+                <div class="mx-auto flex min-h-[4.5rem] w-full max-w-7xl min-w-0 items-center justify-between gap-2 px-4 sm:gap-4 sm:px-6 lg:px-8">
+                    <a href="{{ route('admin.dashboard') }}" class="inline-flex min-w-0 items-center gap-[0.7rem] {{ $focusRing }}">
                         <img
                             src="{{ asset('images/memorias-vivas-logo.png') }}"
                             alt=""
                             width="48"
                             height="48"
-                            class="admin-brand__mark"
+                            class="block size-[1.9rem] flex-none rounded-full border-2 border-white/82 bg-mist-250 object-cover sm:size-10 max-[359px]:hidden"
                         >
-                        <span class="admin-brand__text">
-                            <span class="admin-brand__title">Memórias Vivas</span>
-                            <span class="admin-brand__subtitle">Acervo de Umuarama</span>
+                        <span class="flex min-w-0 flex-col gap-[0.12rem]">
+                            <span class="font-serif text-[0.9rem] leading-[1.1] whitespace-nowrap sm:text-[1.2rem]">Memórias Vivas</span>
+                            <span class="hidden text-[0.65rem] leading-[1.2] font-bold whitespace-nowrap text-institutional-muted uppercase sm:block">Acervo de Umuarama</span>
                             <span class="sr-only">Administração do acervo</span>
                         </span>
                     </a>
 
-                    <div class="admin-header__actions">
+                    <div class="flex items-center gap-[0.4rem] sm:gap-[0.875rem]">
                         <a
                             href="{{ route('admin.perfil.edit') }}"
                             aria-label="Acessar meu perfil"
                             @if (request()->routeIs('admin.perfil.*')) aria-current="page" @endif
-                            class="admin-user"
+                            class="flex min-w-0 items-center justify-end gap-2.5 rounded-md {{ $focusRing }}"
                         >
-                            <div class="admin-user__meta">
-                                <p class="admin-user__name">{{ auth()->user()->nome }}</p>
-                                <p class="admin-user__role">
+                            <div class="hidden min-w-0 text-right md:block">
+                                <p class="max-w-56 truncate text-[0.8rem] font-semibold text-white">{{ auth()->user()->nome }}</p>
+                                <p class="mt-[0.15rem] text-[0.7rem] text-institutional-muted">
                                     {{ auth()->user()->isAdmin() ? 'Administrador' : 'Operador' }}</p>
                             </div>
 
-                            <span class="admin-user__avatar" aria-hidden="true">
+                            <span class="hidden size-9 flex-none place-items-center rounded-full bg-institutional-soft text-[0.8rem] font-bold text-institutional uppercase md:grid" aria-hidden="true">
                                 {{ mb_substr(auth()->user()->nome, 0, 1) }}
                             </span>
                         </a>
 
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
-                            <button type="submit" class="admin-logout">Sair</button>
+                            <button type="submit" class="inline-flex min-h-[2.125rem] items-center justify-center rounded-md border border-white/42 px-[0.8rem] py-[0.4rem] text-[0.75rem] font-semibold text-white transition-[background-color] duration-160 ease-[ease] hover:bg-white/12 {{ $focusRing }}">Sair</button>
                         </form>
 
-                        <details class="admin-mobile-nav">
-                            <summary class="admin-mobile-nav__summary">Menu</summary>
+                        <details class="group/mobile-nav relative md:hidden">
+                            <summary class="flex min-h-[2.125rem] cursor-pointer list-none items-center gap-2 rounded-md border border-white/42 px-[0.7rem] py-[0.4rem] text-[0.75rem] font-semibold text-white [&::-webkit-details-marker]:hidden after:text-[0.9rem] after:leading-none after:content-['\2630'] group-open/mobile-nav:after:content-['\00d7'] {{ $focusRing }}">Menu</summary>
 
-                            <nav class="admin-mobile-nav__panel" aria-label="Navegação administrativa mobile">
+                            <nav class="absolute top-[calc(100%+0.75rem)] right-0 grid w-[min(19rem,calc(100vw-2rem))] rounded-md border border-mist-200 bg-white p-1.5 shadow-[0_16px_30px_rgb(24_42_63/0.18)]" aria-label="Navegação administrativa mobile">
                                 @foreach ($navigation as $item)
-                                    @php($isActive = request()->routeIs($item['active']))
-
-                                    <a href="{{ route($item['route']) }}"
-                                        @if ($isActive) aria-current="page" @endif
-                                        class="admin-nav__link">
+                                    <x-admin.nav-link :href="route($item['route'])" :active="request()->routeIs($item['active'])" variant="menu">
                                         {{ $item['label'] }}
-                                    </a>
+                                    </x-admin.nav-link>
                                 @endforeach
                             </nav>
                         </details>
@@ -122,21 +120,18 @@
                 </div>
             </div>
 
-            <div class="admin-header__navigation">
-                <nav class="admin-header__inner admin-nav" aria-label="Navegação administrativa">
+            <div class="hidden border-b border-mist-200 bg-white md:block">
+                <nav class="mx-auto flex min-h-[3.25rem] w-full max-w-7xl items-stretch gap-6 px-4 sm:px-6 lg:px-8" aria-label="Navegação administrativa">
                     @foreach ($navigation as $item)
-                        @php($isActive = request()->routeIs($item['active']))
-
-                        <a href="{{ route($item['route']) }}"
-                            @if ($isActive) aria-current="page" @endif class="admin-nav__link">
+                        <x-admin.nav-link :href="route($item['route'])" :active="request()->routeIs($item['active'])">
                             {{ $item['label'] }}
-                        </a>
+                        </x-admin.nav-link>
                     @endforeach
                 </nav>
             </div>
         </header>
 
-        <main class="admin-main">
+        <main class="admin-main min-w-0 overflow-x-clip">
             {{ $slot }}
         </main>
     </div>
