@@ -19,14 +19,12 @@ use Illuminate\Support\Facades\Storage;
  */
 class E2eVisualSeeder extends Seeder
 {
-    private const PNG_1X1 = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=';
-
     public function run(): void
     {
         // Sem o arquivo, a imagem falha e o fallback aparece ou não conforme o Alpine inicia antes
         // ou depois do erro, o que deixa as capturas instáveis.
         foreach (range(1, 3) as $indice) {
-            Storage::disk('local')->put("e2e/carrossel-{$indice}.png", base64_decode(self::PNG_1X1));
+            Storage::disk('local')->put("e2e/carrossel-{$indice}.png", file_get_contents(public_path('images/memorias-vivas-logo.png')));
         }
 
         $categoria = Categoria::create(['titulo' => 'Praças e logradouros', 'descricao' => 'Espaços públicos da cidade.']);
@@ -55,6 +53,19 @@ class E2eVisualSeeder extends Seeder
         $fotografia->assuntos()->attach($assunto);
         $fotografia->palavrasChave()->attach($palavraChave);
         $fotografia->pessoas()->attach($pessoa);
+
+        // Fotografia pública com todos os blocos da página de detalhe preenchidos.
+        $publica = ItemAcervo::where('titulo', 'Fotografia pública E2E 1')->firstOrFail();
+        $publica->update([
+            'legenda' => "Vista da avenida principal.\nRegistro feito durante o desfile cívico.",
+            'local_atual' => 'Avenida Paraná',
+            'evento' => 'Desfile de 7 de setembro',
+            'autor_id' => $autor->id,
+        ]);
+        $publica->categorias()->attach($categoria);
+        $publica->assuntos()->attach($assunto);
+        $publica->palavrasChave()->attach($palavraChave);
+        $publica->pessoas()->attach($pessoa);
 
         Contribuicao::create([
             'nome' => 'João Pereira',

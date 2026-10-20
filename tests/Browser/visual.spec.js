@@ -84,6 +84,15 @@ for (const [viewportName, viewport] of Object.entries(viewports)) {
                 await capture(page, `${name}-${viewportName}`);
             }
 
+            await page.goto('/publico/fotografias/1');
+            await page.getByRole('button', { name: /^Ampliar fotografia/ }).click();
+            const viewer = page.getByRole('dialog');
+            await expect(viewer).toBeVisible();
+            await expect(page).toHaveScreenshot(`publico-visualizador-${viewportName}.png`, { animations: 'disabled' });
+            await viewer.getByRole('button', { name: 'Ver imagem no tamanho original' }).click();
+            await expect(page).toHaveScreenshot(`publico-visualizador-zoom-${viewportName}.png`, { animations: 'disabled' });
+            await page.keyboard.press('Escape');
+
             await page.goto('/publico/catalogo?q=inexistente');
             await capture(page, `publico-catalogo-vazio-${viewportName}`);
 
