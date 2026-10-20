@@ -45,6 +45,11 @@
     --color-mist-400: #b8cbd4;
     --color-mist-500: #9fb9c5;
 
+    /* Visualizador de imagem em tela cheia */
+    --color-night-950: #111816;
+    --color-night-700: #39443f;
+    --color-night-500: #65766b;
+
     /* Mensagens de erro e alerta */
     --color-error: #a24739;
     --color-error-strong: #a32132;
@@ -95,25 +100,6 @@
 
     .public-container { width: min(100% - 2rem, 76rem); margin-inline: auto; }
     .public-shell :where(a, button, summary, input):focus-visible { outline: 3px solid var(--color-institutional); outline-offset: 3px; }
-    .public-detail__viewer { min-width: 0; }
-    .public-detail__expand { position: relative; width: 100%; cursor: zoom-in; }
-    .public-detail__expand:disabled { cursor: not-allowed; }
-    .public-detail__expand:focus-visible { outline: 3px solid var(--color-institutional); outline-offset: 4px; }
-    .public-detail__expand-icon { position: absolute; right: 0.75rem; bottom: 0.75rem; display: grid; width: 2.75rem; height: 2.75rem; place-items: center; border-radius: 0.375rem; background: var(--color-institutional); color: #fff; font-size: 1.5rem; }
-    .public-image-viewer { position: fixed; inset: 0; margin: 0; width: 100vw; height: 100dvh; max-width: none; max-height: none; border: 0; padding: 0; background: #111816; color: #fff; }
-    .public-image-viewer[open] { display: flex; flex-direction: column; }
-    .public-image-viewer::backdrop { background: #111816; }
-    .public-image-viewer__toolbar { display: flex; flex: 0 0 auto; align-items: center; justify-content: space-between; gap: 1rem; min-height: 4rem; padding: 0.5rem 1rem; padding-top: max(0.5rem, env(safe-area-inset-top)); border-bottom: 1px solid #39443f; }
-    .public-image-viewer .public-image-viewer__toolbar h2 { min-width: 0; max-height: 4rem; margin: 0; overflow-y: auto; color: #fff; font-family: inherit; font-size: 1rem; font-weight: 600; line-height: 1.4; overflow-wrap: anywhere; }
-    .public-image-viewer__toolbar > div { display: flex; flex: 0 0 auto; gap: 0.5rem; }
-    .public-image-viewer__toolbar button { display: grid; width: 2.75rem; height: 2.75rem; place-items: center; border: 1px solid #65766b; border-radius: 0.375rem; color: #fff; font-size: 1.6rem; }
-    .public-image-viewer__toolbar button:hover { background: #39443f; }
-    .public-image-viewer__toolbar button:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
-    .public-image-viewer__viewport { flex: 1; min-height: 0; overflow: auto; overscroll-behavior: contain; }
-    .public-image-viewer__surface { display: grid; width: 100%; height: 100%; place-items: center; padding: 1rem; }
-    .public-image-viewer__surface img { width: auto; height: auto; max-width: 100%; max-height: calc(100dvh - 8rem); object-fit: contain; }
-    .public-image-viewer__viewport.is-zoomed .public-image-viewer__surface { width: max-content; height: max-content; min-width: 100%; min-height: 100%; }
-    .public-image-viewer__viewport.is-zoomed img { max-width: none; max-height: none; }
     .public-institutional { min-height: 60vh; border-bottom: 1px solid var(--color-mist-200); background: linear-gradient(115deg, var(--color-institutional-soft) 0%, #f7f8f5 58%, #fff 100%); }
     .public-institutional__inner { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(16rem, 0.7fr); align-items: center; gap: clamp(2rem, 7vw, 6rem); padding-block: clamp(5rem, 12vw, 9rem); }
     .public-institutional__heading h1 { max-width: 48rem; margin-top: 0.9rem; color: var(--color-institutional); font-family: Georgia, 'Times New Roman', serif; font-size: clamp(2.6rem, 6vw, 5.2rem); font-weight: 600; letter-spacing: -0.035em; line-height: 1.03; overflow-wrap: anywhere; }
@@ -214,30 +200,7 @@
     .public-section h2 { font-size: clamp(1.8rem, 4vw, 3rem); line-height: 1.12; }
     .public-section__copy { display: grid; gap: 1rem; max-width: 40rem; color: var(--color-ink-600); font-size: 1rem; line-height: 1.75; }
     .public-section--tinted { border-top: 1px solid var(--color-mist-200); background: #f1f6f6; }
-    .public-detail__grid { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(16rem, 0.75fr); gap: clamp(2rem, 6vw, 5rem); margin-top: 2rem; }
-    .public-detail__image { display: grid; min-height: 22rem; place-items: center; overflow: hidden; background: var(--color-mist-250); color: var(--color-ink-600); }
-    .public-detail__image img { width: 100%; height: 100%; max-height: 42rem; object-fit: contain; }
-    .public-detail__content h1 { margin-top: 0.8rem; color: var(--color-institutional); font-family: Georgia, 'Times New Roman', serif; font-size: clamp(2rem, 5vw, 4rem); line-height: 1.08; overflow-wrap: anywhere; }
-    .public-detail__date { margin-top: 1rem; color: var(--color-institutional); font-weight: 750; }
-    .public-detail__caption { margin-top: 2rem; color: var(--color-ink-600); line-height: 1.75; white-space: pre-line; }
-    .public-detail__metadata { display: grid; gap: 1rem; margin-top: 2rem; border-top: 1px solid var(--color-mist-200); padding-top: 1.5rem; color: var(--color-ink-600); }
-    .public-detail__metadata dt { font-size: 0.72rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; }
-    .public-detail__metadata dd { margin-top: 0.25rem; color: var(--color-institutional); }
-    .public-detail__sections { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.5rem; margin-top: clamp(2.5rem, 6vw, 4rem); }
-    .public-detail__section { min-width: 0; border-top: 2px solid var(--color-institutional); background: var(--color-mist-50); padding: 1.5rem; }
-    .public-detail__section h2 { margin: 0; color: var(--color-institutional); font-size: 1.25rem; }
-    .public-detail__groups { display: grid; gap: 1.25rem; margin-top: 1.25rem; }
-    .public-detail__groups dt { color: var(--color-ink-600); font-size: 0.72rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; }
-    .public-detail__groups dd { margin-top: 0.55rem; }
-    .public-detail__groups ul, .public-detail__list { display: flex; flex-wrap: wrap; gap: 0.5rem; list-style: none; }
-    .public-detail__groups li, .public-detail__list li { border: 1px solid #cbd9dd; border-radius: 999px; background: #fff; padding: 0.4rem 0.7rem; color: var(--color-institutional); font-size: 0.82rem; overflow-wrap: anywhere; }
-    .public-detail__list { margin-top: 1.25rem; }
     [x-cloak] { display: none !important; }
-    .public-back-link:focus-visible { outline: 3px solid rgb(23 62 99 / 0.45); outline-offset: 3px; }
-    .public-back-link { display: inline-flex; color: var(--color-institutional); font-size: 0.82rem; font-weight: 700; }
-    @media (max-width: 900px) {
-        .public-detail__sections { grid-template-columns: 1fr 1fr; }
-    }
     @media (max-width: 960px) {
         .public-about-hero__inner { gap: 2.5rem; }
         .public-about-steps { gap: 1.25rem; }
@@ -258,8 +221,6 @@
         .public-contribution__intro { position: static; }
         .public-contribution__notes { margin-top: 1.5rem; }
         .public-contribution__previews { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-        .public-detail__grid { grid-template-columns: 1fr; gap: 2rem; }
-        .public-detail__sections { grid-template-columns: 1fr; }
         .public-institutional__inner { grid-template-columns: 1fr; gap: 2.5rem; }
     }
 }
