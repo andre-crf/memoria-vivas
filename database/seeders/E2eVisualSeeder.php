@@ -11,6 +11,7 @@ use App\Models\ItemAcervo;
 use App\Models\PalavraChave;
 use App\Models\Pessoa;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * Dados fixos para as capturas de tela de tests/Browser/visual.spec.js.
@@ -18,8 +19,16 @@ use Illuminate\Database\Seeder;
  */
 class E2eVisualSeeder extends Seeder
 {
+    private const PNG_1X1 = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=';
+
     public function run(): void
     {
+        // Sem o arquivo, a imagem falha e o fallback aparece ou não conforme o Alpine inicia antes
+        // ou depois do erro, o que deixa as capturas instáveis.
+        foreach (range(1, 3) as $indice) {
+            Storage::disk('local')->put("e2e/carrossel-{$indice}.png", base64_decode(self::PNG_1X1));
+        }
+
         $categoria = Categoria::create(['titulo' => 'Praças e logradouros', 'descricao' => 'Espaços públicos da cidade.']);
         Categoria::create(['titulo' => 'Eventos cívicos', 'descricao' => 'Desfiles, inaugurações e solenidades.']);
 

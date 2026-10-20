@@ -42,6 +42,15 @@ const adminPages = {
 
 async function capture(page, name) {
     await page.evaluate(() => document.fonts.ready);
+    // Espera as imagens terminarem (ou falharem) para o fallback "Imagem indisponível" já estar na tela.
+    await page.waitForLoadState('networkidle');
+    await page.waitForFunction(() => [...document.images].every((image) => {
+        // Imagens lazy fora da tela ou escondidas (ex.: dentro de um <dialog> fechado) nunca carregam.
+        const outsideViewport = image.getBoundingClientRect().top > window.innerHeight;
+
+        return image.complete || (image.loading === 'lazy' && (outsideViewport || !image.checkVisibility()));
+    }));
+    await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
     // O header do admin é fixo: com a página rolada, ele apareceria no meio da captura.
     await page.evaluate(() => window.scrollTo(0, 0));
     await expect(page).toHaveScreenshot(`${name}.png`, {
