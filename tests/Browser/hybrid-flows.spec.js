@@ -77,12 +77,12 @@ test('quick catalogs, Alpine state and traditional photograph POST work together
     await page.goto('/admin/fotografias/create');
 
     await page.getByText('Classificações', { exact: true }).click();
-    const categoryPicker = page.locator('article.catalog-picker').filter({
+    const categoryPicker = page.getByTestId('relationship-picker').filter({
         has: page.getByRole('heading', { name: 'Categorias', exact: true }),
     });
-    const existingOption = categoryPicker.locator('label.catalog-option').filter({ hasText: existingCategory });
+    const existingOption = categoryPicker.locator('[data-option]').filter({ hasText: existingCategory });
     await existingOption.getByRole('checkbox').check();
-    await expect(categoryPicker.locator('.catalog-picker__count')).toHaveText('1 selecionado(s)');
+    await expect(categoryPicker.getByTestId('relationship-picker-count')).toHaveText('1 selecionado(s)');
 
     await page.getByLabel(/Título obrigatório/).fill(photographTitle);
     await categoryPicker.getByRole('button', { name: '+ Criar categoria' }).click();
@@ -93,11 +93,11 @@ test('quick catalogs, Alpine state and traditional photograph POST work together
     await expect(page.getByLabel(/Título obrigatório/)).toHaveValue(photographTitle);
     await expect(categoryPicker.getByText('Criado e selecionado.')).toHaveText('Criado e selecionado.');
 
-    const newOption = categoryPicker.locator('label.catalog-option').filter({ hasText: newCategory });
+    const newOption = categoryPicker.locator('[data-option]').filter({ hasText: newCategory });
     await expect(newOption).toBeVisible();
     await expect(newOption.getByRole('checkbox')).toBeChecked();
     await expect(existingOption.getByRole('checkbox')).toBeChecked();
-    await expect(categoryPicker.locator('.catalog-picker__count')).toHaveText('2 selecionado(s)');
+    await expect(categoryPicker.getByTestId('relationship-picker-count')).toHaveText('2 selecionado(s)');
 
     const categorySearch = categoryPicker.getByPlaceholder('Buscar categoria...');
     await categorySearch.fill(newCategory);
@@ -106,7 +106,7 @@ test('quick catalogs, Alpine state and traditional photograph POST work together
     await categorySearch.fill('');
     await expect(existingOption).toBeVisible();
 
-    const author = page.locator('.catalog-author');
+    const author = page.getByTestId('quick-author');
     await author.getByRole('button', { name: '+ Cadastrar novo autor' }).click();
     const authorDialog = page.getByRole('dialog', { name: 'Cadastrar novo autor', exact: true });
     await authorDialog.getByLabel('Nome').fill(newAuthor);
@@ -182,7 +182,7 @@ test('local image preview updates when the selected file changes', async ({ page
     await page.getByText('Arquivo original', { exact: true }).click();
 
     const input = page.locator('input[name="arquivo_original"]');
-    const preview = page.locator('.catalog-file-preview');
+    const preview = page.getByTestId('file-preview');
     const image = preview.locator('img');
 
     await input.setInputFiles({ name: 'primeira.png', mimeType: 'image/png', buffer: firstImage });
@@ -231,7 +231,7 @@ for (const mode of ['cadastro', 'edição']) {
             await expect(trigger).toBeFocused();
             await trigger.click();
             await dialog.getByRole('button', { name: 'Criar e selecionar' }).click();
-            await expect(dialog.locator('.catalog-error')).toBeVisible();
+            await expect(dialog.getByRole('alert').first()).toBeVisible();
             const name = unique(`${catalog} ${mode}`);
             await dialog.getByLabel(field).fill(name);
             await dialog.getByRole('button', { name: 'Criar e selecionar' }).click();
@@ -240,7 +240,7 @@ for (const mode of ['cadastro', 'edição']) {
             if (catalog === 'autor') {
                 await expect(page.locator('#autor_id option:checked')).toContainText(name);
             } else {
-                await expect(page.locator('label.catalog-option').filter({ hasText: name }).getByRole('checkbox')).toBeChecked();
+                await expect(page.locator('[data-option]').filter({ hasText: name }).getByRole('checkbox')).toBeChecked();
             }
         }
         await page.getByRole('button', { name: mode === 'cadastro' ? 'Salvar fotografia' : 'Salvar alterações' }).click();
@@ -260,7 +260,7 @@ test('public photograph viewer supports keyboard, zoom and mobile fullscreen', a
     await page.getByRole('button', { name: 'Salvar fotografia' }).click();
     await expect(page).toHaveURL(/\/admin\/fotografias$/);
     await page.goto('/publico/catalogo');
-    await page.locator('.public-photo a').filter({ hasText: title }).click();
+    await page.getByRole('link', { name: `Ver detalhes de ${title}`, exact: true }).click();
     const trigger = page.getByRole('button', { name: `Ampliar fotografia: ${title}`, exact: true });
     const viewer = page.getByRole('dialog', { name: title, exact: true });
     await trigger.press('Enter');

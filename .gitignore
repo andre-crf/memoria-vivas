@@ -18,6 +18,7 @@
 /public/build
 /public/fonts-manifest.dev.json
 /public/hot
+/public/hot.e2e-backup
 /public/storage
 /storage/*.key
 /storage/pail

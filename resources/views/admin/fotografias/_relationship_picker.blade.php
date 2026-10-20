@@ -5,6 +5,7 @@
 
 <article
     class="catalog-picker"
+    data-testid="relationship-picker"
     x-data="relationshipPicker({{ count($selectedValues) }})"
     @change="refreshSelection()"
 >
@@ -13,7 +14,7 @@
             <h3>{{ $label }}</h3>
             <p>{{ $description }}</p>
         </div>
-        <span class="catalog-picker__count" x-text="`${selectedCount} selecionado(s)`">{{ count($selectedValues) }} selecionado(s)</span>
+        <span class="catalog-picker__count" data-testid="relationship-picker-count" x-text="`${selectedCount} selecionado(s)`">{{ count($selectedValues) }} selecionado(s)</span>
     </div>
 
     <label class="catalog-search">

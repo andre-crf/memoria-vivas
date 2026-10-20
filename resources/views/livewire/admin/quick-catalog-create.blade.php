@@ -1,6 +1,6 @@
 <div class="contents">
     @if ($isAuthor)
-        <div class="catalog-author">
+        <div class="catalog-author" data-testid="quick-author">
             <label class="catalog-label" for="autor_id">
                 <span>{{ $definition['label'] }}</span>
                 <select id="autor_id" name="{{ $definition['input'] }}" wire:model="selectedSingle" class="catalog-field">
@@ -17,6 +17,7 @@
     @else
         <article
             class="catalog-picker"
+            data-testid="relationship-picker"
             x-data="relationshipPicker({{ count($selected) }})"
             @change="refreshSelection()"
             @quick-catalog-created.window="if ($event.detail.catalog === @js($catalog)) refresh()"
@@ -26,7 +27,7 @@
                     <h3>{{ $definition['label'] }}</h3>
                     <p>{{ $definition['description'] }}</p>
                 </div>
-                <span class="catalog-picker__count" x-text="`${selectedCount} selecionado(s)`">{{ count($selected) }} selecionado(s)</span>
+                <span class="catalog-picker__count" data-testid="relationship-picker-count" x-text="`${selectedCount} selecionado(s)`">{{ count($selected) }} selecionado(s)</span>
             </div>
 
             <label class="catalog-search">

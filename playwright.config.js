@@ -8,6 +8,7 @@ export default defineConfig({
     retries: 0,
     reporter: [['list'], ['html', { open: 'never' }]],
     globalSetup: './tests/Browser/global-setup.js',
+    globalTeardown: './tests/Browser/global-teardown.js',
     use: {
         baseURL: e2eEnvironment.APP_URL,
         locale: 'pt-BR',

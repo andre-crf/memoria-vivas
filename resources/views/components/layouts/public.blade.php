@@ -12,7 +12,7 @@
 
         <header class="public-header" aria-label="Cabeçalho público">
             <div class="public-container public-header__inner">
-                <a href="{{ route('public.home') }}" class="public-brand">
+                <a href="{{ route('public.home') }}" class="public-brand" data-testid="public-brand">
                     <img
                         src="{{ asset('images/memorias-vivas-logo.png') }}"
                         alt="Memórias Vivas de Umuarama"
@@ -43,7 +43,7 @@
                         @endif
                     </div>
 
-                    <details class="public-menu">
+                    <details class="public-menu" data-testid="public-menu">
                         <summary aria-label="Abrir navegação pública">Menu</summary>
                         <nav class="public-nav public-nav--menu" aria-label="Navegação pública">
                             <a href="{{ route('public.home') }}" @if (request()->routeIs('public.home')) aria-current="page" @endif>Início</a>

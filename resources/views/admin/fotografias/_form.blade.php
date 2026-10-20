@@ -163,7 +163,7 @@
                 <div class="catalog-file-current"><strong>{{ $arquivoOriginal->nome_original }}</strong><span>{{ $arquivoOriginal->mime_type }} · {{ number_format($arquivoOriginal->file_size / 1024, 1, ',', '.') }} KB</span></div>
             @else
                 <input id="arquivo_original" name="arquivo_original" type="file" accept="{{ $acceptedMimeTypes }}" class="catalog-file-input" @change="selectFile($event)">
-                <div class="catalog-file-preview" x-show="file !== null" style="display: none;">
+                <div class="catalog-file-preview" data-testid="file-preview" x-show="file !== null" style="display: none;">
                     <div class="catalog-file-preview__media">
                         <template x-if="isImage">
                             <img :src="previewUrl" :alt="`Pré-visualização de ${file.name}`" x-on:error="previewFailed = true" x-show="!previewFailed">

@@ -7,19 +7,20 @@ test('global search preserves the term and the mobile menu supports keyboard nav
     await page.keyboard.press('Tab');
     await expect(page.getByRole('link', { name: 'Pular para o conteúdo' })).toBeFocused();
     await page.keyboard.press('Tab');
-    await expect(page.locator('.public-brand')).toBeFocused();
+    await expect(page.getByTestId('public-brand')).toBeFocused();
     await page.keyboard.press('Tab');
     await expect(page.getByRole('searchbox', { name: 'Buscar no catálogo' })).toBeFocused();
     await page.keyboard.press('Tab');
     await expect(page.getByRole('button', { name: 'Buscar no catálogo' })).toBeFocused();
     await page.keyboard.press('Tab');
 
-    const menu = page.locator('.public-menu summary');
+    const publicMenu = page.getByTestId('public-menu');
+    const menu = publicMenu.locator('summary');
     await expect(menu).toBeFocused();
     await expect(menu).toHaveCSS('outline-style', 'solid');
     await page.keyboard.press('Enter');
-    await expect(page.locator('details.public-menu')).toHaveAttribute('open', '');
-    await expect(page.locator('.public-nav--menu a[aria-current="page"]')).toHaveText('Contato');
+    await expect(publicMenu).toHaveAttribute('open', '');
+    await expect(publicMenu.locator('a[aria-current="page"]')).toHaveText('Contato');
 
     const search = page.getByRole('searchbox', { name: 'Buscar no catálogo' });
     await search.fill('praça central');

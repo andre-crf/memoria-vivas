@@ -1,19 +1,12 @@
-import { execFileSync } from 'node:child_process';
-import { writeFileSync } from 'node:fs';
-import { databasePath, e2eEnvironment } from './environment.js';
+import { existsSync, renameSync } from 'node:fs';
+import { hotFileBackupPath, hotFilePath, resetDatabase } from './environment.js';
 
 export default function globalSetup() {
-    writeFileSync(databasePath, '');
+    // Com o Vite de desenvolvimento ligado, o Laravel serviria os assets pelo public/hot,
+    // e o CORS do Vite bloqueia a origem dos testes. Os testes usam sempre o build.
+    if (existsSync(hotFilePath) && !existsSync(hotFileBackupPath)) {
+        renameSync(hotFilePath, hotFileBackupPath);
+    }
 
-    execFileSync('php', ['artisan', 'migrate:fresh', '--force', '--seed'], {
-        cwd: process.cwd(),
-        env: { ...process.env, ...e2eEnvironment },
-        stdio: 'inherit',
-    });
-
-    execFileSync('php', ['artisan', 'db:seed', '--class=Database\\Seeders\\E2ePublicCarouselSeeder', '--force'], {
-        cwd: process.cwd(),
-        env: { ...process.env, ...e2eEnvironment },
-        stdio: 'inherit',
-    });
+    resetDatabase();
 }
