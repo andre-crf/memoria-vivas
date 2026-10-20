@@ -93,6 +93,14 @@ for (const [viewportName, viewport] of Object.entries(viewports)) {
             await expect(page).toHaveScreenshot(`publico-visualizador-zoom-${viewportName}.png`, { animations: 'disabled' });
             await page.keyboard.press('Escape');
 
+            await page.goto('/publico/colaborar');
+            await page.locator('form[enctype="multipart/form-data"]').evaluate((form) => {
+                form.noValidate = true;
+            });
+            await page.getByRole('button', { name: 'Enviar fotografias' }).click();
+            await expect(page.getByText('Confira os campos indicados abaixo.')).toBeVisible();
+            await capture(page, `publico-colaborar-erros-${viewportName}`);
+
             await page.goto('/publico/catalogo?q=inexistente');
             await capture(page, `publico-catalogo-vazio-${viewportName}`);
 
