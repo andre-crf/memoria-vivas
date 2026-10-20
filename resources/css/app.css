@@ -35,6 +35,7 @@
 
     /* Fundos e bordas */
     --color-paper: #f8f7f2;
+    --color-mist-25: #f7f8f5;
     --color-mist-50: #f8faf9;
     --color-mist-75: #f1f6f6;
     --color-mist-100: #f5f8fa;
@@ -105,15 +106,6 @@
 
     .public-container { width: min(100% - 2rem, 76rem); margin-inline: auto; }
     .public-shell :where(a, button, summary, input):focus-visible { outline: 3px solid var(--color-institutional); outline-offset: 3px; }
-    .public-institutional { min-height: 60vh; border-bottom: 1px solid var(--color-mist-200); background: linear-gradient(115deg, var(--color-institutional-soft) 0%, #f7f8f5 58%, #fff 100%); }
-    .public-institutional__inner { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(16rem, 0.7fr); align-items: center; gap: clamp(2rem, 7vw, 6rem); padding-block: clamp(5rem, 12vw, 9rem); }
-    .public-institutional__heading h1 { max-width: 48rem; margin-top: 0.9rem; color: var(--color-institutional); font-family: Georgia, 'Times New Roman', serif; font-size: clamp(2.6rem, 6vw, 5.2rem); font-weight: 600; letter-spacing: -0.035em; line-height: 1.03; overflow-wrap: anywhere; }
-    .public-institutional__lead { max-width: 39rem; margin-top: 1.4rem; color: var(--color-ink-600); font-size: clamp(1rem, 1.7vw, 1.2rem); line-height: 1.75; }
-    .public-institutional__note { display: flex; align-items: flex-start; gap: 1rem; border-top: 2px solid var(--color-institutional); background: rgb(255 255 255 / 0.82); padding: 1.35rem 1.4rem; box-shadow: 0 16px 38px rgb(24 42 63 / 0.07); }
-    .public-institutional__note-mark { display: grid; width: 2rem; height: 2rem; flex: 0 0 auto; place-items: center; border-radius: 50%; background: var(--color-institutional-soft); color: var(--color-institutional); font-family: Georgia, 'Times New Roman', serif; font-size: 1.15rem; font-weight: 700; }
-    .public-institutional__note h2 { color: var(--color-institutional); font-size: 0.85rem; font-weight: 750; }
-    .public-institutional__note p { margin-top: 0.45rem; color: var(--color-ink-600); font-size: 0.82rem; line-height: 1.65; }
-    .public-institutional a:focus-visible { outline: 2px solid var(--color-institutional); outline-offset: 3px; }
     .public-not-found { min-height: 60vh; background: #f7f8f5; }
     .public-not-found__inner { display: flex; min-height: 60vh; flex-direction: column; align-items: flex-start; justify-content: center; padding-block: 5rem; }
     .public-not-found h1 { max-width: 45rem; margin-top: 0.85rem; color: var(--color-institutional); font-family: Georgia, 'Times New Roman', serif; font-size: clamp(2.4rem, 6vw, 4.5rem); line-height: 1.05; }
@@ -121,58 +113,10 @@
     .public-not-found__actions { display: flex; flex-wrap: wrap; align-items: center; gap: 1.25rem; }
     .public-not-found__actions .public-button { margin-top: 1.5rem; text-decoration: none; }
     .public-not-found__link { margin-top: 1.5rem; color: var(--color-institutional); font-size: 0.85rem; font-weight: 700; text-underline-offset: 0.2em; }
-    .public-about-hero { border-bottom: 1px solid var(--color-mist-200); background: var(--color-institutional-soft); }
-    .public-about-hero__inner { display: grid; min-height: 32rem; grid-template-columns: minmax(0, 1.4fr) minmax(14rem, 0.6fr); align-items: center; gap: 4rem; padding-block: 4rem; }
-    .public-about-hero__copy { max-width: 48rem; }
-    .public-about-hero h1 { max-width: 46rem; margin-top: 0.85rem; color: var(--color-institutional); font-family: Georgia, 'Times New Roman', serif; font-size: clamp(2.8rem, 6vw, 5rem); font-weight: 600; line-height: 1.04; overflow-wrap: anywhere; }
-    .public-about-hero__lead { max-width: 40rem; margin-top: 1.3rem; color: var(--color-ink-600); font-size: 1.05rem; line-height: 1.75; }
-    .public-about-hero__actions { display: flex; align-items: center; flex-wrap: wrap; gap: 1.25rem; margin-top: 1.8rem; }
-    .public-about-hero__identity { display: grid; justify-items: center; gap: 1rem; border-left: 1px solid var(--color-mist-400); padding: 2rem 0 2rem 2.5rem; color: var(--color-institutional); text-align: center; }
-    .public-about-hero__identity img { width: clamp(9rem, 16vw, 12rem); height: clamp(9rem, 16vw, 12rem); border: 0.55rem solid #fff; border-radius: 50%; object-fit: cover; box-shadow: 0 1rem 2rem rgb(23 62 99 / 0.12); }
-    .public-about-hero__identity p { font-family: Georgia, 'Times New Roman', serif; font-size: 1.1rem; font-weight: 700; line-height: 1.35; }
-    .public-about-hero__identity span { font-family: var(--font-sans); font-size: 0.72rem; font-weight: 650; }
-    .public-about-purpose__inner { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 4rem; }
-    .public-about-purpose h2, .public-about-process h2, .public-about-invite h2 { max-width: 38rem; margin-top: 0.8rem; color: var(--color-institutional); font-family: Georgia, 'Times New Roman', serif; font-size: clamp(1.9rem, 4vw, 3.2rem); font-weight: 600; line-height: 1.12; overflow-wrap: anywhere; }
-    .public-about-process__heading { display: grid; grid-template-columns: minmax(0, 1fr) minmax(16rem, 0.7fr); align-items: end; gap: 1rem 3rem; }
-    .public-about-process__heading .public-eyebrow { grid-column: 1 / -1; }
-    .public-about-process__heading h2 { margin-top: -0.5rem; }
-    .public-about-process__heading > p:last-child { max-width: 28rem; color: var(--color-ink-600); font-size: 0.95rem; line-height: 1.7; }
-    .public-about-steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2rem; margin-top: 3rem; padding: 0; list-style: none; }
-    .public-about-steps li { display: grid; grid-template-columns: 2.5rem minmax(0, 1fr); align-content: start; gap: 1rem; border-top: 1px solid var(--color-mist-400); padding-top: 1.25rem; }
-    .public-about-steps li > span { color: var(--color-institutional); font-size: 0.75rem; font-weight: 800; }
-    .public-about-steps h3 { color: var(--color-institutional); font-size: 1.05rem; font-weight: 750; }
-    .public-about-steps p { margin-top: 0.55rem; color: var(--color-ink-600); font-size: 0.9rem; line-height: 1.7; }
-    .public-about-invite { background: var(--color-institutional-soft); }
-    .public-about-invite__inner { display: flex; align-items: center; justify-content: space-between; gap: 2rem; padding-block: 3.5rem; }
-    .public-about-invite h2 { max-width: 42rem; font-size: clamp(1.8rem, 3.5vw, 2.5rem); }
-    .public-about-invite .public-button { flex: 0 0 auto; }
     .public-eyebrow { color: var(--color-institutional); font-size: 0.72rem; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; }
-    .public-section h2 { max-width: 42rem; margin-top: 0.8rem; color: var(--color-institutional); font-family: Georgia, 'Times New Roman', serif; font-weight: 600; overflow-wrap: anywhere; }
     .public-button { display: inline-flex; align-items: center; gap: 0.75rem; border-radius: 0.375rem; background: var(--color-institutional); padding: 0.78rem 1rem; color: #fff; font-size: 0.82rem; font-weight: 700; }
     .public-button:hover { background: var(--color-institutional-strong); }
     .public-button span { font-size: 1rem; line-height: 1; }
-    .public-text-link { color: var(--color-institutional); font-size: 0.82rem; font-weight: 750; text-decoration: underline; text-decoration-color: var(--color-mist-500); text-underline-offset: 0.25rem; }
-    .public-text-link:hover { text-decoration-color: var(--color-institutional); }
-    .public-section { padding-block: clamp(4rem, 8vw, 7rem); background: #fff; }
-    .public-section h2 { font-size: clamp(1.8rem, 4vw, 3rem); line-height: 1.12; }
-    .public-section__copy { display: grid; gap: 1rem; max-width: 40rem; color: var(--color-ink-600); font-size: 1rem; line-height: 1.75; }
-    .public-section--tinted { border-top: 1px solid var(--color-mist-200); background: #f1f6f6; }
     [x-cloak] { display: none !important; }
-    @media (max-width: 960px) {
-        .public-about-hero__inner { gap: 2.5rem; }
-        .public-about-steps { gap: 1.25rem; }
-    }
-    .public-button:focus-visible, .public-text-link:focus-visible { outline: 3px solid var(--color-institutional); outline-offset: 3px; }
-    @media (max-width: 700px) {
-        .public-about-hero__inner { min-height: auto; grid-template-columns: 1fr; gap: 0; padding-block: 2.25rem; }
-        .public-about-hero h1 { font-size: clamp(2.25rem, 9vw, 3.5rem); }
-        .public-about-hero__lead { font-size: 1rem; }
-        .public-about-hero__identity { display: none; }
-        .public-about-purpose__inner, .public-about-process__heading, .public-about-steps { grid-template-columns: 1fr; gap: 1.5rem; }
-        .public-about-process__heading .public-eyebrow { grid-column: auto; }
-        .public-about-process__heading h2 { margin-top: -1rem; }
-        .public-about-steps { margin-top: 2rem; }
-        .public-about-invite__inner { align-items: flex-start; flex-direction: column; padding-block: 3rem; }
-        .public-institutional__inner { grid-template-columns: 1fr; gap: 2.5rem; }
-    }
+    .public-button:focus-visible { outline: 3px solid var(--color-institutional); outline-offset: 3px; }
 }
