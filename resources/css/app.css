@@ -104,19 +104,6 @@
         scrollbar-width: thin;
     }
 
-    .public-container { width: min(100% - 2rem, 76rem); margin-inline: auto; }
     .public-shell :where(a, button, summary, input):focus-visible { outline: 3px solid var(--color-institutional); outline-offset: 3px; }
-    .public-not-found { min-height: 60vh; background: #f7f8f5; }
-    .public-not-found__inner { display: flex; min-height: 60vh; flex-direction: column; align-items: flex-start; justify-content: center; padding-block: 5rem; }
-    .public-not-found h1 { max-width: 45rem; margin-top: 0.85rem; color: var(--color-institutional); font-family: Georgia, 'Times New Roman', serif; font-size: clamp(2.4rem, 6vw, 4.5rem); line-height: 1.05; }
-    .public-not-found__inner > p:not(.public-eyebrow) { max-width: 38rem; margin-top: 1rem; color: var(--color-ink-600); font-size: 1rem; line-height: 1.7; }
-    .public-not-found__actions { display: flex; flex-wrap: wrap; align-items: center; gap: 1.25rem; }
-    .public-not-found__actions .public-button { margin-top: 1.5rem; text-decoration: none; }
-    .public-not-found__link { margin-top: 1.5rem; color: var(--color-institutional); font-size: 0.85rem; font-weight: 700; text-underline-offset: 0.2em; }
-    .public-eyebrow { color: var(--color-institutional); font-size: 0.72rem; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; }
-    .public-button { display: inline-flex; align-items: center; gap: 0.75rem; border-radius: 0.375rem; background: var(--color-institutional); padding: 0.78rem 1rem; color: #fff; font-size: 0.82rem; font-weight: 700; }
-    .public-button:hover { background: var(--color-institutional-strong); }
-    .public-button span { font-size: 1rem; line-height: 1; }
     [x-cloak] { display: none !important; }
-    .public-button:focus-visible { outline: 3px solid var(--color-institutional); outline-offset: 3px; }
 }
