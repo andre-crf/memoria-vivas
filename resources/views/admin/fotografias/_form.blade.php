@@ -31,7 +31,7 @@
         @method($method)
     @endisset
 
-    <x-catalog.section eyebrow="Identificação" title="Dados principais" description="Comece pelas informações que identificam a fotografia.">
+    <x-catalog.section title="Dados principais" description="Comece pelas informações que identificam a fotografia.">
         <div class="grid gap-4 sm:grid-cols-2">
             <x-catalog.label for="titulo" text="Título" required class="sm:col-span-full">
                 <x-catalog.control id="titulo" name="titulo" type="text" :value="$value('titulo')" required maxlength="255" />
@@ -77,7 +77,7 @@
         </div>
     </x-catalog.section>
 
-    <x-catalog.section eyebrow="Autoria" title="Autor da fotografia" description="Selecione um autor existente ou cadastre um sem abandonar o formulário.">
+    <x-catalog.section title="Autoria" description="Selecione um autor existente ou cadastre um novo sem sair do formulário.">
         <livewire:admin.quick-catalog-create
             catalog="autor"
             :initial-options="$autorOptions"
@@ -86,10 +86,9 @@
         />
     </x-catalog.section>
 
-    <x-catalog.disclosure
+    <x-catalog.section
         title="Data e contexto"
-        subtitle="Precisão da data, locais, evento e cedente"
-        :open="$errors->hasAny(['tipo_data', 'dia', 'mes', 'ano', 'decada', 'local_atual', 'local_epoca', 'evento', 'cedente'])"
+        description="Precisão da data, locais, evento e cedente."
         x-data="historicalDateFields({{ Js::from($selectedTipoData) }})"
     >
         <div class="mb-4 grid gap-4 sm:grid-cols-4 lg:grid-cols-[minmax(12rem,1.5fr)_repeat(4,minmax(5rem,0.65fr))]">
@@ -129,35 +128,27 @@
                 </x-catalog.label>
             @endforeach
         </div>
-    </x-catalog.disclosure>
+    </x-catalog.section>
 
-    <x-catalog.disclosure
-        title="Pessoas identificadas"
-        :subtitle="'Opcional · '.count($selectedPessoas).' selecionada(s)'"
-        :open="count($selectedPessoas) || $errors->has('pessoa_ids') || $errors->has('pessoa_ids.*')"
-    >
+    <x-catalog.section title="Pessoas identificadas" description="Opcional. Indique somente quem aparece na imagem.">
         @include('admin.fotografias._relationship_picker', [
             'name' => 'pessoa_ids', 'label' => 'Pessoas', 'description' => 'Marque somente quem foi identificado na imagem.',
             'options' => $pessoaOptions, 'selected' => $selectedPessoas, 'valueField' => 'id', 'labelField' => 'nome',
             'searchPlaceholder' => 'Buscar pessoa...', 'emptyMessage' => 'Nenhuma pessoa cadastrada.',
         ])
-    </x-catalog.disclosure>
+    </x-catalog.section>
 
-    <x-catalog.disclosure
-        title="Classificações"
-        subtitle="Categorias, assuntos e palavras-chave"
-        :open="count($selectedCategorias) || count($selectedAssuntos) || count($selectedPalavrasChave) || $errors->hasAny(['categoria_ids', 'categoria_ids.*', 'assunto_ids', 'assunto_ids.*', 'palavra_chave_ids', 'palavra_chave_ids.*'])"
-        class="grid gap-4 lg:grid-cols-3"
-    >
-        <livewire:admin.quick-catalog-create catalog="categoria" :initial-options="$categoriaOptions" :initial-selected="$selectedCategorias" :key="'quick-categoria-'.($fotografia?->id ?? 'new')" />
-        <livewire:admin.quick-catalog-create catalog="assunto" :initial-options="$assuntoOptions" :initial-selected="$selectedAssuntos" :key="'quick-assunto-'.($fotografia?->id ?? 'new')" />
-        <livewire:admin.quick-catalog-create catalog="palavra-chave" :initial-options="$palavraChaveOptions" :initial-selected="$selectedPalavrasChave" :key="'quick-palavra-chave-'.($fotografia?->id ?? 'new')" />
-    </x-catalog.disclosure>
+    <x-catalog.section title="Classificações" description="Categorias, assuntos e palavras-chave que ajudam a encontrar a fotografia.">
+        <div class="grid gap-4 lg:grid-cols-3">
+            <livewire:admin.quick-catalog-create catalog="categoria" :initial-options="$categoriaOptions" :initial-selected="$selectedCategorias" :key="'quick-categoria-'.($fotografia?->id ?? 'new')" />
+            <livewire:admin.quick-catalog-create catalog="assunto" :initial-options="$assuntoOptions" :initial-selected="$selectedAssuntos" :key="'quick-assunto-'.($fotografia?->id ?? 'new')" />
+            <livewire:admin.quick-catalog-create catalog="palavra-chave" :initial-options="$palavraChaveOptions" :initial-selected="$selectedPalavrasChave" :key="'quick-palavra-chave-'.($fotografia?->id ?? 'new')" />
+        </div>
+    </x-catalog.section>
 
-    <x-catalog.disclosure
+    <x-catalog.section
         title="Arquivo original"
-        :subtitle="'Imagem ou PDF de até '.$uploadMaxMb.' MB'"
-        :open="$errors->has('arquivo_original')"
+        :description="'Imagem ou PDF de até '.$uploadMaxMb.' MB.'"
         x-data="filePreview()"
     >
         <p class="mt-[0.2rem] text-[0.72rem] leading-[1.45] text-ink-500">Formatos aceitos: {{ $acceptedExtensions }}.</p>
@@ -190,10 +181,10 @@
             </div>
         @endif
         @error('arquivo_original') <x-catalog.error as="p">{{ $message }}</x-catalog.error> @enderror
-    </x-catalog.disclosure>
+    </x-catalog.section>
 
     <div class="flex justify-end gap-[0.7rem] rounded-lg border border-mist-200 bg-white/96 px-3 py-[0.8rem] shadow-[0_8px_24px_rgb(24_42_63/0.05)] sm:px-4">
-        <a href="{{ $cancelUrl }}" class="inline-flex items-center rounded-md border border-mist-300 px-[0.9rem] py-[0.58rem] text-[0.78rem] font-[650] text-ink-600">Cancelar</a>
+        <x-catalog.button variant="secondary" :href="$cancelUrl">Cancelar</x-catalog.button>
         <x-catalog.button type="submit">{{ $submitLabel }}</x-catalog.button>
     </div>
 </form>

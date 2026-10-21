@@ -85,7 +85,7 @@ test('quick catalogs, Alpine state and traditional photograph POST work together
     await expect(categoryPicker.getByTestId('relationship-picker-count')).toHaveText('1 selecionado(s)');
 
     await page.getByLabel(/Título obrigatório/).fill(photographTitle);
-    await categoryPicker.getByRole('button', { name: '+ Criar categoria' }).click();
+    await categoryPicker.getByRole('button', { name: 'Criar categoria' }).click();
     const categoryDialog = page.getByRole('dialog', { name: 'Criar categoria', exact: true });
     await categoryDialog.getByLabel('Título').fill(newCategory);
     await categoryDialog.getByRole('button', { name: 'Criar e selecionar' }).click();
@@ -107,7 +107,7 @@ test('quick catalogs, Alpine state and traditional photograph POST work together
     await expect(existingOption).toBeVisible();
 
     const author = page.getByTestId('quick-author');
-    await author.getByRole('button', { name: '+ Cadastrar novo autor' }).click();
+    await author.getByRole('button', { name: 'Cadastrar novo autor' }).click();
     const authorDialog = page.getByRole('dialog', { name: 'Cadastrar novo autor', exact: true });
     await authorDialog.getByLabel('Nome').fill(newAuthor);
     await authorDialog.getByLabel('Tipo').selectOption('pessoa');
@@ -217,10 +217,10 @@ for (const mode of ['cadastro', 'edição']) {
         page.on('pageerror', (error) => errors.push(error.message));
         await page.getByText('Classificações', { exact: true }).click();
         for (const [catalog, field, triggerName] of [
-            ['autor', 'Nome', '+ Cadastrar novo autor'],
-            ['categoria', 'Título', '+ Criar categoria'],
-            ['assunto', 'Título', '+ Criar assunto'],
-            ['palavra-chave', 'Termo', '+ Criar palavra-chave'],
+            ['autor', 'Nome', 'Cadastrar novo autor'],
+            ['categoria', 'Título', 'Criar categoria'],
+            ['assunto', 'Título', 'Criar assunto'],
+            ['palavra-chave', 'Termo', 'Criar palavra-chave'],
         ]) {
             const trigger = page.getByRole('button', { name: triggerName, exact: true });
             await trigger.click();

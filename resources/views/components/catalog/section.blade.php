@@ -1,17 +1,19 @@
 @props([
-    'eyebrow',
     'title',
-    'description',
+    'description' => null,
 ])
 
-<section {{ $attributes->class('rounded-lg border border-mist-200 bg-white p-[1.1rem] shadow-[0_10px_28px_rgb(24_42_63/0.045)] sm:p-6') }}>
-    <div class="mb-[1.35rem] gap-8 border-b border-mist-150 pb-4 sm:flex sm:items-start sm:justify-between">
-        <div>
-            <p class="text-[0.65rem] font-extrabold text-institutional uppercase">{{ $eyebrow }}</p>
-            <h2 class="mt-[0.15rem] font-serif text-[1.35rem] leading-[1.2] text-ink-950">{{ $title }}</h2>
+{{-- Bloco padrão dos formulários do admin. O slot "actions" fica à direita do título. --}}
+<section {{ $attributes->class('rounded-lg border border-mist-200 bg-white p-5 shadow-[0_10px_28px_rgb(24_42_63/0.045)] sm:p-6') }}>
+    <header class="mb-5 flex items-start justify-between gap-4 border-b border-mist-150 pb-4">
+        <div class="min-w-0">
+            <h2 class="text-[1.05rem] leading-[1.3] font-semibold text-ink-950">{{ $title }}</h2>
+            @if ($description)
+                <p class="mt-1 text-[0.82rem] leading-normal text-ink-500">{{ $description }}</p>
+            @endif
         </div>
-        <p class="mt-2 max-w-[25rem] text-[0.8rem] leading-[1.55] text-ink-500 sm:mt-0 sm:text-right">{{ $description }}</p>
-    </div>
+        {{ $actions ?? '' }}
+    </header>
 
     {{ $slot }}
 </section>

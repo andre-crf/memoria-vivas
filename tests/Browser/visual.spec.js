@@ -152,7 +152,7 @@ for (const [viewportName, viewport] of Object.entries(viewports)) {
 
             await page.goto('/admin/fotografias/create');
             await page.getByText('Classificações', { exact: true }).click();
-            await page.getByRole('button', { name: '+ Criar categoria', exact: true }).click();
+            await page.getByRole('button', { name: 'Criar categoria', exact: true }).click();
             const dialog = page.getByRole('dialog');
             await expect(dialog).toBeVisible();
             await dialog.getByRole('button', { name: 'Criar e selecionar' }).click();

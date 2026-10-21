@@ -78,7 +78,7 @@
                             class="block size-[1.9rem] flex-none rounded-full border-2 border-white/82 bg-mist-250 object-cover sm:size-10 max-[359px]:hidden"
                         >
                         <span class="flex min-w-0 flex-col gap-[0.12rem]">
-                            <span class="font-serif text-[0.9rem] leading-[1.1] whitespace-nowrap sm:text-[1.2rem]">Memórias Vivas</span>
+                            <span class="text-[0.9rem] leading-[1.1] font-semibold whitespace-nowrap sm:text-[1.1rem]">Memórias Vivas</span>
                             <span class="hidden text-[0.65rem] leading-[1.2] font-bold whitespace-nowrap text-institutional-muted uppercase sm:block">Acervo de Umuarama</span>
                             <span class="sr-only">Administração do acervo</span>
                         </span>
