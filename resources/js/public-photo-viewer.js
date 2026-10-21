@@ -3,10 +3,19 @@ export default function registerPublicPhotoViewer(Alpine) {
         available: true,
         zoomed: false,
         previousOverflow: '',
+        opener: null,
 
-        open() {
+        init() {
+            // Se a imagem falhou antes do Alpine iniciar, o x-on:error não chega a disparar.
+            this.$root.querySelectorAll('img[data-photo]').forEach((image) => {
+                if (image.complete && image.naturalWidth === 0) this.available = false;
+            });
+        },
+
+        open(zoomed = false) {
             if (!this.available || this.$refs.viewer.open) return;
-            this.zoomed = false;
+            this.opener = document.activeElement;
+            this.zoomed = zoomed;
             this.previousOverflow = document.documentElement.style.overflow;
             document.documentElement.style.overflow = 'hidden';
             this.$refs.viewer.showModal();
@@ -20,7 +29,7 @@ export default function registerPublicPhotoViewer(Alpine) {
         restore() {
             document.documentElement.style.overflow = this.previousOverflow;
             this.zoomed = false;
-            this.$refs.trigger.focus();
+            (this.opener ?? this.$refs.trigger).focus();
         },
 
         destroy() {
