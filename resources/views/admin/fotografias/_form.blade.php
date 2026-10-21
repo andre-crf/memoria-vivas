@@ -13,9 +13,12 @@
     $legenda = (string) $value('legenda');
     $legendaLength = mb_strlen($legenda);
     $uploadConfig = config('acervo.uploads.original');
-    $acceptedMimeTypes = implode(',', $uploadConfig['mime_types']);
-    $acceptedExtensions = implode(', ', array_map(fn (string $extension) => ".{$extension}", $uploadConfig['extensions']));
     $uploadMaxMb = number_format($uploadConfig['max_kb'] / 1024, 0, ',', '.');
+    $arquivoOriginal = $fotografia?->arquivos?->firstWhere('versao_arquivo', 'original');
+    $miniaturaOriginal = $arquivoOriginal ? $fotografia->imagemAdministrativa(['thumbnail', 'medium']) : null;
+    $tamanhoOriginal = $arquivoOriginal === null ? null : ($arquivoOriginal->file_size >= 1024 * 1024
+        ? number_format($arquivoOriginal->file_size / 1024 / 1024, 1, ',', '.').' MB'
+        : number_format(max(1, $arquivoOriginal->file_size / 1024), 0, ',', '.').' KB');
     $dateInputs = [
         'dia' => ['label' => 'Dia', 'type' => 'number', 'min' => 1, 'max' => 31],
         'mes' => ['label' => 'Mês', 'type' => 'number', 'min' => 1, 'max' => 12],
@@ -140,40 +143,33 @@
     <x-catalog.section
         title="Arquivo original"
         :description="'Imagem ou PDF de até '.$uploadMaxMb.' MB.'"
-        x-data="filePreview()"
     >
-        <p class="mt-[0.2rem] text-[0.72rem] leading-[1.45] text-ink-500">Formatos aceitos: {{ $acceptedExtensions }}.</p>
-        @if ($fotografia?->arquivos?->firstWhere('versao_arquivo', 'original'))
-            @php($arquivoOriginal = $fotografia->arquivos->firstWhere('versao_arquivo', 'original'))
-            <div class="mt-3 grid gap-[0.2rem] border-l-[3px] border-institutional bg-institutional-soft p-[0.8rem] text-[0.78rem] text-ink-800"><strong>{{ $arquivoOriginal->nome_original }}</strong><span>{{ $arquivoOriginal->mime_type }} · {{ number_format($arquivoOriginal->file_size / 1024, 1, ',', '.') }} KB</span></div>
-        @else
-            <input
-                id="arquivo_original"
-                name="arquivo_original"
-                type="file"
-                accept="{{ $acceptedMimeTypes }}"
-                class="mt-3 block w-full rounded-md border border-mist-300 bg-white p-2 text-[0.8rem] text-ink-800 file:mr-3 file:cursor-pointer file:rounded file:bg-institutional file:px-[0.7rem] file:py-2 file:font-[650] file:text-white"
-                @change="selectFile($event)"
-            >
-            {{-- Prévia grande o bastante para reconhecer a fotografia antes de enviar. --}}
-            <div class="mt-4 overflow-hidden rounded-lg border border-mist-200" data-testid="file-preview" x-show="file !== null" style="display: none;">
-                <div class="grid min-h-40 place-items-center bg-mist-150 p-2">
-                    <template x-if="isImage && !previewFailed">
-                        <img class="block h-auto max-h-[28rem] w-auto max-w-full object-contain" :src="previewUrl" :alt="`Pré-visualização de ${file.name}`" x-on:error="previewFailed = true">
-                    </template>
-                    <template x-if="file !== null && (!isImage || previewFailed)">
-                        <span class="grid justify-items-center gap-2 text-[0.8rem] font-semibold text-ink-600">
-                            <x-lucide-file class="size-10 text-institutional" aria-hidden="true" />
-                            <span x-text="isImage ? 'Prévia indisponível' : 'PDF'"></span>
-                        </span>
-                    </template>
+        @if ($arquivoOriginal)
+            {{-- Na edição, o original atual é só exibido: a troca acontece na página da fotografia, com confirmação. --}}
+            <div class="flex flex-wrap items-center gap-4 rounded-lg border border-mist-200 bg-mist-50 p-3">
+                @if ($miniaturaOriginal)
+                    <img src="{{ route('admin.arquivos.show', $miniaturaOriginal) }}" alt="Miniatura do arquivo original atual" class="size-20 flex-none rounded-md bg-mist-150 object-cover">
+                @else
+                    <span class="grid size-20 flex-none place-items-center rounded-md bg-institutional-soft text-institutional" aria-hidden="true">
+                        <x-lucide-file-text class="size-8" />
+                    </span>
+                @endif
+                <div class="grid min-w-0 flex-1 gap-0.5">
+                    <span class="text-[0.7rem] font-semibold tracking-[0.08em] text-ink-500 uppercase">Arquivo atual</span>
+                    <strong class="truncate text-[0.875rem] text-ink-950">{{ $arquivoOriginal->nome_original }}</strong>
+                    <span class="text-[0.75rem] text-ink-500">{{ $arquivoOriginal->mime_type }} · {{ $tamanhoOriginal }}</span>
                 </div>
-                <div class="grid min-w-0 gap-[0.2rem] border-t border-mist-200 bg-white px-4 py-3 *:truncate">
-                    <strong class="text-[0.875rem] text-ink-950" x-text="file?.name"></strong>
-                    <span class="text-[0.75rem] text-ink-500" x-text="metadata"></span>
-                    <small class="text-[0.75rem] text-ink-500" x-text="status"></small>
-                </div>
+                @can('replaceOriginal', $arquivoOriginal)
+                    <x-catalog.button variant="secondary" size="sm" icon="refresh-cw" :href="route('admin.fotografias.show', $fotografia).'#substituir-arquivo-original'">Substituir na página da fotografia</x-catalog.button>
+                @endcan
             </div>
+        @else
+            <x-catalog.file-dropzone
+                name="arquivo_original"
+                :mime-types="$uploadConfig['mime_types']"
+                :extensions="$uploadConfig['extensions']"
+                :max-kb="$uploadConfig['max_kb']"
+            />
         @endif
         @error('arquivo_original') <x-catalog.error as="p">{{ $message }}</x-catalog.error> @enderror
     </x-catalog.section>

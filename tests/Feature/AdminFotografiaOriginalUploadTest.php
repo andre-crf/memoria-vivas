@@ -63,10 +63,10 @@ class AdminFotografiaOriginalUploadTest extends TestCase
             ->get(route('admin.fotografias.create'))
             ->assertOk()
             ->assertSee('Arquivo original')
-            ->assertSee('Formatos aceitos: .jpg, .jpeg, .png, .webp, .tif, .tiff, .pdf')
-            ->assertSee('até 50 MB')
+            ->assertSee('Arraste e solte seu arquivo aqui')
+            ->assertSee('JPG, JPEG, PNG, WebP, TIF, TIFF ou PDF · até 50 MB')
             ->assertSee('name="arquivo_original"', false)
-            ->assertSee('x-data="filePreview()"', false)
+            ->assertSee('x-data="fileDropzone(', false)
             ->assertSee('Pré-visualização de', false)
             ->assertSee('enctype="multipart/form-data"', false);
     }
@@ -241,6 +241,34 @@ class AdminFotografiaOriginalUploadTest extends TestCase
         $this->assertNull($arquivo->width);
         $this->assertNull($arquivo->height);
         Storage::disk('local')->assertExists($arquivo->storage_path);
+    }
+
+    public function test_edit_form_shows_current_original_without_a_new_upload_field(): void
+    {
+        $fotografia = $this->fotografia();
+        $fotografia->arquivos()->create([
+            'nome_original' => 'original-atual.jpg',
+            'provider' => 'local',
+            'storage_path' => 'acervo/originais/original-atual.jpg',
+            'mime_type' => 'image/jpeg',
+            'file_size' => 2 * 1024 * 1024,
+            'tipo_arquivo' => 'imagem',
+            'sha256' => str_repeat('b', 64),
+            'versao_arquivo' => 'original',
+            'width' => 640,
+            'height' => 480,
+        ]);
+
+        $this
+            ->actingAs($this->usuarioInterno())
+            ->get(route('admin.fotografias.edit', $fotografia))
+            ->assertOk()
+            ->assertSee('Arquivo atual')
+            ->assertSee('original-atual.jpg')
+            ->assertSee('image/jpeg · 2,0 MB')
+            ->assertSee(route('admin.fotografias.show', $fotografia).'#substituir-arquivo-original', false)
+            ->assertDontSee('name="arquivo_original"', false)
+            ->assertDontSee('Arraste e solte seu arquivo aqui');
     }
 
     public function test_show_page_displays_original_file_replacement_action(): void

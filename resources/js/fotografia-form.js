@@ -85,19 +85,103 @@ export default function registerPhotographyForm(Alpine) {
         },
     }));
 
-    Alpine.data('filePreview', () => ({
+    // Área de arrastar e soltar do arquivo original. O <input type="file"> continua sendo a fonte
+    // do envio: o arquivo válido é sempre copiado para ele, e um inválido nunca fica nele.
+    Alpine.data('fileDropzone', ({ extensions, maxBytes, formats, maxLabel }) => ({
         file: null,
         previewUrl: null,
         previewFailed: false,
+        dragging: false,
+        dragDepth: 0,
+        error: '',
 
-        selectFile(event) {
-            this.revokePreview();
-            this.file = event.target.files?.[0] ?? null;
-            this.previewFailed = false;
+        input() {
+            return this.$root.querySelector('input[type="file"]');
+        },
 
-            if (this.isImage) {
-                this.previewUrl = URL.createObjectURL(this.file);
+        change(event) {
+            const file = event.target.files?.[0] ?? null;
+
+            if (file === null) {
+                this.clear();
+                return;
             }
+
+            this.accept(file);
+        },
+
+        drop(event) {
+            this.dragDepth = 0;
+            this.dragging = false;
+
+            const files = [...(event.dataTransfer?.files ?? [])];
+
+            if (files.length === 0 || !this.accept(files[0])) return;
+            if (files.length > 1) this.error = 'Envie um arquivo por vez: apenas o primeiro foi considerado.';
+        },
+
+        // Contador para os eventos de arrastar sobre os elementos filhos não piscarem o destaque.
+        dragEnter() {
+            this.dragDepth++;
+            this.dragging = true;
+        },
+
+        dragLeave() {
+            this.dragDepth = Math.max(0, this.dragDepth - 1);
+            if (this.dragDepth === 0) this.dragging = false;
+        },
+
+        accept(file) {
+            const problem = this.validate(file);
+
+            if (problem !== '') {
+                this.error = problem;
+                this.syncInput();
+                return false;
+            }
+
+            this.revokePreview();
+            this.error = '';
+            this.file = file;
+            this.previewFailed = false;
+            if (this.isImage) this.previewUrl = URL.createObjectURL(file);
+            this.syncInput();
+
+            return true;
+        },
+
+        validate(file) {
+            const extension = file.name.includes('.') ? file.name.split('.').pop().toLowerCase() : '';
+
+            if (!extensions.includes(extension)) return `Formato não aceito. Envie ${formats}.`;
+            if (file.size > maxBytes) return `O arquivo tem ${formatSize(file.size)}; o limite é ${maxLabel}.`;
+
+            return '';
+        },
+
+        // Deixa o input com o arquivo aceito (ou vazio); um arquivo rejeitado não chega ao POST.
+        syncInput() {
+            const transfer = new DataTransfer();
+
+            if (this.file !== null) transfer.items.add(this.file);
+            this.input().files = transfer.files;
+        },
+
+        replace() {
+            this.input().click();
+        },
+
+        remove() {
+            this.clear();
+            this.$nextTick(() => this.input().focus());
+        },
+
+        clear() {
+            this.revokePreview();
+            this.file = null;
+            this.previewFailed = false;
+            this.error = '';
+            this.syncInput();
         },
 
         revokePreview() {
@@ -115,23 +199,19 @@ export default function registerPhotographyForm(Alpine) {
             return this.file?.type.startsWith('image/') ?? false;
         },
 
-        get metadata() {
-            if (this.file === null) {
-                return '';
-            }
-
-            const size = (this.file.size / 1024 / 1024).toLocaleString('pt-BR', {
-                maximumFractionDigits: 2,
-            });
-
-            return `${this.file.type || 'Tipo não identificado'} · ${size} MB`;
+        get isPdf() {
+            return this.file?.type === 'application/pdf';
         },
 
-        get status() {
-            if (this.previewFailed) return 'Este formato não pode ser visualizado pelo navegador. O arquivo continua selecionado.';
-            return this.isImage ? 'Imagem pronta para envio.' : 'Arquivo pronto para envio.';
+        get metadata() {
+            if (this.file === null) return '';
+
+            const extension = this.file.name.split('.').pop().toUpperCase();
+
+            return `${extension} · ${formatSize(this.file.size)}`;
         },
     }));
+
     Alpine.data('quickCatalogModal', () => ({
         open() {
             this.$refs.dialog.showModal();
@@ -144,4 +224,14 @@ export default function registerPhotographyForm(Alpine) {
             this.$refs.trigger.focus();
         },
     }));
+}
+
+function formatSize(bytes) {
+    const megabytes = bytes / 1024 / 1024;
+
+    if (megabytes >= 1) {
+        return `${megabytes.toLocaleString('pt-BR', { maximumFractionDigits: 1 })} MB`;
+    }
+
+    return `${Math.max(1, Math.round(bytes / 1024)).toLocaleString('pt-BR')} KB`;
 }

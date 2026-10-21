@@ -301,6 +301,7 @@
                     @if ($arquivoOriginal)
                         @can('replaceOriginal', $arquivoOriginal)
                             <form
+                                id="substituir-arquivo-original"
                                 method="POST"
                                 action="{{ route('admin.fotografias.replace-original', $fotografia) }}"
                                 enctype="multipart/form-data"

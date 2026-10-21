@@ -40,9 +40,9 @@ class AdminFotografiaFormExperienceTest extends TestCase
                 ->assertSee('x-data="characterCounter(', false)
                 ->assertSee('x-data="historicalDateFields(', false)
                 ->assertSeeInOrder([
-                    'x-data="filePreview()"',
+                    'x-data="fileDropzone(',
                     'id="arquivo_original"',
-                    '@change="selectFile($event)"',
+                    '@change="change($event)"',
                 ], false)
                 ->assertSee('Cadastrar novo autor')
                 ->assertSee('Cadastrar pessoa')
