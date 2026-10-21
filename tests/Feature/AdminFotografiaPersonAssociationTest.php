@@ -64,7 +64,8 @@ class AdminFotografiaPersonAssociationTest extends TestCase
             ->assertSee('Pessoas identificadas')
             ->assertSee('Maria Souza')
             ->assertSee('João Silva')
-            ->assertSee('name="pessoa_ids[]"', false);
+            ->assertSee('Buscar pessoa...')
+            ->assertDontSee('name="pessoa_ids&#91;&#93;"', false);
     }
 
     public function test_internal_user_can_register_photograph_with_multiple_people(): void
@@ -114,9 +115,8 @@ class AdminFotografiaPersonAssociationTest extends TestCase
             ->get(route('admin.fotografias.edit', $fotografia))
             ->assertOk()
             ->assertSee('Pessoas identificadas')
-            ->assertSee('Maria Souza')
-            ->assertSee('name="pessoa_ids[]"', false)
-            ->assertSee('checked', false);
+            ->assertSee('Remover Maria Souza')
+            ->assertSee('name="pessoa_ids&#91;&#93;" value="'.$pessoa->id.'"', false);
     }
 
     public function test_internal_user_can_replace_and_remove_people(): void

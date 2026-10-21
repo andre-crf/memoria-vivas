@@ -36,7 +36,7 @@ class AdminFotografiaFormExperienceTest extends TestCase
             $this->actingAs($user)
                 ->get($url)
                 ->assertOk()
-                ->assertSee('x-data="relationshipPicker(', false)
+                ->assertSee('x-data="catalogCombobox(', false)
                 ->assertSee('x-data="characterCounter(', false)
                 ->assertSee('x-data="historicalDateFields(', false)
                 ->assertSeeInOrder([
@@ -45,6 +45,7 @@ class AdminFotografiaFormExperienceTest extends TestCase
                     '@change="selectFile($event)"',
                 ], false)
                 ->assertSee('Cadastrar novo autor')
+                ->assertSee('Cadastrar pessoa')
                 ->assertSee('Criar categoria')
                 ->assertSee('Criar assunto')
                 ->assertSee('Criar palavra-chave');
@@ -61,7 +62,8 @@ class AdminFotografiaFormExperienceTest extends TestCase
 
         preg_match_all('/<input\b[^>]*wire:model="form\.(?:nome|titulo|termo)"[^>]*>/s', $form->getContent(), $quickCreationInputs);
 
-        $this->assertCount(4, $quickCreationInputs[0]);
+        // Autor, pessoa, categoria, assunto e palavra-chave.
+        $this->assertCount(5, $quickCreationInputs[0]);
 
         foreach ($quickCreationInputs[0] as $input) {
             $this->assertDoesNotMatchRegularExpression('/\srequired(?:\s|=|>)/', $input);

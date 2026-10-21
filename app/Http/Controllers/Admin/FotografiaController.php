@@ -10,13 +10,8 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\ReplaceArquivoOriginalRequest;
 use App\Http\Requests\Admin\StoreFotografiaRequest;
 use App\Http\Requests\Admin\UpdateFotografiaRequest;
-use App\Models\Assunto;
 use App\Models\AuditEvent;
-use App\Models\Autor;
-use App\Models\Categoria;
 use App\Models\ItemAcervo;
-use App\Models\PalavraChave;
-use App\Models\Pessoa;
 use App\Models\User;
 use App\Services\Acervo\AtualizarItemAcervo;
 use App\Services\Acervo\CriarItemAcervo;
@@ -29,7 +24,6 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Pagination\LengthAwarePaginator;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Gate;
 
 class FotografiaController extends Controller
@@ -73,11 +67,6 @@ class FotografiaController extends Controller
         Gate::authorize('create', ItemAcervo::class);
 
         return view('admin.fotografias.create', [
-            'autorOptions' => $this->autorOptions(),
-            'categoriaOptions' => $this->categoriaOptions(),
-            'assuntoOptions' => $this->assuntoOptions(),
-            'palavraChaveOptions' => $this->palavraChaveOptions(),
-            'pessoaOptions' => $this->pessoaOptions(),
             'tipoDataOptions' => TipoData::cases(),
             'estadoConservacaoOptions' => ItemAcervo::ESTADOS_CONSERVACAO,
             'statusOptions' => ItemAcervo::STATUS,
@@ -140,11 +129,6 @@ class FotografiaController extends Controller
 
         return view('admin.fotografias.edit', [
             'fotografia' => $fotografia,
-            'autorOptions' => $this->autorOptions(),
-            'categoriaOptions' => $this->categoriaOptions(),
-            'assuntoOptions' => $this->assuntoOptions(),
-            'palavraChaveOptions' => $this->palavraChaveOptions(),
-            'pessoaOptions' => $this->pessoaOptions(),
             'tipoDataOptions' => TipoData::cases(),
             'estadoConservacaoOptions' => ItemAcervo::ESTADOS_CONSERVACAO,
             'statusOptions' => ItemAcervo::STATUS,
@@ -295,55 +279,5 @@ class FotografiaController extends Controller
             ->orderByDesc('id')
             ->paginate(10, ['*'], 'historico_auditoria')
             ->withQueryString();
-    }
-
-    /**
-     * @return Collection<int, Autor>
-     */
-    private function autorOptions()
-    {
-        return Autor::query()
-            ->orderBy('nome')
-            ->get(['id', 'nome', 'tipo']);
-    }
-
-    /**
-     * @return Collection<int, Categoria>
-     */
-    private function categoriaOptions()
-    {
-        return Categoria::query()
-            ->orderBy('titulo')
-            ->get(['id', 'titulo']);
-    }
-
-    /**
-     * @return Collection<int, Assunto>
-     */
-    private function assuntoOptions()
-    {
-        return Assunto::query()
-            ->orderBy('titulo')
-            ->get(['id', 'titulo']);
-    }
-
-    /**
-     * @return Collection<int, PalavraChave>
-     */
-    private function palavraChaveOptions()
-    {
-        return PalavraChave::query()
-            ->orderBy('termo')
-            ->get(['id', 'termo']);
-    }
-
-    /**
-     * @return Collection<int, Pessoa>
-     */
-    private function pessoaOptions()
-    {
-        return Pessoa::query()
-            ->orderBy('nome')
-            ->get(['id', 'nome']);
     }
 }

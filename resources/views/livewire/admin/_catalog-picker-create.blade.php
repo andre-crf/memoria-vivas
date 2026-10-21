@@ -1,8 +1,10 @@
-<div @class(['relative', 'mt-3' => ! $isAuthor]) x-data="quickCatalogModal()" @quick-catalog-created.window="if ($event.detail.catalog === @js($catalog)) close()">
-    <x-catalog.button variant="secondary" size="sm" icon="plus" x-ref="trigger" x-on:click="open()">
-        {{ $isAuthor ? 'Cadastrar' : 'Criar' }} {{ $definition['article'] }}
-    </x-catalog.button>
-    <span role="status">{{ $status }}</span>
+<div
+    class="flex-none"
+    x-data="quickCatalogModal()"
+    @quick-catalog-created.window="if ($event.detail.catalog === @js($catalog)) close()"
+    @open-catalog-create.window="if ($event.detail.catalog === @js($catalog)) open()"
+>
+    <x-catalog.button variant="secondary" size="sm" icon="plus" x-ref="trigger" x-on:click="open()">{{ $definition['create_label'] }}</x-catalog.button>
     <template x-teleport="body">
         <dialog
             class="fixed top-1/2 left-1/2 m-0 box-border max-h-[calc(100dvh-2rem)] w-[min(28rem,calc(100%-2rem))] -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-lg bg-white p-0 text-ink-950 shadow-[0_24px_64px_rgb(15_23_42/0.28)] backdrop:bg-[rgb(15_23_42/0.55)]"
@@ -12,7 +14,7 @@
             @close="restoreFocus()"
         >
             <div class="flex items-center justify-between gap-4 border-b border-mist-200 px-5 py-4">
-                <h2 id="quick-title-{{ $catalog }}" class="text-[1.05rem] font-semibold">{{ $isAuthor ? 'Cadastrar' : 'Criar' }} {{ $definition['article'] }}</h2>
+                <h2 id="quick-title-{{ $catalog }}" class="text-[1.05rem] font-semibold">{{ $definition['create_label'] }}</h2>
                 <button type="button" class="grid size-8 cursor-pointer place-items-center rounded-full text-[1.35rem] leading-none text-ink-600 hover:bg-institutional-soft hover:text-ink-950 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-institutional" @click="close()" aria-label="Fechar cadastro" title="Fechar">&times;</button>
             </div>
             <div class="grid gap-3 bg-mist-50 p-5">

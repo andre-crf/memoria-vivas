@@ -78,12 +78,7 @@
     </x-catalog.section>
 
     <x-catalog.section title="Autoria" description="Selecione um autor existente ou cadastre um novo sem sair do formulário.">
-        <livewire:admin.quick-catalog-create
-            catalog="autor"
-            :initial-options="$autorOptions"
-            :initial-selected="$selectedAutor"
-            :key="'quick-autor-'.($fotografia?->id ?? 'new')"
-        />
+        <livewire:admin.catalog-picker catalog="autor" :initial-selected="$selectedAutor" :key="'picker-autor-'.($fotografia?->id ?? 'new')" />
     </x-catalog.section>
 
     <x-catalog.section
@@ -131,18 +126,14 @@
     </x-catalog.section>
 
     <x-catalog.section title="Pessoas identificadas" description="Opcional. Indique somente quem aparece na imagem.">
-        @include('admin.fotografias._relationship_picker', [
-            'name' => 'pessoa_ids', 'label' => 'Pessoas', 'description' => 'Marque somente quem foi identificado na imagem.',
-            'options' => $pessoaOptions, 'selected' => $selectedPessoas, 'valueField' => 'id', 'labelField' => 'nome',
-            'searchPlaceholder' => 'Buscar pessoa...', 'emptyMessage' => 'Nenhuma pessoa cadastrada.',
-        ])
+        <livewire:admin.catalog-picker catalog="pessoa" :initial-selected="$selectedPessoas" :key="'picker-pessoa-'.($fotografia?->id ?? 'new')" />
     </x-catalog.section>
 
     <x-catalog.section title="Classificações" description="Categorias, assuntos e palavras-chave que ajudam a encontrar a fotografia.">
-        <div class="grid gap-4 lg:grid-cols-3">
-            <livewire:admin.quick-catalog-create catalog="categoria" :initial-options="$categoriaOptions" :initial-selected="$selectedCategorias" :key="'quick-categoria-'.($fotografia?->id ?? 'new')" />
-            <livewire:admin.quick-catalog-create catalog="assunto" :initial-options="$assuntoOptions" :initial-selected="$selectedAssuntos" :key="'quick-assunto-'.($fotografia?->id ?? 'new')" />
-            <livewire:admin.quick-catalog-create catalog="palavra-chave" :initial-options="$palavraChaveOptions" :initial-selected="$selectedPalavrasChave" :key="'quick-palavra-chave-'.($fotografia?->id ?? 'new')" />
+        <div class="grid gap-6">
+            <livewire:admin.catalog-picker catalog="categoria" :initial-selected="$selectedCategorias" :key="'picker-categoria-'.($fotografia?->id ?? 'new')" />
+            <livewire:admin.catalog-picker catalog="assunto" :initial-selected="$selectedAssuntos" :key="'picker-assunto-'.($fotografia?->id ?? 'new')" />
+            <livewire:admin.catalog-picker catalog="palavra-chave" :initial-selected="$selectedPalavrasChave" :key="'picker-palavra-chave-'.($fotografia?->id ?? 'new')" />
         </div>
     </x-catalog.section>
 

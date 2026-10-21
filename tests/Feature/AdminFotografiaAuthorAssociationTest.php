@@ -70,15 +70,17 @@ class AdminFotografiaAuthorAssociationTest extends TestCase
             ->get(route('admin.fotografias.create'))
             ->assertOk()
             ->assertSee('Autor')
-            ->assertSee('Sem autor associado')
-            ->assertSee('Foto Studio Umuarama');
+            ->assertSee('Buscar autor...')
+            ->assertSee('Foto Studio Umuarama')
+            ->assertSee('name="autor_id" value=""', false);
 
         $this
             ->actingAs($this->usuarioInterno())
             ->get(route('admin.fotografias.edit', $fotografia))
             ->assertOk()
             ->assertSee('Autor')
-            ->assertSee('Foto Studio Umuarama');
+            ->assertSee('Remover Foto Studio Umuarama')
+            ->assertSee('name="autor_id" value="'.$autor->id.'"', false);
     }
 
     public function test_internal_user_can_register_photograph_with_author(): void

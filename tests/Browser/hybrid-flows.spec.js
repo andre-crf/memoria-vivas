@@ -76,45 +76,43 @@ test('quick catalogs, Alpine state and traditional photograph POST work together
     await createCategory(page, existingCategory);
     await page.goto('/admin/fotografias/create');
 
-    await page.getByText('Classificações', { exact: true }).click();
-    const categoryPicker = page.getByTestId('relationship-picker').filter({
-        has: page.getByRole('heading', { name: 'Categorias', exact: true }),
-    });
-    const existingOption = categoryPicker.locator('[data-option]').filter({ hasText: existingCategory });
-    await existingOption.getByRole('checkbox').check();
-    await expect(categoryPicker.getByTestId('relationship-picker-count')).toHaveText('1 selecionado(s)');
+    const categoryPicker = page.getByTestId('catalog-picker-categoria');
+    const categorySearch = categoryPicker.getByRole('combobox', { name: 'Categorias' });
 
+    // Busca no servidor, escolha pelo teclado e chip do item escolhido.
+    await categorySearch.fill(existingCategory);
+    await expect(categoryPicker.getByRole('option', { name: existingCategory })).toHaveCount(1);
+    await categorySearch.press('Enter');
+    await expect(categoryPicker.getByRole('button', { name: `Remover ${existingCategory}` })).toBeVisible();
+
+    // "Criar “termo”" abre o cadastro já preenchido com o que foi buscado.
     await page.getByLabel(/Título obrigatório/).fill(photographTitle);
-    await categoryPicker.getByRole('button', { name: 'Criar categoria' }).click();
+    await categorySearch.fill(newCategory);
+    await categoryPicker.getByRole('option', { name: `Criar categoria: “${newCategory}”` }).click();
     const categoryDialog = page.getByRole('dialog', { name: 'Criar categoria', exact: true });
-    await categoryDialog.getByLabel('Título').fill(newCategory);
+    await expect(categoryDialog.getByLabel('Título')).toHaveValue(newCategory);
     await categoryDialog.getByRole('button', { name: 'Criar e selecionar' }).click();
     await expect(categoryDialog).toBeHidden();
     await expect(page.getByLabel(/Título obrigatório/)).toHaveValue(photographTitle);
-    await expect(categoryPicker.getByText('Criado e selecionado.')).toHaveText('Criado e selecionado.');
+    await expect(page.getByText(`Categoria “${newCategory}” criada e selecionada.`)).toBeVisible();
+    await expect(categoryPicker.getByRole('button', { name: `Remover ${newCategory}` })).toBeVisible();
+    await expect(categoryPicker.getByRole('button', { name: `Remover ${existingCategory}` })).toBeVisible();
 
-    const newOption = categoryPicker.locator('[data-option]').filter({ hasText: newCategory });
-    await expect(newOption).toBeVisible();
-    await expect(newOption.getByRole('checkbox')).toBeChecked();
-    await expect(existingOption.getByRole('checkbox')).toBeChecked();
-    await expect(categoryPicker.getByTestId('relationship-picker-count')).toHaveText('2 selecionado(s)');
-
-    const categorySearch = categoryPicker.getByPlaceholder('Buscar categoria...');
-    await categorySearch.fill(newCategory);
-    await expect(newOption).toBeVisible();
-    await expect(existingOption).toBeHidden();
+    // Os já escolhidos não aparecem de novo nas sugestões.
+    await categorySearch.fill(existingCategory);
+    await expect(categoryPicker.getByText(`“${existingCategory}” já está selecionado.`)).toBeVisible();
+    await expect(categoryPicker.getByRole('option')).toHaveCount(0);
     await categorySearch.fill('');
-    await expect(existingOption).toBeVisible();
 
-    const author = page.getByTestId('quick-author');
+    const author = page.getByTestId('catalog-picker-autor');
     await author.getByRole('button', { name: 'Cadastrar novo autor' }).click();
     const authorDialog = page.getByRole('dialog', { name: 'Cadastrar novo autor', exact: true });
     await authorDialog.getByLabel('Nome').fill(newAuthor);
     await authorDialog.getByLabel('Tipo').selectOption('pessoa');
     await authorDialog.getByRole('button', { name: 'Criar e selecionar' }).click();
     await expect(authorDialog).toBeHidden();
-    await expect(author.getByText('Criado e selecionado.')).toHaveText('Criado e selecionado.');
-    await expect(author.locator('select[name="autor_id"] option:checked')).toContainText(newAuthor);
+    await expect(page.getByText(`Autor “${newAuthor}” cadastrado e selecionado.`)).toBeVisible();
+    await expect(author.getByRole('button', { name: `Remover ${newAuthor}` })).toBeVisible();
 
     await page.getByLabel(/Título obrigatório/).fill(photographTitle);
     await page.getByText('Data e contexto', { exact: true }).click();
@@ -203,7 +201,7 @@ test('local image preview updates when the selected file changes', async ({ page
 });
 
 for (const mode of ['cadastro', 'edição']) {
-    test(`modals preserve photograph fields and select all four catalogs during ${mode}`, async ({ page }) => {
+    test(`modals preserve photograph fields and select all five catalogs during ${mode}`, async ({ page }) => {
         test.setTimeout(60_000);
         const title = unique(`Fotografia ${mode}`);
         await page.goto('/admin/fotografias/create');
@@ -215,9 +213,9 @@ for (const mode of ['cadastro', 'edição']) {
         }
         const errors = [];
         page.on('pageerror', (error) => errors.push(error.message));
-        await page.getByText('Classificações', { exact: true }).click();
         for (const [catalog, field, triggerName] of [
             ['autor', 'Nome', 'Cadastrar novo autor'],
+            ['pessoa', 'Nome', 'Cadastrar pessoa'],
             ['categoria', 'Título', 'Criar categoria'],
             ['assunto', 'Título', 'Criar assunto'],
             ['palavra-chave', 'Termo', 'Criar palavra-chave'],
@@ -237,11 +235,7 @@ for (const mode of ['cadastro', 'edição']) {
             await dialog.getByRole('button', { name: 'Criar e selecionar' }).click();
             await expect(dialog).toBeHidden();
             await expect(page.getByLabel(/Título obrigatório/)).toHaveValue(title);
-            if (catalog === 'autor') {
-                await expect(page.locator('#autor_id option:checked')).toContainText(name);
-            } else {
-                await expect(page.locator('[data-option]').filter({ hasText: name }).getByRole('checkbox')).toBeChecked();
-            }
+            await expect(page.getByTestId(`catalog-picker-${catalog}`).getByRole('button', { name: `Remover ${name}` })).toBeVisible();
         }
         await page.getByRole('button', { name: mode === 'cadastro' ? 'Salvar fotografia' : 'Salvar alterações' }).click();
         await expect(page).not.toHaveURL(/\/(create|edit)$/);

@@ -38,40 +38,50 @@ export default function registerPhotographyForm(Alpine) {
         },
     }));
 
-    Alpine.data('relationshipPicker', (initialSelectedCount) => ({
-        search: '',
-        selectedCount: initialSelectedCount,
-        showNoResults: false,
+    // Combobox do seletor de catálogo (Livewire): o servidor devolve as opções; aqui fica só o teclado.
+    Alpine.data('catalogCombobox', (multiple) => ({
+        open: false,
+        active: 0,
 
-        init() {
-            this.filterOptions();
-            this.refreshSelection();
+        // Consulta pelo $root, e não por $refs: o Livewire re-renderiza a lista e o campo a cada busca.
+        options() {
+            return [...(this.$root.querySelector('[role="listbox"]')?.querySelectorAll('[role="option"]') ?? [])];
         },
 
-        filterOptions() {
-            const term = this.search.trim().toLocaleLowerCase('pt-BR');
-            let visible = 0;
-
-            this.$refs.options.querySelectorAll('[data-option]').forEach((option) => {
-                const matches = option.dataset.searchValue.includes(term);
-
-                option.hidden = !matches;
-
-                if (matches) {
-                    visible++;
-                }
-            });
-
-            this.showNoResults = term !== '' && visible === 0;
+        get activeId() {
+            return this.open ? (this.options()[this.active]?.id ?? null) : null;
         },
 
-        refreshSelection() {
-            this.selectedCount = this.$refs.options.querySelectorAll('input[type="checkbox"]:checked').length;
+        show() {
+            this.open = true;
+            this.active = 0;
         },
 
-        refresh() {
-            this.filterOptions();
-            this.refreshSelection();
+        move(step) {
+            const total = this.options().length;
+
+            if (!this.open) this.show();
+            if (total === 0) return;
+
+            this.active = (this.active + step + total) % total;
+            this.options()[this.active]?.scrollIntoView({ block: 'nearest' });
+        },
+
+        // Envia a busca pendente (com debounce) antes de escolher, para o Enter não pegar a lista antiga.
+        async choose() {
+            await this.$wire.$commit();
+            this.options()[this.active]?.click();
+        },
+
+        // O item clicado some da lista quando o Livewire responde, levando junto o escopo dele:
+        // por isso a raiz é guardada antes do await. Na seleção múltipla a lista continua aberta.
+        async pick(id) {
+            const root = this.$root;
+
+            await this.$wire.select(id);
+            this.active = 0;
+            this.open = multiple;
+            root.querySelector('[role="combobox"]')?.focus();
         },
     }));
 

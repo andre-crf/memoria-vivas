@@ -119,10 +119,9 @@ class AdminFotografiaClassificationAssociationTest extends TestCase
             ->assertSee('Fotografia urbana')
             ->assertSee('Espaço público')
             ->assertSee('centro')
-            ->assertSee('name="categoria_ids&#91;&#93;"', false)
-            ->assertSee('name="assunto_ids&#91;&#93;"', false)
-            ->assertSee('name="palavra_chave_ids&#91;&#93;"', false)
-            ->assertSee('checked', false);
+            ->assertSee('name="categoria_ids&#91;&#93;" value="'.$categoria->id.'"', false)
+            ->assertSee('name="assunto_ids&#91;&#93;" value="'.$assunto->id.'"', false)
+            ->assertSee('name="palavra_chave_ids&#91;&#93;" value="'.$palavraChave->id.'"', false);
     }
 
     public function test_internal_user_can_replace_and_remove_classifications(): void

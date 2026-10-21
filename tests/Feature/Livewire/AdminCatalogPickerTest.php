@@ -3,12 +3,13 @@
 namespace Tests\Feature\Livewire;
 
 use App\Enums\Visibilidade;
-use App\Livewire\Admin\QuickCatalogCreate;
+use App\Livewire\Admin\CatalogPicker;
 use App\Models\Assunto;
 use App\Models\Autor;
 use App\Models\Categoria;
 use App\Models\ItemAcervo;
 use App\Models\PalavraChave;
+use App\Models\Pessoa;
 use App\Models\User;
 use DOMDocument;
 use DOMXPath;
@@ -18,7 +19,7 @@ use Livewire\Features\SupportTesting\Testable;
 use Livewire\Livewire;
 use Tests\TestCase;
 
-class AdminQuickCatalogCreateTest extends TestCase
+class AdminCatalogPickerTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -26,14 +27,13 @@ class AdminQuickCatalogCreateTest extends TestCase
     {
         Livewire::actingAs($this->internalUser());
 
-        $component = Livewire::test(QuickCatalogCreate::class, $this->parameters('autor'))
+        $component = Livewire::test(CatalogPicker::class, $this->parameters('autor'))
             ->set('form.nome', 'Arquivo Municipal')
             ->set('form.tipo', 'instituicao')
             ->call('save')
             ->assertHasNoErrors()
             ->assertSee('Arquivo Municipal')
-            ->assertSee('Instituição')
-            ->assertSee('Criado e selecionado.');
+            ->assertDispatched('toast', message: 'Autor “Arquivo Municipal” cadastrado e selecionado.');
 
         $autor = Autor::query()->where('nome', 'Arquivo Municipal')->firstOrFail();
 
@@ -74,14 +74,14 @@ class AdminQuickCatalogCreateTest extends TestCase
     {
         Livewire::actingAs($this->internalUser());
 
-        Livewire::test(QuickCatalogCreate::class, $this->parameters('categoria'))
+        Livewire::test(CatalogPicker::class, $this->parameters('categoria'))
             ->set('form.titulo', '')
             ->call('save')
             ->assertHasErrors(['form.titulo' => 'required']);
 
         $existing = Categoria::create(['titulo' => 'Duplicada']);
 
-        Livewire::test(QuickCatalogCreate::class, $this->parameters('categoria', [$existing]))
+        Livewire::test(CatalogPicker::class, $this->parameters('categoria'))
             ->set('form.titulo', 'Duplicada')
             ->call('save')
             ->assertHasErrors(['form.titulo' => 'unique']);
@@ -96,7 +96,7 @@ class AdminQuickCatalogCreateTest extends TestCase
             'status' => 'inativo',
         ]));
 
-        Livewire::test(QuickCatalogCreate::class, $this->parameters('categoria'))
+        Livewire::test(CatalogPicker::class, $this->parameters('categoria'))
             ->set('form.titulo', 'Não autorizada')
             ->call('save')
             ->assertForbidden();
@@ -110,8 +110,8 @@ class AdminQuickCatalogCreateTest extends TestCase
         Livewire::actingAs($this->internalUser());
 
         $component = Livewire::test(
-            QuickCatalogCreate::class,
-            $this->parameters('categoria', [$existing], [$existing->id]),
+            CatalogPicker::class,
+            $this->parameters('categoria', [$existing->id]),
         )
             ->set('form.titulo', 'Nova categoria')
             ->call('save');
@@ -134,10 +134,10 @@ class AdminQuickCatalogCreateTest extends TestCase
         $existingSubject = Assunto::create(['titulo' => 'Assunto existente']);
         Livewire::actingAs($this->internalUser());
 
-        $category = Livewire::test(QuickCatalogCreate::class, $this->parameters('categoria'))
+        $category = Livewire::test(CatalogPicker::class, $this->parameters('categoria'))
             ->set('form.titulo', 'Categoria independente')
             ->call('save');
-        $subject = Livewire::test(QuickCatalogCreate::class, $this->parameters('assunto', [$existingSubject]));
+        $subject = Livewire::test(CatalogPicker::class, $this->parameters('assunto'));
 
         $category
             ->assertSee('Categoria independente')
@@ -145,14 +145,15 @@ class AdminQuickCatalogCreateTest extends TestCase
         $subject
             ->assertSet('selected', [])
             ->assertDontSee('Categoria independente')
-            ->assertSee('name="assunto_ids&#91;&#93;"', false);
+            ->assertSee('Assunto existente')
+            ->assertDontSee('name="assunto_ids&#91;&#93;"', false);
     }
 
     public function test_loading_state_and_cleared_fields_prevent_duplicate_submission(): void
     {
         Livewire::actingAs($this->internalUser());
 
-        $component = Livewire::test(QuickCatalogCreate::class, $this->parameters('categoria'))
+        $component = Livewire::test(CatalogPicker::class, $this->parameters('categoria'))
             ->assertSee('wire:loading.attr="disabled"', false)
             ->assertSee('wire:target="save"', false)
             ->set('form.titulo', 'Categoria única')
@@ -169,7 +170,7 @@ class AdminQuickCatalogCreateTest extends TestCase
         $user = $this->internalUser();
         Livewire::actingAs($user);
 
-        $author = Livewire::test(QuickCatalogCreate::class, $this->parameters('autor'))
+        $author = Livewire::test(CatalogPicker::class, $this->parameters('autor'))
             ->set('form.nome', 'Autor criado no formulário')
             ->set('form.tipo', 'pessoa')
             ->call('save');
@@ -199,18 +200,120 @@ class AdminQuickCatalogCreateTest extends TestCase
         $this->assertSame($keyword->get('selected'), $photograph->palavrasChave()->pluck('palavras_chave.id')->map(fn (int $id): string => (string) $id)->all());
     }
 
+    public function test_search_is_limited_ordered_and_excludes_selected_items(): void
+    {
+        Livewire::actingAs($this->internalUser());
+        $categorias = collect(range(1, 12))->map(fn (int $i) => Categoria::create(['titulo' => sprintf('Praça %02d', $i)]));
+        Categoria::create(['titulo' => 'Rua principal']);
+
+        $component = Livewire::test(CatalogPicker::class, $this->parameters('categoria', [$categorias[0]->id]))
+            ->set('search', 'praça');
+
+        $labels = collect($component->get('results'))->pluck('label')->all();
+
+        $this->assertCount(8, $labels);
+        $this->assertSame('Praça 02', $labels[0]);
+        $this->assertNotContains('Praça 01', $labels);
+        $this->assertNotContains('Rua principal', $labels);
+    }
+
+    public function test_search_treats_like_wildcards_as_text(): void
+    {
+        Livewire::actingAs($this->internalUser());
+        Categoria::create(['titulo' => '100% preservado']);
+        Categoria::create(['titulo' => '1000 registros']);
+
+        $component = Livewire::test(CatalogPicker::class, $this->parameters('categoria'))
+            ->set('search', '100%');
+
+        $this->assertSame(['100% preservado'], collect($component->get('results'))->pluck('label')->all());
+    }
+
+    public function test_search_returns_nothing_when_the_policy_rejects_the_user(): void
+    {
+        Categoria::create(['titulo' => 'Restrita']);
+        Livewire::actingAs(User::factory()->create(['role' => 'operador', 'status' => 'inativo']));
+
+        $component = Livewire::test(CatalogPicker::class, $this->parameters('categoria'));
+
+        $this->assertSame([], $component->get('results'));
+    }
+
+    public function test_items_are_selected_and_removed_as_chips_with_hidden_inputs(): void
+    {
+        Livewire::actingAs($this->internalUser());
+        $praca = Categoria::create(['titulo' => 'Praças']);
+        $ruas = Categoria::create(['titulo' => 'Ruas']);
+
+        $component = Livewire::test(CatalogPicker::class, $this->parameters('categoria'))
+            ->set('search', 'pra')
+            ->call('select', (string) $praca->id)
+            ->call('select', (string) $ruas->id)
+            ->assertSet('search', '')
+            ->assertSet('selected', [(string) $praca->id, (string) $ruas->id])
+            ->assertSee('Remover Praças')
+            ->call('remove', (string) $praca->id)
+            ->assertSet('selected', [(string) $ruas->id]);
+
+        $this->assertSame(1, substr_count($component->html(), 'name="categoria_ids&#91;&#93;"'));
+    }
+
+    public function test_author_selection_is_single_and_replaces_the_previous_one(): void
+    {
+        Livewire::actingAs($this->internalUser());
+        $primeiro = Autor::create(['nome' => 'Foto Estúdio', 'tipo' => 'instituicao']);
+        $segundo = Autor::create(['nome' => 'João Fotógrafo', 'tipo' => 'pessoa']);
+
+        Livewire::test(CatalogPicker::class, $this->parameters('autor', $primeiro->id))
+            ->assertSet('selectedSingle', (string) $primeiro->id)
+            ->call('select', (string) $segundo->id)
+            ->assertSet('selectedSingle', (string) $segundo->id)
+            ->assertSet('labels', [(string) $segundo->id => 'João Fotógrafo'])
+            ->assertSee('name="autor_id" value="'.$segundo->id.'"', false);
+    }
+
+    public function test_unknown_initial_ids_are_discarded(): void
+    {
+        Livewire::actingAs($this->internalUser());
+        $existing = Categoria::create(['titulo' => 'Existente']);
+
+        Livewire::test(CatalogPicker::class, $this->parameters('categoria', [$existing->id, 999]))
+            ->assertSet('selected', [(string) $existing->id]);
+    }
+
+    public function test_start_create_prefills_the_form_with_the_search_term(): void
+    {
+        Livewire::actingAs($this->internalUser());
+
+        Livewire::test(CatalogPicker::class, $this->parameters('palavra-chave'))
+            ->set('search', '  estação ferroviária ')
+            ->call('startCreate')
+            ->assertSet('form.termo', 'estação ferroviária')
+            ->assertDispatched('open-catalog-create', catalog: 'palavra-chave');
+    }
+
+    public function test_person_is_created_and_selected(): void
+    {
+        $this->assertMultipleCatalogCreation(
+            catalog: 'pessoa',
+            field: 'nome',
+            value: 'Maria Aparecida',
+            model: Pessoa::class,
+        );
+    }
+
     /** @param class-string<Model> $model */
     private function assertMultipleCatalogCreation(string $catalog, string $field, string $value, string $model): void
     {
         Livewire::actingAs($this->internalUser());
 
-        $component = Livewire::test(QuickCatalogCreate::class, $this->parameters($catalog))
+        $component = Livewire::test(CatalogPicker::class, $this->parameters($catalog))
             ->set("form.{$field}", $value)
             ->call('save')
             ->assertHasNoErrors()
             ->assertSee($value)
-            ->assertSee('Criado e selecionado.')
-            ->assertDispatched('quick-catalog-created', catalog: $catalog);
+            ->assertDispatched('quick-catalog-created', catalog: $catalog)
+            ->assertDispatched('toast');
 
         $record = $model::query()->where($field, $value)->firstOrFail();
 
@@ -219,17 +322,16 @@ class AdminQuickCatalogCreateTest extends TestCase
 
     private function createdMultipleComponent(string $catalog, string $field, string $value): Testable
     {
-        return Livewire::test(QuickCatalogCreate::class, $this->parameters($catalog))
+        return Livewire::test(CatalogPicker::class, $this->parameters($catalog))
             ->set("form.{$field}", $value)
             ->call('save');
     }
 
     /** @return array<string, mixed> */
-    private function parameters(string $catalog, iterable $options = [], mixed $selected = null): array
+    private function parameters(string $catalog, mixed $selected = null): array
     {
         return [
             'catalog' => $catalog,
-            'initialOptions' => $options,
             'initialSelected' => $selected,
         ];
     }
