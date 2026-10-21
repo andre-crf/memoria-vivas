@@ -134,7 +134,7 @@
                 </div>
             </x-public.container>
             {{-- A URL vem do asset(): em url() no CSS ela seria resolvida contra o servidor do Vite, que não serve public/. --}}
-            <div class="pointer-events-none absolute inset-x-0 top-0 bottom-14 -z-1 bg-size-[100%_auto] bg-bottom bg-no-repeat opacity-20 sm:bg-size-[min(100%,96rem)_auto]"
+            <div class="pointer-events-none absolute inset-x-0 top-0 bottom-14 -z-1 bg-size-[100%_auto] bg-bottom bg-no-repeat opacity-12"
                 style="background-image: url('{{ asset('images/umuarama-panorama-horizontal.png') }}')"
                 aria-hidden="true"></div>
             <div class="border-t border-white/20 bg-institutional">
