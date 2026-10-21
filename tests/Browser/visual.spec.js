@@ -51,6 +51,10 @@ async function capture(page, name) {
         return image.complete || (image.loading === 'lazy' && (outsideViewport || !image.checkVisibility()));
     }));
     await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+    // Datas e horas mudam a cada execução e, com dígitos de largura variável, mudariam até o tamanho da máscara.
+    await page.locator('time, [data-data-hora]').evaluateAll((elements) => elements.forEach((element) => {
+        element.textContent = '00/00/0000 00:00';
+    }));
     // O header do admin é fixo: com a página rolada, ele apareceria no meio da captura.
     await page.evaluate(() => window.scrollTo(0, 0));
     await expect(page).toHaveScreenshot(`${name}.png`, {

@@ -3,8 +3,7 @@
         <x-public.container class="flex min-h-[60vh] flex-col items-start justify-center py-20">
             <x-public.eyebrow>Erro 404</x-public.eyebrow>
             <x-public.heading as="h1" id="not-found-title"
-                class="mt-[0.85rem] max-w-180 text-[clamp(2.4rem,6vw,4.5rem)] leading-[1.05]">Esta página não foi
-                encontrada</x-public.heading>
+                class="mt-[0.85rem] max-w-180 text-[clamp(2.4rem,6vw,4.5rem)] leading-[1.05]">Esta página não foi encontrada</x-public.heading>
             <p class="mt-4 max-w-152 text-[1rem] leading-[1.7] text-ink-600">O endereço pode ter mudado ou não estar
                 disponível. Volte ao início ou explore o catálogo público.</p>
             <div class="flex flex-wrap items-center gap-5">
