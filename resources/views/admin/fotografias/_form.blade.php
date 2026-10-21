@@ -155,16 +155,20 @@
                 class="mt-3 block w-full rounded-md border border-mist-300 bg-white p-2 text-[0.8rem] text-ink-800 file:mr-3 file:cursor-pointer file:rounded file:bg-institutional file:px-[0.7rem] file:py-2 file:font-[650] file:text-white"
                 @change="selectFile($event)"
             >
-            <div class="mt-3 flex items-center gap-3 rounded-lg border border-institutional-muted bg-mist-100 p-3" data-testid="file-preview" x-show="file !== null" style="display: none;">
-                <div class="grid size-[4.5rem] flex-[0_0_4.5rem] place-items-center overflow-hidden rounded-md bg-institutional-soft text-[0.75rem] font-bold text-institutional">
-                    <template x-if="isImage">
-                        <img class="size-full object-cover" :src="previewUrl" :alt="`Pré-visualização de ${file.name}`" x-on:error="previewFailed = true" x-show="!previewFailed">
+            {{-- Prévia grande o bastante para reconhecer a fotografia antes de enviar. --}}
+            <div class="mt-4 overflow-hidden rounded-lg border border-mist-200" data-testid="file-preview" x-show="file !== null" style="display: none;">
+                <div class="grid min-h-40 place-items-center bg-mist-150 p-2">
+                    <template x-if="isImage && !previewFailed">
+                        <img class="block h-auto max-h-[28rem] w-auto max-w-full object-contain" :src="previewUrl" :alt="`Pré-visualização de ${file.name}`" x-on:error="previewFailed = true">
                     </template>
-                    <template x-if="file !== null && !isImage">
-                        <span>PDF</span>
+                    <template x-if="file !== null && (!isImage || previewFailed)">
+                        <span class="grid justify-items-center gap-2 text-[0.8rem] font-semibold text-ink-600">
+                            <x-lucide-file class="size-10 text-institutional" aria-hidden="true" />
+                            <span x-text="isImage ? 'Prévia indisponível' : 'PDF'"></span>
+                        </span>
                     </template>
                 </div>
-                <div class="grid min-w-0 gap-[0.2rem] *:truncate">
+                <div class="grid min-w-0 gap-[0.2rem] border-t border-mist-200 bg-white px-4 py-3 *:truncate">
                     <strong class="text-[0.875rem] text-ink-950" x-text="file?.name"></strong>
                     <span class="text-[0.75rem] text-ink-500" x-text="metadata"></span>
                     <small class="text-[0.75rem] text-ink-500" x-text="status"></small>
