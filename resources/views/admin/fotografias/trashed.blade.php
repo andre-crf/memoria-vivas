@@ -16,12 +16,6 @@
             </div>
         </section>
 
-        @if (session('success'))
-            <div class="mb-6 rounded-lg border border-institutional-muted bg-institutional-soft px-4 py-3 text-sm font-medium text-institutional">
-                {{ session('success') }}
-            </div>
-        @endif
-
         <div class="mb-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm leading-6 text-red-800">
             <strong class="font-semibold">Atenção:</strong>
             a exclusão permanente remove o registro e seus vínculos definitivamente. Essa operação é irreversível.

@@ -183,5 +183,6 @@
         </main>
     </div>
 
+    <x-admin.toaster />
     <x-confirmation-dialog />
 </x-layouts.app>

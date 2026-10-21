@@ -51,12 +51,6 @@
             </div>
         </section>
 
-        @if (session('success'))
-            <div class="mb-6 rounded-lg border border-institutional-muted bg-institutional-soft px-4 py-3 text-sm font-medium text-institutional">
-                {{ session('success') }}
-            </div>
-        @endif
-
         <div class="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(320px,1fr)]">
             <div class="space-y-6">
                 <section id="dados-catalogacao" class="rounded-lg border border-stone-200 bg-white p-6 shadow-sm">

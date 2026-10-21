@@ -27,12 +27,6 @@
             </div>
         </section>
 
-        @if (session('success'))
-            <div class="mb-6 rounded-lg border border-institutional-muted bg-institutional-soft px-4 py-3 text-sm font-medium text-institutional">
-                {{ session('success') }}
-            </div>
-        @endif
-
         <section class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm">
             @if ($fotografias->isEmpty())
                 <div class="px-6 py-16 text-center">

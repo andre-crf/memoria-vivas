@@ -22,12 +22,6 @@
             </a>
         </div>
 
-        @if (session('success'))
-            <div class="mt-6 rounded-md border border-institutional-muted bg-institutional-soft px-4 py-3 text-sm text-institutional">
-                {{ session('success') }}
-            </div>
-        @endif
-
         @if ($autores->isEmpty())
             <div class="mt-6 rounded-lg border border-dashed border-stone-300 bg-white p-8 text-center">
                 <p class="text-sm text-stone-600">

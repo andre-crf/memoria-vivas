@@ -10,10 +10,6 @@
                 <a href="{{ route('admin.assuntos.create') }}" class="inline-flex items-center justify-center rounded-md bg-institutional px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-institutional-strong focus:outline-none focus:ring-2 focus:ring-institutional focus:ring-offset-2">Novo assunto</a>
             </section>
 
-            @if (session('success'))
-                <div class="mb-6 rounded-lg border border-institutional-muted bg-institutional-soft px-4 py-3 text-sm font-medium text-institutional">{{ session('success') }}</div>
-            @endif
-
             <section class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm">
                 @if ($assuntos->isEmpty())
                     <div class="px-6 py-16 text-center">

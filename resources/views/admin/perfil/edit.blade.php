@@ -13,12 +13,6 @@
                     <p class="mt-1 text-sm leading-6 text-stone-600">Atualize o nome e o e-mail associados à sua conta.</p>
                 </div>
 
-                @if (session('profile_success'))
-                    <div class="mt-5 rounded-md border border-institutional-muted bg-institutional-soft p-4 text-sm font-medium text-institutional" role="status">
-                        {{ session('profile_success') }}
-                    </div>
-                @endif
-
                 @if ($errors->profileUpdate->any())
                     <div class="mt-5 rounded-md border border-red-200 bg-red-50 p-4" role="alert">
                         <p class="text-sm font-medium text-red-800">Os dados pessoais não foram atualizados. Verifique os campos informados.</p>
@@ -63,12 +57,6 @@
                     <h3 class="text-lg font-semibold text-stone-950">Segurança</h3>
                     <p class="mt-1 text-sm leading-6 text-stone-600">Confirme sua senha atual antes de definir uma nova senha.</p>
                 </div>
-
-                @if (session('password_success'))
-                    <div class="mt-5 rounded-md border border-institutional-muted bg-institutional-soft p-4 text-sm font-medium text-institutional" role="status">
-                        {{ session('password_success') }}
-                    </div>
-                @endif
 
                 @if ($errors->passwordUpdate->any())
                     <div class="mt-5 rounded-md border border-red-200 bg-red-50 p-4" role="alert">
