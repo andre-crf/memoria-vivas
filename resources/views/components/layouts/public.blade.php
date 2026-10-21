@@ -2,10 +2,10 @@
     'title' => 'Memórias Vivas',
     'catalogQuery' => [],
     'searchError' => null,
+    'showSearch' => true,
 ])
 
 @php
-    $pesquisaAtual = (string) ($catalogQuery['q'] ?? '');
     $navigation = [
         ['label' => 'Início', 'href' => route('public.home'), 'active' => request()->routeIs('public.home')],
         ['label' => 'Sobre o acervo', 'href' => route('public.home') . '#sobre', 'active' => false],
@@ -51,30 +51,9 @@
 
                 <div
                     class="flex w-full min-w-0 flex-wrap items-stretch justify-start gap-3 md:flex-nowrap md:items-center md:justify-between md:gap-5 lg:w-auto lg:justify-end">
-                    <div class="min-w-0 flex-[1_1_15rem] md:flex-initial">
-                        <form method="GET" action="{{ route('public.catalogo') }}"
-                            class="flex w-full min-w-0 items-center rounded-md border border-mist-300 bg-white focus-within:border-institutional focus-within:shadow-[0_0_0_3px_rgb(23_62_99/0.14)] md:min-w-[min(18rem,34vw)]"
-                            role="search">
-                            <label class="sr-only" for="public-search">Buscar no catálogo</label>
-                            <input id="public-search" name="q" type="search" value="{{ $pesquisaAtual }}"
-                                maxlength="200"
-                                @if ($searchError) aria-invalid="true" aria-describedby="catalog-search-error" @endif
-                                placeholder="Buscar no catálogo" autocomplete="off"
-                                class="min-w-0 flex-1 bg-transparent px-[0.7rem] py-[0.58rem] text-[0.78rem] text-ink-950 outline-none">
-                            @foreach (['decada', 'categoria', 'assunto'] as $parametro)
-                                @if (isset($catalogQuery[$parametro]))
-                                    <input type="hidden" name="{{ $parametro }}" value="{{ $catalogQuery[$parametro] }}">
-                                @endif
-                            @endforeach
-                            <button type="submit" aria-label="Buscar no catálogo"
-                                class="border-l border-mist-300 px-[0.7rem] py-[0.58rem] text-[0.75rem] font-[750] text-institutional">Buscar</button>
-                        </form>
-                        @if ($searchError)
-                            <p id="catalog-search-error"
-                                class="mt-2 max-w-88 text-[0.8rem] leading-normal text-error-strong" role="alert">
-                                {{ $searchError }}</p>
-                        @endif
-                    </div>
+                    @if ($showSearch)
+                        <x-public.search-form :catalog-query="$catalogQuery" :search-error="$searchError" class="flex-[1_1_15rem] md:flex-initial" />
+                    @endif
 
                     <details class="relative md:hidden" data-testid="public-menu">
                         <summary aria-label="Abrir navegação pública"

@@ -591,6 +591,59 @@ class CatalogoPublicoTest extends TestCase
     /**
      * @param  array<string, mixed>  $attributes
      */
+    public function test_galeria_mostra_total_real_de_resultados_e_oculta_a_busca_do_cabecalho(): void
+    {
+        collect(range(1, 13))->each(function (int $indice): void {
+            $this->arquivo($this->fotografia(['titulo' => sprintf('Registro %02d', $indice)]), 'thumbnail');
+        });
+
+        $resposta = $this->get(route('public.catalogo'))->assertOk();
+
+        $resposta
+            ->assertSee('fotografias encontradas')
+            ->assertSee('<strong class="font-semibold text-ink-950">13</strong>', false)
+            ->assertSee('Explore o acervo');
+        $this->assertSame(1, substr_count($resposta->getContent(), 'id="public-search"'));
+    }
+
+    public function test_filtros_aplicados_viram_chips_que_removem_somente_o_proprio_filtro(): void
+    {
+        $categoria = Categoria::create(['titulo' => 'Arquitetura']);
+        $assunto = Assunto::create(['titulo' => 'Praças']);
+        $fotografia = $this->fotografia(['titulo' => 'Praça em 1985', 'tipo_data' => 'ano', 'ano' => 1985]);
+        $this->arquivo($fotografia, 'thumbnail');
+        $fotografia->categorias()->attach($categoria);
+        $fotografia->assuntos()->attach($assunto);
+
+        $resposta = $this->get(route('public.catalogo', [
+            'q' => 'Praça',
+            'decada' => '1980',
+            'categoria' => $categoria->id,
+            'assunto' => $assunto->id,
+            'page' => 1,
+        ]))->assertOk();
+
+        $resposta
+            ->assertSee('Década de 1980')
+            ->assertSee('(remover filtro)')
+            ->assertSee('href="'.e(route('public.catalogo', ['q' => 'Praça', 'categoria' => $categoria->id, 'assunto' => $assunto->id])).'"', false)
+            ->assertSee('href="'.e(route('public.catalogo', ['q' => 'Praça', 'decada' => '1980', 'assunto' => $assunto->id])).'"', false)
+            ->assertSee('href="'.e(route('public.catalogo', ['q' => 'Praça', 'decada' => '1980', 'categoria' => $categoria->id])).'"', false)
+            ->assertSee('Limpar todos')
+            ->assertSee('Filtrar fotografias')
+            ->assertSee('value="'.$categoria->id.'" selected', false);
+    }
+
+    public function test_sem_filtros_aplicados_nao_ha_chips(): void
+    {
+        $this->arquivo($this->fotografia(['titulo' => 'Registro sem filtro']), 'thumbnail');
+
+        $this->get(route('public.catalogo'))
+            ->assertOk()
+            ->assertDontSee('(remover filtro)')
+            ->assertDontSee('Limpar todos');
+    }
+
     private function fotografia(array $attributes = []): ItemAcervo
     {
         return ItemAcervo::create([

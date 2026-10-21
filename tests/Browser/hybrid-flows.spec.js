@@ -342,7 +342,7 @@ test('public photograph viewer supports keyboard, zoom and mobile fullscreen', a
     await page.getByRole('button', { name: 'Salvar fotografia' }).click();
     await expect(page).toHaveURL(/\/admin\/fotografias$/);
     await page.goto('/publico/catalogo');
-    await page.getByRole('link', { name: `Ver detalhes de ${title}`, exact: true }).click();
+    await page.getByRole('link').filter({ hasText: title }).click();
     const trigger = page.getByRole('button', { name: `Ampliar fotografia: ${title}`, exact: true });
     const viewer = page.getByRole('dialog', { name: title, exact: true });
     await trigger.press('Enter');
