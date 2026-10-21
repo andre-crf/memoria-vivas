@@ -61,7 +61,9 @@
 @endphp
 
 <x-layouts.app :title="$title ?? 'Administração | Memórias Vivas'">
-    @php($focusRing = 'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-institutional')
+    @php
+        $focusRing = 'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-institutional';
+    @endphp
 
     <div class="min-h-screen bg-admin-shell text-stone-900">
         <header class="sticky top-0 z-40 shadow-[0_3px_18px_rgb(24_42_63/0.08)]">
@@ -83,27 +85,72 @@
                     </a>
 
                     <div class="flex items-center gap-[0.4rem] sm:gap-[0.875rem]">
-                        <a
-                            href="{{ route('admin.perfil.edit') }}"
-                            aria-label="Acessar meu perfil"
-                            @if (request()->routeIs('admin.perfil.*')) aria-current="page" @endif
-                            class="flex min-w-0 items-center justify-end gap-2.5 rounded-md {{ $focusRing }}"
+                        @php
+                            $usuario = auth()->user();
+                            $papel = $usuario->isAdmin() ? 'Administrador' : 'Operador';
+                            $userMenuItem = 'flex min-h-10 w-full items-center justify-between gap-3 rounded px-3 text-left text-[0.8125rem] font-semibold text-ink-600 hover:bg-institutional-soft hover:text-institutional aria-[current=page]:bg-institutional-soft aria-[current=page]:text-institutional '.$focusRing;
+                        @endphp
+
+                        <div
+                            class="relative"
+                            x-data="{ open: false }"
+                            @click.outside="open = false"
+                            @keydown.escape.window="if (open) { open = false; $refs.userTrigger.focus() }"
                         >
-                            <div class="hidden min-w-0 text-right md:block">
-                                <p class="max-w-56 truncate text-[0.8rem] font-semibold text-white">{{ auth()->user()->nome }}</p>
-                                <p class="mt-[0.15rem] text-[0.7rem] text-institutional-muted">
-                                    {{ auth()->user()->isAdmin() ? 'Administrador' : 'Operador' }}</p>
+                            <button
+                                type="button"
+                                x-ref="userTrigger"
+                                @click="open = !open"
+                                :aria-expanded="open"
+                                aria-expanded="false"
+                                aria-controls="admin-user-menu"
+                                class="flex min-w-0 cursor-pointer items-center justify-end gap-2.5 rounded-md {{ $focusRing }}"
+                            >
+                                <x-lucide-chevron-down class="hidden size-4 flex-none text-institutional-muted transition-transform duration-160 md:block" x-bind:class="open && 'rotate-180'" aria-hidden="true" />
+                                <span class="hidden min-w-0 text-right md:block">
+                                    <span class="block max-w-56 truncate text-[0.8rem] font-semibold text-white">{{ $usuario->nome }}</span>
+                                    <span class="mt-[0.15rem] block text-[0.7rem] text-institutional-muted">{{ $papel }}</span>
+                                </span>
+                                <span class="sr-only md:hidden">Menu do usuário {{ $usuario->nome }}</span>
+
+                                <span class="grid size-9 flex-none place-items-center rounded-full bg-institutional-soft text-[0.8rem] font-bold text-institutional uppercase" aria-hidden="true">
+                                    {{ mb_substr($usuario->nome, 0, 1) }}
+                                </span>
+                            </button>
+
+                            <div
+                                id="admin-user-menu"
+                                x-show="open"
+                                x-cloak
+                                x-transition.origin.top.right
+                                class="absolute top-[calc(100%+0.75rem)] right-0 z-50 w-64 rounded-md border border-mist-200 bg-white p-1.5 text-ink-950 shadow-[0_16px_30px_rgb(24_42_63/0.18)]"
+                            >
+                                <div class="border-b border-mist-150 px-3 pt-2 pb-2.5">
+                                    <p class="truncate text-[0.8125rem] font-semibold">{{ $usuario->nome }}</p>
+                                    <p class="mt-0.5 truncate text-[0.72rem] text-ink-500">{{ $usuario->email }} · {{ $papel }}</p>
+                                </div>
+
+                                <div class="grid pt-1.5">
+                                    <a
+                                        href="{{ route('admin.perfil.edit') }}"
+                                        aria-label="Acessar meu perfil"
+                                        @if (request()->routeIs('admin.perfil.*')) aria-current="page" @endif
+                                        class="{{ $userMenuItem }}"
+                                    >Meu perfil</a>
+                                    <a href="{{ route('public.home') }}" target="_blank" rel="noopener" class="{{ $userMenuItem }}">
+                                        Página pública
+                                        {{-- O &#xFE0E; força a seta em texto; sem ele a fonte de emoji a desenha colorida. --}}
+                                        <span aria-hidden="true">&nearr;&#xFE0E;</span>
+                                        <span class="sr-only">(abre em nova aba)</span>
+                                    </a>
+                                </div>
+
+                                <form method="POST" action="{{ route('logout') }}" class="mt-1.5 border-t border-mist-150 pt-1.5">
+                                    @csrf
+                                    <button type="submit" class="{{ $userMenuItem }} cursor-pointer">Sair</button>
+                                </form>
                             </div>
-
-                            <span class="hidden size-9 flex-none place-items-center rounded-full bg-institutional-soft text-[0.8rem] font-bold text-institutional uppercase md:grid" aria-hidden="true">
-                                {{ mb_substr(auth()->user()->nome, 0, 1) }}
-                            </span>
-                        </a>
-
-                        <form method="POST" action="{{ route('logout') }}">
-                            @csrf
-                            <button type="submit" class="inline-flex min-h-[2.125rem] items-center justify-center rounded-md border border-white/42 px-[0.8rem] py-[0.4rem] text-[0.75rem] font-semibold text-white transition-[background-color] duration-160 ease-[ease] hover:bg-white/12 {{ $focusRing }}">Sair</button>
-                        </form>
+                        </div>
 
                         <details class="group/mobile-nav relative md:hidden">
                             <summary class="flex min-h-[2.125rem] cursor-pointer list-none items-center gap-2 rounded-md border border-white/42 px-[0.7rem] py-[0.4rem] text-[0.75rem] font-semibold text-white [&::-webkit-details-marker]:hidden after:text-[0.9rem] after:leading-none after:content-['\2630'] group-open/mobile-nav:after:content-['\00d7'] {{ $focusRing }}">Menu</summary>
