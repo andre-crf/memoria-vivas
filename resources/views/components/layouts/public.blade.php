@@ -115,6 +115,10 @@
                     </a>
                     <p class="mt-5 text-[0.88rem] leading-[1.8]">Preservar, organizar e compartilhar memórias.<br>As
                         histórias da nossa cidade, mais perto de você.</p>
+                    <a href="https://www.instagram.com/memorias.vivas.de.umu/" target="_blank" rel="noopener" class="mt-4 inline-flex items-center gap-2 text-[0.88rem] font-semibold {{ $footerLink }}">
+                        <x-icons.instagram class="size-5 flex-none" aria-hidden="true" />
+                        <span><span class="sr-only">Instagram: </span>@memorias.vivas.de.umu<span class="sr-only"> (abre em nova aba)</span></span>
+                    </a>
                 </div>
                 <nav class="grid content-start justify-items-start gap-[0.8rem]" aria-label="Navegação do rodapé">
                     <h2 class="mb-[0.4rem] text-[0.92rem] font-[750]">Conheça o acervo</h2>
