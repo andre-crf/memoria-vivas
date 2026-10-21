@@ -30,7 +30,6 @@
         $glassButton = 'inline-flex min-h-11 items-center gap-2 rounded-full bg-white/12 px-4 text-[0.82rem] font-semibold text-white ring-1 ring-white/30 backdrop-blur-sm transition-colors hover:bg-white/22 focus-visible:outline-white';
         $textButton = 'inline-flex min-h-11 items-center gap-1.5 px-1 text-[0.82rem] font-semibold text-institutional underline decoration-mist-500 underline-offset-4 hover:decoration-institutional disabled:cursor-not-allowed disabled:opacity-50';
         $recordRow = 'border-t border-mist-200 py-2.5';
-        $viewerButton = 'grid size-11 place-items-center rounded-md border border-night-500 text-[1.6rem] text-white hover:bg-night-700 focus-visible:outline-white focus-visible:outline-offset-2';
     @endphp
 
     <div x-data="publicPhotoViewer()">
@@ -143,19 +142,51 @@
             </x-public.container>
         </section>
 
-        <dialog class="fixed inset-0 m-0 h-dvh max-h-none w-screen max-w-none bg-night-950 p-0 text-white backdrop:bg-night-950 open:flex open:flex-col" x-ref="viewer" aria-labelledby="viewer-title" @close="restore()">
-            <div class="flex min-h-16 flex-none items-center justify-between gap-4 border-b border-night-700 px-4 pt-[max(0.5rem,env(safe-area-inset-top))] pb-2">
-                <h2 id="viewer-title" class="m-0 max-h-16 min-w-0 overflow-y-auto text-[1rem] leading-[1.4] font-semibold wrap-anywhere text-white">{{ $fotografia->titulo }}</h2>
-                <div class="flex flex-none gap-2">
-                    <button type="button" class="{{ $viewerButton }}" @click="zoomed = !zoomed" :aria-pressed="zoomed" :aria-label="zoomed ? 'Ajustar imagem à tela' : 'Ver imagem no tamanho original'" :title="zoomed ? 'Ajustar à tela' : 'Tamanho original'"><span aria-hidden="true" x-text="zoomed ? '−' : '+'">+</span></button>
-                    <button type="button" class="{{ $viewerButton }}" x-ref="close" @click="close()" aria-label="Fechar visualização" title="Fechar (Esc)"><span aria-hidden="true">&times;</span></button>
-                </div>
+        {{-- Visualizador em tela cheia: superfície única sobre um fundo escuro translúcido; zoom por roda, pinça ou teclado. --}}
+        <dialog
+            class="fixed inset-0 m-0 h-dvh max-h-none w-screen max-w-none bg-transparent p-0 text-white backdrop:bg-black/85 backdrop:backdrop-blur-[2px] open:flex open:flex-col"
+            x-ref="viewer"
+            aria-labelledby="viewer-title"
+            aria-describedby="viewer-help"
+            @close="restore()"
+            @keydown="keydown($event)"
+        >
+            <div class="pointer-events-none absolute inset-x-0 top-0 z-10 flex items-start justify-between gap-4 px-4 pt-[max(1rem,env(safe-area-inset-top))] sm:px-6">
+                <h2 id="viewer-title" class="line-clamp-2 max-w-[min(40rem,70vw)] pt-2.5 text-[0.95rem] leading-[1.4] font-semibold text-white [text-shadow:0_1px_2px_rgb(0_0_0/0.7),0_2px_14px_rgb(0_0_0/0.55)]">{{ $fotografia->titulo }}</h2>
+                <button type="button" x-ref="close" @click="close()" aria-label="Fechar visualização" title="Fechar (Esc)" class="pointer-events-auto grid size-11 flex-none cursor-pointer place-items-center rounded-full bg-black/45 text-white ring-1 ring-white/15 backdrop-blur-sm transition-colors hover:bg-black/65 focus-visible:outline-white focus-visible:outline-offset-2">
+                    <x-lucide-x class="size-5" aria-hidden="true" />
+                </button>
             </div>
-            <div class="group/viewport min-h-0 flex-1 overflow-auto overscroll-contain" :data-zoomed="zoomed">
-                <div class="grid size-full place-items-center p-4 group-data-zoomed/viewport:size-max group-data-zoomed/viewport:min-h-full group-data-zoomed/viewport:min-w-full">
-                    <img src="{{ $imagemUrl }}" alt="{{ $fotografia->titulo }}" @if ($imagem->width) width="{{ $imagem->width }}" @endif @if ($imagem->height) height="{{ $imagem->height }}" @endif loading="lazy" class="h-auto max-h-[calc(100dvh-8rem)] w-auto max-w-full object-contain group-data-zoomed/viewport:max-h-none group-data-zoomed/viewport:max-w-none">
-                </div>
+
+            <div
+                x-ref="zoomViewport"
+                class="flex min-h-0 flex-1 touch-none items-center justify-center overflow-hidden px-4 pt-18 pb-12 select-none sm:px-16"
+                :class="zoomed ? (dragging ? 'cursor-grabbing' : 'cursor-grab') : 'cursor-zoom-in'"
+                @wheel.prevent="wheel($event)"
+                @pointerdown="pointerDown($event)"
+                @pointermove="pointerMove($event)"
+                @pointerup="pointerUp($event)"
+                @pointercancel="pointerUp($event)"
+                @dblclick="toggleZoom($event)"
+            >
+                <img
+                    x-ref="zoomImage"
+                    src="{{ $imagemUrl }}"
+                    alt="{{ $fotografia->titulo }}"
+                    @if ($imagem->width) width="{{ $imagem->width }}" @endif
+                    @if ($imagem->height) height="{{ $imagem->height }}" @endif
+                    loading="lazy"
+                    draggable="false"
+                    class="h-auto max-h-full w-auto max-w-full object-contain will-change-transform"
+                    :class="dragging ? 'transition-none' : 'transition-transform duration-150 ease-out motion-reduce:transition-none'"
+                    :style="{ transform }"
+                >
             </div>
+
+            <p id="viewer-help" x-show="!zoomed" x-transition.opacity class="pointer-events-none absolute inset-x-0 bottom-0 px-4 pb-[max(0.85rem,env(safe-area-inset-bottom))] text-center text-[0.75rem] text-white/50">
+                <span class="hidden md:inline">Role para ampliar e arraste para mover · teclas + e − ampliam, 0 ajusta à tela</span>
+                <span class="md:hidden">Use dois dedos para ampliar e arraste para mover</span>
+            </p>
         </dialog>
     </div>
 </x-layouts.public>

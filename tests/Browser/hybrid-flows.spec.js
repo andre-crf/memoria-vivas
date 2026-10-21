@@ -349,8 +349,12 @@ test('public photograph viewer supports keyboard, zoom and mobile fullscreen', a
     await expect(viewer).toBeVisible();
     await expect(viewer.getByRole('button', { name: 'Fechar visualização' })).toBeFocused();
     await expect.poll(() => viewer.locator('img').evaluate((img) => img.complete && img.naturalWidth > 0)).toBe(true);
-    await viewer.getByRole('button', { name: 'Ver imagem no tamanho original' }).click();
-    await expect(viewer.getByRole('button', { name: 'Ajustar imagem à tela' })).toHaveAttribute('aria-pressed', 'true');
+    // Zoom pelo teclado (alternativa à roda do mouse): + amplia, 0 volta ao ajuste.
+    const zoom = () => viewer.locator('img').evaluate((img) => new DOMMatrix(getComputedStyle(img).transform).a);
+    await page.keyboard.press('+');
+    await expect.poll(zoom).toBeGreaterThan(1);
+    await page.keyboard.press('0');
+    await expect.poll(zoom).toBeCloseTo(1, 2);
     await page.keyboard.press('Escape');
     await expect(viewer).toBeHidden();
     await expect(trigger).toBeFocused();

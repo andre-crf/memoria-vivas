@@ -93,7 +93,10 @@ for (const [viewportName, viewport] of Object.entries(viewports)) {
             const viewer = page.getByRole('dialog');
             await expect(viewer).toBeVisible();
             await expect(page).toHaveScreenshot(`publico-visualizador-${viewportName}.png`, { animations: 'disabled' });
-            await viewer.getByRole('button', { name: 'Ver imagem no tamanho original' }).click();
+            await page.keyboard.press('+');
+            await page.keyboard.press('+');
+            await page.keyboard.press('+');
+            await page.waitForTimeout(300);
             await expect(page).toHaveScreenshot(`publico-visualizador-zoom-${viewportName}.png`, { animations: 'disabled' });
             await page.keyboard.press('Escape');
 
