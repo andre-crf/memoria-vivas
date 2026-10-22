@@ -44,7 +44,7 @@ class CatalogoPublicoTest extends TestCase
             ->assertOk()
             ->assertSee('Praça Miguel Rossafa')
             ->assertSee('1985')
-            ->assertSee(route('publico.imagens.show', $thumbnail), false)
+            ->assertSee(route('public.imagens.show', $thumbnail), false)
             ->assertSee(route('public.fotografias.show', $elegivel), false)
             ->assertSee('Imagem indisponível')
             ->assertDontSee('Fotografia privada')
@@ -72,9 +72,9 @@ class CatalogoPublicoTest extends TestCase
 
         $this->get(route('public.catalogo'))
             ->assertOk()
-            ->assertSee(route('publico.imagens.show', $thumbnail), false)
-            ->assertSee(route('publico.imagens.show', $medium), false)
-            ->assertSee(route('publico.imagens.show', $large), false);
+            ->assertSee(route('public.imagens.show', $thumbnail), false)
+            ->assertSee(route('public.imagens.show', $medium), false)
+            ->assertSee(route('public.imagens.show', $large), false);
     }
 
     public function test_catalogo_pagina_doze_registros_em_ordem_deterministica_e_preserva_query_string(): void
@@ -541,9 +541,9 @@ class CatalogoPublicoTest extends TestCase
             ->assertOk()
             ->assertSee('Avenida Paraná')
             ->assertSee('Década de 1970')
-            ->assertSee(route('publico.imagens.show', $large), false)
-            ->assertDontSee(route('publico.imagens.show', $medium), false)
-            ->assertDontSee(route('publico.imagens.show', $thumbnail), false)
+            ->assertSee(route('public.imagens.show', $large), false)
+            ->assertDontSee(route('public.imagens.show', $medium), false)
+            ->assertDontSee(route('public.imagens.show', $thumbnail), false)
             ->assertSee(route('public.catalogo'), false)
             ->assertSee('Imagem indisponível');
     }

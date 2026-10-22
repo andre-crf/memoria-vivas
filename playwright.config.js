@@ -18,7 +18,8 @@ export default defineConfig({
     },
     webServer: {
         command: 'php artisan serve --host=127.0.0.1 --port=8011 --no-reload',
-        url: e2eEnvironment.APP_URL,
+        // O servidor sobe antes do global-setup criar o banco: a raiz (home pública) consulta o banco, o login não.
+        url: `${e2eEnvironment.APP_URL}/login`,
         env: e2eEnvironment,
         reuseExistingServer: false,
         timeout: 30_000,

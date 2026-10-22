@@ -13,13 +13,13 @@ const viewports = {
 };
 
 const publicPages = {
-    'publico-home': '/publico',
-    'publico-catalogo': '/publico/catalogo',
-    'publico-fotografia': '/publico/fotografias/1',
-    'publico-colaborar': '/publico/colaborar',
-    'publico-sobre': '/publico/sobre',
-    'publico-contato': '/publico/contato',
-    'publico-404': '/publico/nao-existe',
+    'publico-home': '/',
+    'publico-catalogo': '/catalogo',
+    'publico-fotografia': '/fotografias/1',
+    'publico-colaborar': '/colaborar',
+    'publico-sobre': '/sobre',
+    'publico-contato': '/contato',
+    'publico-404': '/nao-existe',
     login: '/login',
 };
 
@@ -88,7 +88,7 @@ for (const [viewportName, viewport] of Object.entries(viewports)) {
                 await capture(page, `${name}-${viewportName}`);
             }
 
-            await page.goto('/publico/fotografias/1');
+            await page.goto('/fotografias/1');
             await page.getByRole('button', { name: /^Ampliar fotografia/ }).click();
             const viewer = page.getByRole('dialog');
             await expect(viewer).toBeVisible();
@@ -100,7 +100,7 @@ for (const [viewportName, viewport] of Object.entries(viewports)) {
             await expect(page).toHaveScreenshot(`publico-visualizador-zoom-${viewportName}.png`, { animations: 'disabled' });
             await page.keyboard.press('Escape');
 
-            await page.goto('/publico/colaborar');
+            await page.goto('/colaborar');
             await page.locator('form[enctype="multipart/form-data"]').evaluate((form) => {
                 form.noValidate = true;
             });
@@ -108,13 +108,13 @@ for (const [viewportName, viewport] of Object.entries(viewports)) {
             await expect(page.getByText('Confira os campos indicados abaixo.')).toBeVisible();
             await capture(page, `publico-colaborar-erros-${viewportName}`);
 
-            await page.goto('/publico/catalogo?q=inexistente');
+            await page.goto('/catalogo?q=inexistente');
             await capture(page, `publico-catalogo-vazio-${viewportName}`);
 
-            await page.goto(`/publico/catalogo?q=${'a'.repeat(201)}`);
+            await page.goto(`/catalogo?q=${'a'.repeat(201)}`);
             await capture(page, `publico-busca-erro-${viewportName}`);
 
-            await page.goto('/publico/contato');
+            await page.goto('/contato');
             if (viewportName === 'mobile') {
                 await page.getByTestId('public-menu').locator('summary').click();
                 await capture(page, `publico-menu-aberto-${viewportName}`);

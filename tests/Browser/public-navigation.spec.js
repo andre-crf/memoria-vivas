@@ -3,7 +3,7 @@ import { resetDatabase } from './environment.js';
 
 test('global search preserves the term and the mobile menu supports keyboard navigation', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
-    await page.goto('/publico/contato');
+    await page.goto('/contato');
 
     await page.keyboard.press('Tab');
     await expect(page.getByRole('link', { name: 'Pular para o conteúdo' })).toBeFocused();
@@ -27,13 +27,13 @@ test('global search preserves the term and the mobile menu supports keyboard nav
     await search.fill('praça central');
     await search.press('Enter');
 
-    await expect(page).toHaveURL(/\/publico\/catalogo\?q=pra%C3%A7a\+central$/);
+    await expect(page).toHaveURL(/\/catalogo\?q=pra%C3%A7a\+central$/);
     await expect(page.getByText('Resultados para “praça central”.', { exact: true })).toBeVisible();
     await expect(page.getByRole('searchbox', { name: 'Buscar no catálogo' })).toHaveValue('praça central');
 });
 
 test('public carousel keeps only the visible photograph interactive', async ({ page }) => {
-    await page.goto('/publico');
+    await page.goto('/');
 
     const carousel = page.locator('[data-carousel]');
     const slides = carousel.locator('[data-carousel-slide]');
@@ -62,12 +62,12 @@ test('public carousel keeps only the visible photograph interactive', async ({ p
 });
 
 test('unknown pages offer a clear route back into the public area', async ({ page }) => {
-    const response = await page.goto('/publico/nao-existe');
+    const response = await page.goto('/nao-existe');
 
     expect(response?.status()).toBe(404);
     await expect(page.getByRole('heading', { name: 'Esta página não foi encontrada' })).toBeVisible();
     await expect(page.getByRole('link', { name: 'Ir para o início' })).toHaveAttribute('href', /\/publico$/);
-    await expect(page.getByRole('link', { name: 'Abrir o catálogo' })).toHaveAttribute('href', /\/publico\/catalogo$/);
+    await expect(page.getByRole('link', { name: 'Abrir o catálogo' })).toHaveAttribute('href', /\/catalogo$/);
 });
 
 test.describe('catálogo', () => {
@@ -78,7 +78,7 @@ test.describe('catálogo', () => {
     });
 
     test('catalog filters drawer applies filters as removable chips and returns focus', async ({ page }) => {
-        await page.goto('/publico/catalogo');
+        await page.goto('/catalogo');
 
         // A busca do header não aparece no catálogo: só a da própria página.
         await expect(page.getByRole('searchbox', { name: 'Buscar no catálogo' })).toHaveCount(1);
@@ -112,12 +112,12 @@ test.describe('catálogo', () => {
     });
 
     test('gallery items are keyboard reachable with a visible focus ring', async ({ page }) => {
-        await page.goto('/publico/catalogo');
+        await page.goto('/catalogo');
         const item = page.getByRole('list', { name: 'Fotografias do acervo' }).getByRole('link').first();
 
         await item.focus();
         await expect(item).toBeFocused();
         await expect(item).toHaveCSS('outline-style', 'solid');
-        await expect(item).toHaveAttribute('href', /\/publico\/fotografias\//);
+        await expect(item).toHaveAttribute('href', /\/fotografias\//);
     });
 });

@@ -86,11 +86,11 @@ class PublicAreaTest extends TestCase
 
         $this->get(route('public.home'))
             ->assertOk()
-            ->assertSee(route('publico.imagens.show', $medium), false)
-            ->assertDontSee(route('publico.imagens.show', $thumbnail), false)
-            ->assertDontSee(route('publico.imagens.show', $large), false)
-            ->assertSee(route('publico.imagens.show', $thumbnailFallback), false)
-            ->assertSee(route('publico.imagens.show', $largeFallback), false);
+            ->assertSee(route('public.imagens.show', $medium), false)
+            ->assertDontSee(route('public.imagens.show', $thumbnail), false)
+            ->assertDontSee(route('public.imagens.show', $large), false)
+            ->assertSee(route('public.imagens.show', $thumbnailFallback), false)
+            ->assertSee(route('public.imagens.show', $largeFallback), false);
     }
 
     public function test_public_home_avoids_redundant_carousel_controls_for_one_photograph(): void
@@ -147,7 +147,7 @@ class PublicAreaTest extends TestCase
     public function test_unknown_page_shows_public_navigation_and_recovery_links(): void
     {
         $this
-            ->get('/publico/pagina-inexistente')
+            ->get('/pagina-inexistente')
             ->assertNotFound()
             ->assertSee('Esta página não foi encontrada')
             ->assertSee(route('public.home'), false)

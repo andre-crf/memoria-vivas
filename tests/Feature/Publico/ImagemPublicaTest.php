@@ -32,7 +32,7 @@ class ImagemPublicaTest extends TestCase
             $arquivo = $this->arquivo($fotografia, $versao);
             Storage::disk('local')->put($arquivo->storage_path, self::CONTEUDO);
 
-            $response = $this->get(route('publico.imagens.show', $arquivo))
+            $response = $this->get(route('public.imagens.show', $arquivo))
                 ->assertOk()
                 ->assertHeader('Content-Type', 'image/jpeg')
                 ->assertHeader('Content-Disposition', 'inline')
@@ -54,7 +54,7 @@ class ImagemPublicaTest extends TestCase
         Storage::disk('local')->put($arquivo->storage_path, self::CONTEUDO);
 
         $this->actingAs(User::factory()->create())
-            ->get(route('publico.imagens.show', $arquivo))
+            ->get(route('public.imagens.show', $arquivo))
             ->assertOk();
     }
 
@@ -68,7 +68,7 @@ class ImagemPublicaTest extends TestCase
         Storage::disk('local')->put($derivacao->storage_path, self::CONTEUDO);
         Storage::disk('local')->put($original->storage_path, 'conteudo-original-privado');
 
-        $this->get(route('publico.imagens.show', $original))
+        $this->get(route('public.imagens.show', $original))
             ->assertNotFound()
             ->assertDontSee('conteudo-original-privado');
     }
@@ -86,7 +86,7 @@ class ImagemPublicaTest extends TestCase
             $arquivo = $this->arquivo($fotografia, 'thumbnail', $atributos);
             Storage::disk('local')->put($arquivo->storage_path, 'conteudo-indevido');
 
-            $this->get(route('publico.imagens.show', $arquivo))
+            $this->get(route('public.imagens.show', $arquivo))
                 ->assertNotFound()
                 ->assertDontSee('conteudo-indevido');
         }
@@ -107,7 +107,7 @@ class ImagemPublicaTest extends TestCase
             $arquivo = $this->arquivo($fotografia, 'thumbnail');
             Storage::disk('local')->put($arquivo->storage_path, self::CONTEUDO);
 
-            $this->get(route('publico.imagens.show', $arquivo))->assertNotFound();
+            $this->get(route('public.imagens.show', $arquivo))->assertNotFound();
         }
     }
 
@@ -118,7 +118,7 @@ class ImagemPublicaTest extends TestCase
         Storage::disk('local')->put($arquivo->storage_path, self::CONTEUDO);
         $fotografia->delete();
 
-        $this->get(route('publico.imagens.show', $arquivo))->assertNotFound();
+        $this->get(route('public.imagens.show', $arquivo))->assertNotFound();
     }
 
     public function test_imagem_publica_deixa_de_ser_acessivel_apos_revogacao(): void
@@ -134,11 +134,11 @@ class ImagemPublicaTest extends TestCase
             $arquivo = $this->arquivo($fotografia, 'thumbnail');
             Storage::disk('local')->put($arquivo->storage_path, self::CONTEUDO);
 
-            $this->get(route('publico.imagens.show', $arquivo))->assertOk();
+            $this->get(route('public.imagens.show', $arquivo))->assertOk();
 
             $revogar($fotografia);
 
-            $this->get(route('publico.imagens.show', $arquivo))->assertNotFound();
+            $this->get(route('public.imagens.show', $arquivo))->assertNotFound();
         }
     }
 
@@ -149,7 +149,7 @@ class ImagemPublicaTest extends TestCase
 
         $this->assertNull(app(ConsultaFotografiasPublicas::class)
             ->porIdentificador($fotografia->id));
-        $this->get(route('publico.imagens.show', $arquivo))->assertNotFound();
+        $this->get(route('public.imagens.show', $arquivo))->assertNotFound();
     }
 
     public function test_registro_e_objeto_fisico_ausentes_retornam_nao_encontrado(): void
@@ -157,8 +157,8 @@ class ImagemPublicaTest extends TestCase
         $fotografia = $this->fotografia();
         $arquivo = $this->arquivo($fotografia, 'thumbnail');
 
-        $this->get(route('publico.imagens.show', $arquivo))->assertNotFound();
-        $this->get(route('publico.imagens.show', 999999))->assertNotFound();
+        $this->get(route('public.imagens.show', $arquivo))->assertNotFound();
+        $this->get(route('public.imagens.show', 999999))->assertNotFound();
     }
 
     public function test_resposta_negada_nao_revela_metadados_privados(): void
@@ -169,7 +169,7 @@ class ImagemPublicaTest extends TestCase
             'storage_path' => 'acervo/privado/caminho-confidencial.jpg',
         ]);
 
-        $this->get(route('publico.imagens.show', $arquivo))
+        $this->get(route('public.imagens.show', $arquivo))
             ->assertNotFound()
             ->assertDontSee($arquivo->storage_path)
             ->assertDontSee($arquivo->nome_original);

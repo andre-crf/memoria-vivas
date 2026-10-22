@@ -11,7 +11,7 @@
     $imagem = $versoes->first();
     $srcset = $versoes
         ->filter(fn ($arquivo) => $arquivo->width)
-        ->map(fn ($arquivo) => route('publico.imagens.show', $arquivo).' '.$arquivo->width.'w')
+        ->map(fn ($arquivo) => route('public.imagens.show', $arquivo).' '.$arquivo->width.'w')
         ->join(', ');
     $sizes = '(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw';
     $proporcao = $imagem?->width && $imagem?->height ? $imagem->width / $imagem->height : null;
@@ -32,12 +32,12 @@
     @if ($imagem)
         @if ($panorama)
             <div class="relative aspect-2/1 overflow-hidden" x-show="! indisponivel">
-                <img src="{{ route('publico.imagens.show', $imagem) }}" srcset="{{ $srcset }}" sizes="{{ $sizes }}" alt="" aria-hidden="true" loading="lazy" decoding="async" class="absolute -inset-8 h-[calc(100%+4rem)] w-[calc(100%+4rem)] max-w-none object-cover blur-xl">
+                <img src="{{ route('public.imagens.show', $imagem) }}" srcset="{{ $srcset }}" sizes="{{ $sizes }}" alt="" aria-hidden="true" loading="lazy" decoding="async" class="absolute -inset-8 h-[calc(100%+4rem)] w-[calc(100%+4rem)] max-w-none object-cover blur-xl">
                 <div class="absolute inset-0 bg-night-950/10" aria-hidden="true"></div>
-                <img x-ref="foto" src="{{ route('publico.imagens.show', $imagem) }}" srcset="{{ $srcset }}" sizes="{{ $sizes }}" alt="{{ $fotografia->titulo }}" width="{{ $imagem->width }}" height="{{ $imagem->height }}" loading="lazy" decoding="async" x-on:error="indisponivel = true" class="relative size-full object-contain {{ $zoom }}">
+                <img x-ref="foto" src="{{ route('public.imagens.show', $imagem) }}" srcset="{{ $srcset }}" sizes="{{ $sizes }}" alt="{{ $fotografia->titulo }}" width="{{ $imagem->width }}" height="{{ $imagem->height }}" loading="lazy" decoding="async" x-on:error="indisponivel = true" class="relative size-full object-contain {{ $zoom }}">
             </div>
         @else
-            <img x-ref="foto" x-show="! indisponivel" src="{{ route('publico.imagens.show', $imagem) }}" srcset="{{ $srcset }}" sizes="{{ $sizes }}" alt="{{ $fotografia->titulo }}" @if ($imagem->width && $imagem->height) width="{{ $imagem->width }}" height="{{ $imagem->height }}" @endif loading="lazy" decoding="async" x-on:error="indisponivel = true" class="block h-auto w-full {{ $zoom }}">
+            <img x-ref="foto" x-show="! indisponivel" src="{{ route('public.imagens.show', $imagem) }}" srcset="{{ $srcset }}" sizes="{{ $sizes }}" alt="{{ $fotografia->titulo }}" @if ($imagem->width && $imagem->height) width="{{ $imagem->width }}" height="{{ $imagem->height }}" @endif loading="lazy" decoding="async" x-on:error="indisponivel = true" class="block h-auto w-full {{ $zoom }}">
         @endif
     @endif
 

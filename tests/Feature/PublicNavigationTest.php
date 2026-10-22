@@ -27,7 +27,9 @@ class PublicNavigationTest extends TestCase
                     continue;
                 }
 
-                $destination = $this->get($url['path'] ?? route($route))->assertOk();
+                // Link absoluto sem caminho (ex.: a home na raiz + #fragmento) aponta para "/".
+                $path = $url['path'] ?? (isset($url['host']) ? '/' : route($route));
+                $destination = $this->get($path)->assertOk();
 
                 if (isset($url['fragment'])) {
                     $targetDocument = new DOMDocument;

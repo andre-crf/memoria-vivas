@@ -3,7 +3,7 @@
         $imagem = $fotografia->arquivos->firstWhere('versao_arquivo', 'large')
             ?? $fotografia->arquivos->firstWhere('versao_arquivo', 'medium')
             ?? $fotografia->arquivos->firstWhere('versao_arquivo', 'thumbnail');
-        $imagemUrl = route('publico.imagens.show', $imagem);
+        $imagemUrl = route('public.imagens.show', $imagem);
         $data = $fotografia->dataHistorica()->label();
         $categoriaPrincipal = $fotografia->categorias->first()?->titulo;
         // Primeira frase da legenda, como subtítulo curto no hero.

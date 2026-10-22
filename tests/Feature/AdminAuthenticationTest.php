@@ -26,22 +26,15 @@ class AdminAuthenticationTest extends TestCase
         $response->assertRedirect('/login');
     }
 
-    public function test_home_redirects_guest_to_login(): void
+    public function test_root_url_is_the_public_home_for_guests_and_authenticated_users(): void
     {
-        $response = $this->get('/');
+        $this->get('/')->assertOk()->assertViewIs('public.home');
 
-        $response->assertRedirect('/login');
-    }
-
-    public function test_home_redirects_authenticated_user_to_admin_dashboard(): void
-    {
-        $user = User::factory()->create();
-
-        $response = $this
-            ->actingAs($user)
-            ->get('/');
-
-        $response->assertRedirect(route('admin.dashboard'));
+        $this
+            ->actingAs(User::factory()->create())
+            ->get('/')
+            ->assertOk()
+            ->assertViewIs('public.home');
     }
 
     public function test_active_internal_user_can_authenticate_and_access_admin_dashboard(): void

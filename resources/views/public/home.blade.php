@@ -97,7 +97,7 @@
                                     <a href="{{ route('public.fotografias.show', $fotografia) }}" class="grid min-h-88 grid-cols-1 border border-mist-200 bg-white text-ink-950 hover:border-mist-500 hover:shadow-[0_0.75rem_2rem_rgb(23_62_99/0.08)] md:grid-cols-[minmax(0,1.25fr)_minmax(15rem,0.75fr)]">
                                         <div class="grid max-h-72 min-h-56 place-items-center overflow-hidden bg-mist-250 text-ink-600 md:max-h-none md:min-h-88">
                                             @if ($imagem)
-                                                <img src="{{ route('publico.imagens.show', $imagem) }}" alt="{{ $fotografia->titulo }}" loading="lazy" width="640" height="420" class="size-full object-cover">
+                                                <img src="{{ route('public.imagens.show', $imagem) }}" alt="{{ $fotografia->titulo }}" loading="lazy" width="640" height="420" class="size-full object-cover">
                                             @else
                                                 <span aria-hidden="true">Sem imagem disponível</span>
                                             @endif

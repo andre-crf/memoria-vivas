@@ -77,14 +77,14 @@ class DesempenhoConsultasPublicasTest extends TestCase
         $derivacao = $detalhada->arquivos()->where('versao_arquivo', 'medium')->firstOrFail();
         Storage::disk('local')->put($derivacao->storage_path, 'imagem-publica');
         [$imagem, $consultasImagem] = $this->executarContandoConsultas(
-            fn (): TestResponse => $this->get(route('publico.imagens.show', $derivacao)),
+            fn (): TestResponse => $this->get(route('public.imagens.show', $derivacao)),
         );
 
         $fotografiaComUmaDerivacao = $this->fotografia(['titulo' => 'Consulta com uma derivação']);
         $derivacaoUnica = $this->arquivo($fotografiaComUmaDerivacao, 'thumbnail');
         Storage::disk('local')->put($derivacaoUnica->storage_path, 'imagem-publica');
         [$imagemUnica, $consultasImagemUnica] = $this->executarContandoConsultas(
-            fn (): TestResponse => $this->get(route('publico.imagens.show', $derivacaoUnica)),
+            fn (): TestResponse => $this->get(route('public.imagens.show', $derivacaoUnica)),
         );
 
         $home->assertOk();

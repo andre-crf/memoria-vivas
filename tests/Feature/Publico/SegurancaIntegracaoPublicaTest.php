@@ -33,14 +33,14 @@ class SegurancaIntegracaoPublicaTest extends TestCase
             ->assertOk()
             ->assertSee('Memória pública integrada')
             ->assertSee(route('public.fotografias.show', $fotografia), false)
-            ->assertSee(route('publico.imagens.show', $derivacao), false);
+            ->assertSee(route('public.imagens.show', $derivacao), false);
 
         $this->get(route('public.fotografias.show', $fotografia))
             ->assertOk()
             ->assertSee('Memória pública integrada')
-            ->assertSee(route('publico.imagens.show', $derivacao), false);
+            ->assertSee(route('public.imagens.show', $derivacao), false);
 
-        $this->get(route('publico.imagens.show', $derivacao))
+        $this->get(route('public.imagens.show', $derivacao))
             ->assertOk()
             ->assertHeader('Content-Type', 'image/jpeg')
             ->assertHeader('X-Content-Type-Options', 'nosniff');
@@ -79,7 +79,7 @@ class SegurancaIntegracaoPublicaTest extends TestCase
             $catalogo->assertDontSee($fotografia->titulo);
             $home->assertDontSee($fotografia->titulo);
             $this->get(route('public.fotografias.show', $fotografia->id))->assertNotFound();
-            $this->get(route('publico.imagens.show', $arquivo))->assertNotFound();
+            $this->get(route('public.imagens.show', $arquivo))->assertNotFound();
         });
     }
 
@@ -96,14 +96,14 @@ class SegurancaIntegracaoPublicaTest extends TestCase
         foreach ([route('public.catalogo'), route('public.fotografias.show', $fotografia)] as $url) {
             $this->get($url)
                 ->assertOk()
-                ->assertSee(route('publico.imagens.show', $derivacao), false)
-                ->assertDontSee(route('publico.imagens.show', $original), false)
+                ->assertSee(route('public.imagens.show', $derivacao), false)
+                ->assertDontSee(route('public.imagens.show', $original), false)
                 ->assertDontSee(route('admin.arquivos.show', $original), false)
                 ->assertDontSee($original->nome_original)
                 ->assertDontSee($original->storage_path);
         }
 
-        $this->get(route('publico.imagens.show', $original))
+        $this->get(route('public.imagens.show', $original))
             ->assertNotFound()
             ->assertDontSee($original->nome_original)
             ->assertDontSee($original->storage_path)
@@ -133,7 +133,7 @@ class SegurancaIntegracaoPublicaTest extends TestCase
                 ->assertViewHas('fotografias', fn ($paginador): bool => $paginador->isEmpty())
                 ->assertDontSee(route('public.fotografias.show', $fotografia->id), false);
             $this->get(route('public.fotografias.show', $fotografia->id))->assertNotFound();
-            $this->get(route('publico.imagens.show', $derivacao))->assertNotFound();
+            $this->get(route('public.imagens.show', $derivacao))->assertNotFound();
         }
     }
 
@@ -296,7 +296,7 @@ class SegurancaIntegracaoPublicaTest extends TestCase
             ->assertOk()
             ->assertSee($fotografia->titulo);
         $this->get(route('public.fotografias.show', $fotografia))->assertOk();
-        $this->get(route('publico.imagens.show', $derivacao))->assertOk();
+        $this->get(route('public.imagens.show', $derivacao))->assertOk();
     }
 
     /** @param array<string, int|string> $esperados */

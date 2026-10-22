@@ -18,39 +18,43 @@ use App\Http\Controllers\Publico\ContribuicaoController as PublicContribuicaoCon
 use App\Http\Controllers\Publico\FotografiaController as PublicFotografiaController;
 use App\Http\Controllers\Publico\HomeController as PublicHomeController;
 use App\Http\Controllers\Publico\ImagemPublicaController;
-use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function (): RedirectResponse {
-    return Auth::check()
-        ? redirect()->route('admin.dashboard')
-        : redirect()->route('login');
+// Site público: fica na raiz; o prefixo de URL é reservado ao admin.
+Route::name('public.')->group(function (): void {
+    Route::get('/', PublicHomeController::class)->name('home');
+    Route::view('/sobre', 'public.sobre')->name('sobre');
+    Route::view('/contato', 'public.institucional', [
+        'page' => config('institucional.pages.contato'),
+    ])->name('contato');
+    Route::get('/catalogo', CatalogoController::class)->name('catalogo');
+
+    Route::prefix('colaborar')->group(function (): void {
+        Route::view('/', 'public.colaborar')->name('colaborar');
+        Route::post('/', [PublicContribuicaoController::class, 'store'])
+            ->middleware('throttle:5,60')
+            ->name('colaborar.store');
+    });
+
+    Route::prefix('fotografias')
+        ->name('fotografias.')
+        ->group(function (): void {
+            Route::get('/{fotografia}', [PublicFotografiaController::class, 'show'])->name('show');
+        });
+
+    Route::get('/acervo/imagens/{arquivo}', ImagemPublicaController::class)->name('imagens.show');
 });
 
-Route::get('/acervo/imagens/{arquivo}', ImagemPublicaController::class)
-    ->name('publico.imagens.show');
-
-Route::middleware('guest')->group(function (): void {
-    Route::get('/login', [AuthenticatedSessionController::class, 'create'])->name('login');
-    Route::post('/login', [AuthenticatedSessionController::class, 'store'])->name('login.store');
-});
+Route::prefix('login')
+    ->middleware('guest')
+    ->group(function (): void {
+        Route::get('/', [AuthenticatedSessionController::class, 'create'])->name('login');
+        Route::post('/', [AuthenticatedSessionController::class, 'store'])->name('login.store');
+    });
 
 Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])
     ->middleware('auth')
     ->name('logout');
-
-Route::get('/publico', PublicHomeController::class)->name('public.home');
-Route::view('/publico/sobre', 'public.sobre')->name('public.sobre');
-Route::view('/publico/colaborar', 'public.colaborar')->name('public.colaborar');
-Route::post('/publico/colaborar', [PublicContribuicaoController::class, 'store'])
-    ->middleware('throttle:5,60')->name('public.colaborar.store');
-Route::view('/publico/contato', 'public.institucional', [
-    'page' => config('institucional.pages.contato'),
-])->name('public.contato');
-Route::get('/publico/catalogo', CatalogoController::class)->name('public.catalogo');
-Route::get('/publico/fotografias/{fotografia}', [PublicFotografiaController::class, 'show'])
-    ->name('public.fotografias.show');
 
 Route::middleware(['auth', 'admin.access'])
     ->prefix('admin')
@@ -58,12 +62,22 @@ Route::middleware(['auth', 'admin.access'])
     ->group(function (): void {
 
         Route::get('/', DashboardController::class)->name('dashboard');
-        Route::get('/auditoria', [AuditoriaController::class, 'index'])->name('auditoria.index');
-        Route::get('/auditoria/{evento}', [AuditoriaController::class, 'show'])->name('auditoria.show');
         Route::get('/arquivos/{arquivo}', [ArquivoController::class, 'show'])->name('arquivos.show');
-        Route::get('/contribuicoes', [AdminContribuicaoController::class, 'index'])->name('contribuicoes.index');
-        Route::get('/contribuicoes/{contribuicao}', [AdminContribuicaoController::class, 'show'])->name('contribuicoes.show');
-        Route::get('/contribuicoes/{contribuicao}/arquivos/{arquivo}', [AdminContribuicaoController::class, 'download'])->name('contribuicoes.arquivos.download');
+
+        Route::prefix('auditoria')
+            ->name('auditoria.')
+            ->group(function (): void {
+                Route::get('/', [AuditoriaController::class, 'index'])->name('index');
+                Route::get('/{evento}', [AuditoriaController::class, 'show'])->name('show');
+            });
+
+        Route::prefix('contribuicoes')
+            ->name('contribuicoes.')
+            ->group(function (): void {
+                Route::get('/', [AdminContribuicaoController::class, 'index'])->name('index');
+                Route::get('/{contribuicao}', [AdminContribuicaoController::class, 'show'])->name('show');
+                Route::get('/{contribuicao}/arquivos/{arquivo}', [AdminContribuicaoController::class, 'download'])->name('arquivos.download');
+            });
 
         Route::prefix('perfil')
             ->name('perfil.')

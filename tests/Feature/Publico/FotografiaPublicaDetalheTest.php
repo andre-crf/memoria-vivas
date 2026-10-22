@@ -96,7 +96,7 @@ class FotografiaPublicaDetalheTest extends TestCase
             ->assertSee('Aniversário de Umuarama')
             ->assertSee('Família Oliveira')
             ->assertSee('Arquivo Histórico Municipal')
-            ->assertSee(route('publico.imagens.show', $derivacao), false)
+            ->assertSee(route('public.imagens.show', $derivacao), false)
             ->assertSeeInOrder(['Arquitetura', 'Zona urbana'])
             ->assertSeeInOrder(['Celebrações', 'Vida cotidiana'])
             ->assertSeeInOrder(['avenida', 'Umuarama'])

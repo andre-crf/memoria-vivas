@@ -23,9 +23,9 @@ class CatalogoTest extends TestCase
 
         $this->get(route('public.catalogo'))->assertOk()
             ->assertSee('Praça central')
-            ->assertSee(route('publico.imagens.show', $thumbnail), false)
+            ->assertSee(route('public.imagens.show', $thumbnail), false)
             ->assertSee(route('public.fotografias.show', $item->id), false)
-            ->assertDontSee(route('publico.imagens.show', $original), false)
+            ->assertDontSee(route('public.imagens.show', $original), false)
             ->assertDontSee('Nenhum item público disponível ainda');
 
         $this->get(route('public.fotografias.show', $item->id))->assertOk()
