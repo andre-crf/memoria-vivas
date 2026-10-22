@@ -34,18 +34,14 @@ export default function registerPublicPhotoViewer(Alpine) {
                 return `translate3d(${this.x}px, ${this.y}px, 0) scale(${this.scale})`;
             },
 
-            // `original`: abre já no tamanho natural da imagem (botão "Tamanho original" da página).
-            open(original = false) {
+            open() {
                 if (!this.available || this.$refs.viewer.open) return;
                 this.opener = document.activeElement;
                 this.reset();
                 this.previousOverflow = document.documentElement.style.overflow;
                 document.documentElement.style.overflow = 'hidden';
                 this.$refs.viewer.showModal();
-                this.$nextTick(() => {
-                    this.$refs.close.focus();
-                    if (original) this.whenImageReady(() => this.zoomTo(this.naturalScale()));
-                });
+                this.$nextTick(() => this.$refs.close.focus());
             },
 
             close() {
@@ -69,13 +65,6 @@ export default function registerPublicPhotoViewer(Alpine) {
                 this.scale = 1;
                 this.x = 0;
                 this.y = 0;
-            },
-
-            whenImageReady(callback) {
-                const image = this.$refs.zoomImage;
-
-                if (image.complete && image.naturalWidth > 0) callback();
-                else image.addEventListener('load', callback, { once: true });
             },
 
             // Escala em que a imagem fica no tamanho natural (1 = ajustada à tela).

@@ -28,7 +28,6 @@
             'Conjuntos contextuais' => $fotografia->conjuntosContextuais->pluck('titulo'),
         ], fn ($itens) => $itens->isNotEmpty());
         $glassButton = 'inline-flex min-h-11 items-center gap-2 rounded-full bg-white/12 px-4 text-[0.82rem] font-semibold text-white ring-1 ring-white/30 backdrop-blur-sm transition-colors hover:bg-white/22 focus-visible:outline-white';
-        $textButton = 'inline-flex min-h-11 items-center gap-1.5 px-1 text-[0.82rem] font-semibold text-institutional underline decoration-mist-500 underline-offset-4 hover:decoration-institutional disabled:cursor-not-allowed disabled:opacity-50';
         $recordRow = 'border-t border-mist-200 py-2.5';
     @endphp
 
@@ -96,13 +95,7 @@
                             <span class="absolute right-3 bottom-3 grid size-10 place-items-center rounded-full bg-night-950/70 text-[1.2rem] text-white" x-show="available" aria-hidden="true">&#x26F6;</span>
                         </button>
                     </div>
-                    <figcaption class="mt-2 flex flex-wrap items-center justify-between gap-x-4 text-[0.8rem] text-ink-500">
-                        <span>Clique na imagem para ampliar.</span>
-                        <span class="flex gap-4">
-                            <button type="button" class="{{ $textButton }}" @click="open()" :disabled="!available">Ampliar</button>
-                            <button type="button" class="{{ $textButton }}" @click="open(true)" :disabled="!available">Tamanho original</button>
-                        </span>
-                    </figcaption>
+                    <figcaption class="mt-2 text-[0.8rem] text-ink-500">Clique na imagem para ampliar.</figcaption>
                 </figure>
 
                 <div class="grid gap-9 lg:sticky lg:top-8">
