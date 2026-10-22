@@ -219,6 +219,45 @@ class AdminFotografiaDetailsTest extends TestCase
             ->assertSee('Prévia administrativa: versão large.');
     }
 
+    public function test_files_card_lists_only_existing_versions_and_hides_technical_details(): void
+    {
+        $fotografia = $this->fotografia(['titulo' => 'Fotografia com versões']);
+        $fotografia->arquivos()->create([
+            'nome_original' => 'original.jpg',
+            'provider' => 'local',
+            'storage_path' => 'acervo/originais/original.jpg',
+            'mime_type' => 'image/jpeg',
+            'file_size' => 2 * 1024 * 1024,
+            'tipo_arquivo' => 'imagem',
+            'versao_arquivo' => 'original',
+            'width' => 1600,
+            'height' => 1200,
+        ]);
+        $fotografia->arquivos()->create([
+            'nome_original' => null,
+            'provider' => 'local',
+            'storage_path' => 'acervo/derivados/large.webp',
+            'mime_type' => 'image/webp',
+            'file_size' => 3072,
+            'tipo_arquivo' => 'imagem',
+            'versao_arquivo' => 'large',
+            'width' => 1400,
+            'height' => 1050,
+        ]);
+
+        $html = $this
+            ->actingAs($this->usuarioInterno())
+            ->get(route('admin.fotografias.show', $fotografia))
+            ->assertOk()
+            ->assertSeeInOrder(['original.jpg', 'JPEG · 2,0 MB · 1600 × 1200 px', 'Versões disponíveis', 'Original', 'Grande', 'WebP · 1400 × 1050 px', '3,0 KB'])
+            ->assertDontSee('Miniatura')
+            ->assertDontSee('uppercase tracking-[0.12em]', false)
+            ->getContent();
+
+        $this->assertMatchesRegularExpression('/<details[^>]*>\s*<summary[^>]*>.*Detalhes técnicos.*acervo\/derivados\/large\.webp.*<\/details>/s', $html);
+        $this->assertStringNotContainsString('<details open', $html);
+    }
+
     public function test_details_use_preview_fallback_when_only_original_exists(): void
     {
         $fotografia = $this->fotografia(['titulo' => 'Fotografia sem derivada']);

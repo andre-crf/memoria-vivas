@@ -373,7 +373,7 @@ test('original file is replaced through the actions menu and the drag and drop m
     await confirm.click();
     await expect(page.getByText('Arquivo original substituído com sucesso.')).toBeVisible();
     await expect(dialog).toBeHidden();
-    await expect(page.getByText('novo.pdf', { exact: true })).toBeVisible();
+    await expect(page.getByText('novo.pdf', { exact: true }).first()).toBeVisible();
     await expect(page.getByText('Substituição · novo.pdf')).toBeVisible();
     await expect(page.getByText('atual.pdf', { exact: true })).toHaveCount(0);
 

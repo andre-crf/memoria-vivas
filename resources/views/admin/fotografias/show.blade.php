@@ -56,146 +56,67 @@
                 <section id="dados-catalogacao" class="rounded-lg border border-stone-200 bg-white p-6 shadow-sm">
                     <h2 class="text-2xl font-semibold text-stone-950">Dados de catalogação</h2>
 
-                    <dl class="mt-5 grid gap-5 md:grid-cols-2">
-                        <div>
-                            <dt class="text-xs font-semibold uppercase tracking-[0.12em] text-stone-600">Título</dt>
-                            <dd class="mt-1 break-words text-sm text-stone-700">{{ $fotografia->titulo }}</dd>
-                        </div>
-
-                        <div>
-                            <dt class="text-xs font-semibold uppercase tracking-[0.12em] text-stone-600">Data</dt>
-                            <dd class="mt-1 text-sm text-stone-700">{{ $fotografia->dataHistorica()->label() }}</dd>
-                        </div>
-
-                        <div>
-                            <dt class="text-xs font-semibold uppercase tracking-[0.12em] text-stone-600">Local atual</dt>
-                            <dd class="mt-1 text-sm text-stone-700">{{ $fotografia->local_atual ?: 'Não informado' }}</dd>
-                        </div>
-
-                        <div>
-                            <dt class="text-xs font-semibold uppercase tracking-[0.12em] text-stone-600">Local na época</dt>
-                            <dd class="mt-1 text-sm text-stone-700">{{ $fotografia->local_epoca ?: 'Não informado' }}</dd>
-                        </div>
-
-                        <div>
-                            <dt class="text-xs font-semibold uppercase tracking-[0.12em] text-stone-600">Evento relacionado</dt>
-                            <dd class="mt-1 text-sm text-stone-700">{{ $fotografia->evento ?: 'Não informado' }}</dd>
-                        </div>
-
-                        <div>
-                            <dt class="text-xs font-semibold uppercase tracking-[0.12em] text-stone-600">Cedente</dt>
-                            <dd class="mt-1 text-sm text-stone-700">{{ $fotografia->cedente ?: 'Não informado' }}</dd>
-                        </div>
-
-                        <div>
-                            <dt class="text-xs font-semibold uppercase tracking-[0.12em] text-stone-600">Estado de conservação</dt>
-                            <dd class="mt-1 text-sm text-stone-700">{{ $fotografia->estadoConservacaoLabel() }}</dd>
-                        </div>
-
-                        <div>
-                            <dt class="text-xs font-semibold uppercase tracking-[0.12em] text-stone-600">Precisão da data</dt>
-                            <dd class="mt-1 text-sm text-stone-700">{{ $fotografia->tipo_data->label() }}</dd>
-                        </div>
+                    <dl class="mt-5 grid gap-3 md:grid-cols-2">
+                        <x-admin.info-block label="Título">{{ $fotografia->titulo }}</x-admin.info-block>
+                        <x-admin.info-block label="Data">{{ $fotografia->dataHistorica()->label() }}</x-admin.info-block>
+                        <x-admin.info-block label="Local atual" :empty="! $fotografia->local_atual">{{ $fotografia->local_atual ?: 'Não informado' }}</x-admin.info-block>
+                        <x-admin.info-block label="Local na época" :empty="! $fotografia->local_epoca">{{ $fotografia->local_epoca ?: 'Não informado' }}</x-admin.info-block>
+                        <x-admin.info-block label="Evento relacionado" :empty="! $fotografia->evento">{{ $fotografia->evento ?: 'Não informado' }}</x-admin.info-block>
+                        <x-admin.info-block label="Cedente" :empty="! $fotografia->cedente">{{ $fotografia->cedente ?: 'Não informado' }}</x-admin.info-block>
+                        <x-admin.info-block label="Estado de conservação">{{ $fotografia->estadoConservacaoLabel() }}</x-admin.info-block>
+                        <x-admin.info-block label="Precisão da data">{{ $fotografia->tipo_data->label() }}</x-admin.info-block>
+                        <x-admin.info-block label="Legenda/descrição" :empty="! $fotografia->legenda" class="md:col-span-2">
+                            <span class="block break-words whitespace-pre-line">{{ $fotografia->legenda ?: 'Não informado' }}</span>
+                        </x-admin.info-block>
                     </dl>
-
-                    <div class="mt-5">
-                        <h3 class="text-xs font-semibold uppercase tracking-[0.12em] text-stone-600">Legenda/descrição</h3>
-                        <p class="mt-1 break-words whitespace-pre-line text-sm leading-6 text-stone-700">{{ $fotografia->legenda ?: 'Não informado' }}</p>
-                    </div>
                 </section>
 
                 <section class="rounded-lg border border-stone-200 bg-white p-6 shadow-sm">
                     <h2 class="text-2xl font-semibold text-stone-950">Classificações</h2>
+                    @php
+                        $classificacoes = [
+                            ['Categorias', $fotografia->categorias->pluck('titulo'), 'Nenhuma categoria vinculada.'],
+                            ['Assuntos', $fotografia->assuntos->pluck('titulo'), 'Nenhum assunto vinculado.'],
+                            ['Palavras-chave', $fotografia->palavrasChave->pluck('termo'), 'Nenhuma palavra-chave vinculada.'],
+                            ['Coleções', $fotografia->colecoes->pluck('titulo'), 'Nenhuma coleção vinculada.'],
+                            [
+                                'Conjuntos contextuais',
+                                $fotografia->conjuntosContextuais->map(fn ($conjunto) => $conjunto->titulo.($conjunto->pivot->ordem !== null ? ' · Ordem '.$conjunto->pivot->ordem : '')),
+                                'Nenhum conjunto contextual vinculado.',
+                            ],
+                        ];
+                    @endphp
 
-                    <div class="mt-5 grid gap-5 md:grid-cols-2">
-                        <div>
-                            <h3 class="text-xs font-semibold uppercase tracking-[0.12em] text-stone-600">Categorias</h3>
-                            @if ($fotografia->categorias->isEmpty())
-                                <p class="mt-2 text-sm text-stone-600">Nenhuma categoria vinculada.</p>
-                            @else
-                                <div class="mt-2 flex flex-wrap gap-2">
-                                    @foreach ($fotografia->categorias as $categoria)
-                                        <span class="rounded-full bg-stone-100 px-2.5 py-1 text-xs font-medium text-stone-700">{{ $categoria->titulo }}</span>
-                                    @endforeach
-                                </div>
-                            @endif
-                        </div>
-
-                        <div>
-                            <h3 class="text-xs font-semibold uppercase tracking-[0.12em] text-stone-600">Assuntos</h3>
-                            @if ($fotografia->assuntos->isEmpty())
-                                <p class="mt-2 text-sm text-stone-600">Nenhum assunto vinculado.</p>
-                            @else
-                                <div class="mt-2 flex flex-wrap gap-2">
-                                    @foreach ($fotografia->assuntos as $assunto)
-                                        <span class="rounded-full bg-stone-100 px-2.5 py-1 text-xs font-medium text-stone-700">{{ $assunto->titulo }}</span>
-                                    @endforeach
-                                </div>
-                            @endif
-                        </div>
-
-                        <div>
-                            <h3 class="text-xs font-semibold uppercase tracking-[0.12em] text-stone-600">Palavras-chave</h3>
-                            @if ($fotografia->palavrasChave->isEmpty())
-                                <p class="mt-2 text-sm text-stone-600">Nenhuma palavra-chave vinculada.</p>
-                            @else
-                                <div class="mt-2 flex flex-wrap gap-2">
-                                    @foreach ($fotografia->palavrasChave as $palavraChave)
-                                        <span class="rounded-full bg-stone-100 px-2.5 py-1 text-xs font-medium text-stone-700">{{ $palavraChave->termo }}</span>
-                                    @endforeach
-                                </div>
-                            @endif
-                        </div>
-
-                        <div>
-                            <h3 class="text-xs font-semibold uppercase tracking-[0.12em] text-stone-600">Coleções</h3>
-                            @if ($fotografia->colecoes->isEmpty())
-                                <p class="mt-2 text-sm text-stone-600">Nenhuma coleção vinculada.</p>
-                            @else
-                                <div class="mt-2 flex flex-wrap gap-2">
-                                    @foreach ($fotografia->colecoes as $colecao)
-                                        <span class="rounded-full bg-stone-100 px-2.5 py-1 text-xs font-medium text-stone-700">{{ $colecao->titulo }}</span>
-                                    @endforeach
-                                </div>
-                            @endif
-                        </div>
-
-                        <div class="md:col-span-2">
-                            <h3 class="text-xs font-semibold uppercase tracking-[0.12em] text-stone-600">Conjuntos contextuais</h3>
-                            @if ($fotografia->conjuntosContextuais->isEmpty())
-                                <p class="mt-2 text-sm text-stone-600">Nenhum conjunto contextual vinculado.</p>
-                            @else
-                                <div class="mt-2 flex flex-wrap gap-2">
-                                    @foreach ($fotografia->conjuntosContextuais as $conjunto)
-                                        <span class="rounded-full bg-stone-100 px-2.5 py-1 text-xs font-medium text-stone-700">
-                                            {{ $conjunto->titulo }}@if ($conjunto->pivot->ordem !== null) · Ordem {{ $conjunto->pivot->ordem }} @endif
-                                        </span>
-                                    @endforeach
-                                </div>
-                            @endif
-                        </div>
+                    <div class="mt-5 grid gap-6 md:grid-cols-2">
+                        @foreach ($classificacoes as [$rotulo, $itens, $vazio])
+                            <div @class(['min-w-0', 'md:col-span-2' => $loop->last])>
+                                <h3 class="text-[0.8rem] font-medium text-ink-600">{{ $rotulo }}</h3>
+                                @if ($itens->isEmpty())
+                                    <p class="mt-2 text-[0.85rem] text-ink-500">{{ $vazio }}</p>
+                                @else
+                                    <ul class="mt-2.5 flex flex-wrap gap-2">
+                                        @foreach ($itens as $item)
+                                            <li class="max-w-full rounded-full bg-mist-150 px-3 py-1 text-[0.8rem] font-medium wrap-anywhere text-ink-800">{{ $item }}</li>
+                                        @endforeach
+                                    </ul>
+                                @endif
+                            </div>
+                        @endforeach
                     </div>
                 </section>
 
                 <section class="rounded-lg border border-stone-200 bg-white p-6 shadow-sm">
                     <h2 class="text-2xl font-semibold text-stone-950">Pessoas e autoria</h2>
 
-                    <dl class="mt-5 grid gap-5 md:grid-cols-2">
-                        <div>
-                            <dt class="text-xs font-semibold uppercase tracking-[0.12em] text-stone-600">Autor</dt>
-                            <dd class="mt-1 text-sm text-stone-700">{{ $fotografia->autor?->nome ?: 'Não informado' }}</dd>
-                        </div>
-
-                        <div>
-                            <dt class="text-xs font-semibold uppercase tracking-[0.12em] text-stone-600">Pessoas retratadas/relacionadas</dt>
-                            <dd class="mt-1 break-words text-sm text-stone-700">
-                                @if ($fotografia->pessoas->isEmpty())
-                                    Nenhuma pessoa vinculada.
-                                @else
-                                    {{ $fotografia->pessoas->pluck('nome')->join(', ') }}
-                                @endif
-                            </dd>
-                        </div>
+                    <dl class="mt-5 grid gap-3 md:grid-cols-2">
+                        <x-admin.info-block label="Autor" :empty="! $fotografia->autor?->nome">{{ $fotografia->autor?->nome ?: 'Não informado' }}</x-admin.info-block>
+                        <x-admin.info-block label="Pessoas retratadas/relacionadas" :empty="$fotografia->pessoas->isEmpty()">
+                            @if ($fotografia->pessoas->isEmpty())
+                                Nenhuma pessoa vinculada.
+                            @else
+                                {{ $fotografia->pessoas->pluck('nome')->join(', ') }}
+                            @endif
+                        </x-admin.info-block>
                     </dl>
                 </section>
 
@@ -209,22 +130,22 @@
                         @if ($historicoAuditoria->isEmpty())
                             <p class="px-6 py-8 text-sm text-stone-600">Nenhum evento de auditoria registrado para esta fotografia.</p>
                         @else
-                            <ul class="divide-y divide-stone-200">
+                            <ul class="divide-y divide-mist-200">
                                 @foreach ($historicoAuditoria as $eventoAuditoria)
-                                    <li class="flex flex-col justify-between gap-3 px-6 py-4 sm:flex-row sm:items-center">
-                                        <div>
-                                            <p class="text-sm font-semibold text-stone-950">
+                                    <li class="flex flex-col justify-between gap-2 px-6 py-3.5 sm:flex-row sm:items-center sm:gap-6">
+                                        <div class="min-w-0">
+                                            <p class="text-[0.9rem] font-semibold wrap-anywhere text-ink-950">
                                                 {{ $eventoAuditoria->action->label() }} · {{ $eventoAuditoria->subject_label ?: 'Sem identificação' }}
                                             </p>
-                                            <p class="mt-1 text-xs text-stone-500">
+                                            <p class="mt-0.5 text-[0.8rem] wrap-anywhere text-ink-500">
                                                 <x-data-hora :valor="$eventoAuditoria->occurred_at" /> · {{ $eventoAuditoria->actor_name ?: 'Sistema' }} · {{ $eventoAuditoria->subject_type->label() }} #{{ $eventoAuditoria->subject_id }}
                                             </p>
                                         </div>
                                         <a
                                             href="{{ route('admin.auditoria.show', $eventoAuditoria) }}"
-                                            class="shrink-0 text-sm font-semibold text-institutional hover:text-institutional-strong"
+                                            class="shrink-0 self-start rounded text-[0.8rem] font-semibold text-institutional hover:text-institutional-strong hover:underline hover:underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-institutional sm:self-auto"
                                         >
-                                            Ver detalhes
+                                            Ver detalhes <span aria-hidden="true">&rarr;</span>
                                         </a>
                                     </li>
                                 @endforeach
@@ -244,26 +165,27 @@
                 <section class="rounded-lg border border-stone-200 bg-white p-6 shadow-sm">
                     <h2 class="text-2xl font-semibold text-stone-950">Auditoria</h2>
 
-                    <dl class="mt-5 space-y-5">
-                        <div>
-                            <dt class="text-xs font-semibold uppercase tracking-[0.12em] text-stone-600">Criado em</dt>
-                            <dd class="mt-1 text-sm text-stone-700"><x-data-hora :valor="$fotografia->created_at" formato="curto" vazio="Não registrado" /></dd>
-                        </div>
-
-                        <div>
-                            <dt class="text-xs font-semibold uppercase tracking-[0.12em] text-stone-600">Criado por</dt>
-                            <dd class="mt-1 text-sm text-stone-700">{{ $fotografia->criadoPor?->nome ?: 'Não registrado' }}</dd>
-                        </div>
-
-                        <div>
-                            <dt class="text-xs font-semibold uppercase tracking-[0.12em] text-stone-600">Última alteração</dt>
-                            <dd class="mt-1 text-sm text-stone-700"><x-data-hora :valor="$fotografia->updated_at" formato="curto" vazio="Não registrada" /></dd>
-                        </div>
-
-                        <div>
-                            <dt class="text-xs font-semibold uppercase tracking-[0.12em] text-stone-600">Alterado por</dt>
-                            <dd class="mt-1 text-sm text-stone-700">{{ $fotografia->atualizadoPor?->nome ?: 'Não registrado' }}</dd>
-                        </div>
+                    @php
+                        $registroAuditoria = [
+                            ['Criado em', $fotografia->created_at, 'Não registrado', true],
+                            ['Criado por', $fotografia->criadoPor?->nome, 'Não registrado', false],
+                            ['Última alteração', $fotografia->updated_at, 'Não registrada', true],
+                            ['Alterado por', $fotografia->atualizadoPor?->nome, 'Não registrado', false],
+                        ];
+                    @endphp
+                    <dl class="mt-4 divide-y divide-mist-200">
+                        @foreach ($registroAuditoria as [$rotulo, $valor, $vazio, $ehDataHora])
+                            <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-0.5 py-2.5">
+                                <dt class="text-[0.8rem] font-medium text-ink-600">{{ $rotulo }}</dt>
+                                <dd @class(['text-right text-[0.9rem] wrap-anywhere', 'text-ink-500' => blank($valor), 'text-ink-950' => filled($valor)])>
+                                    @if ($ehDataHora)
+                                        <x-data-hora :valor="$valor" formato="curto" :vazio="$vazio" />
+                                    @else
+                                        {{ $valor ?: $vazio }}
+                                    @endif
+                                </dd>
+                            </div>
+                        @endforeach
                     </dl>
                 </section>
 
@@ -425,39 +347,77 @@
                     @endif
 
                     @if ($fotografia->arquivos->isEmpty())
-                        <p class="mt-3 text-sm leading-6 text-stone-600">Nenhum arquivo vinculado.</p>
+                        <p class="mt-4 text-[0.85rem] text-ink-500">Nenhum arquivo vinculado.</p>
                     @else
-                        <ul class="mt-4 divide-y divide-stone-200">
-                            @foreach ($fotografia->arquivos as $arquivo)
-                                <li class="py-3">
-                                    <p class="break-words text-sm font-semibold text-stone-700">{{ $arquivo->nome_original ?: 'Arquivo derivado' }}</p>
-                                    <dl class="mt-2 grid gap-2 text-xs text-stone-600">
-                                        <div>
-                                            <dt class="font-semibold uppercase tracking-[0.12em] text-stone-500">Versão</dt>
-                                            <dd>{{ $arquivo->versao_arquivo }}</dd>
-                                        </div>
-                                        <div>
-                                            <dt class="font-semibold uppercase tracking-[0.12em] text-stone-500">Tipo e tamanho</dt>
-                                            <dd>{{ $arquivo->mime_type }} · {{ number_format($arquivo->file_size / 1024, 1, ',', '.') }} KB</dd>
-                                        </div>
-                                        <div>
-                                            <dt class="font-semibold uppercase tracking-[0.12em] text-stone-500">Dimensões</dt>
-                                            <dd>
-                                                @if ($arquivo->width && $arquivo->height)
-                                                    {{ $arquivo->width }} × {{ $arquivo->height }} px
-                                                @else
-                                                    Não aplicável
-                                                @endif
-                                            </dd>
-                                        </div>
-                                        <div>
-                                            <dt class="font-semibold uppercase tracking-[0.12em] text-stone-500">Armazenamento</dt>
-                                            <dd>{{ $arquivo->provider }} · {{ $arquivo->storage_path }}</dd>
-                                        </div>
-                                    </dl>
+                        @php
+                            $ordemVersoes = ['original', 'large', 'medium', 'thumbnail'];
+                            $versoes = $fotografia->arquivos->sortBy(fn ($arquivo) => [
+                                in_array($arquivo->versao_arquivo, $ordemVersoes, true) ? array_search($arquivo->versao_arquivo, $ordemVersoes, true) : count($ordemVersoes),
+                                $arquivo->id,
+                            ]);
+                            $rotuloVersao = fn ($arquivo) => ['original' => 'Original', 'large' => 'Grande', 'medium' => 'Média', 'thumbnail' => 'Miniatura'][$arquivo->versao_arquivo] ?? Str::ucfirst($arquivo->versao_arquivo);
+                            $formato = fn ($arquivo) => match ($subtipo = Str::after((string) $arquivo->mime_type, '/')) {
+                                'webp' => 'WebP',
+                                '' => 'Desconhecido',
+                                default => Str::upper($subtipo),
+                            };
+                            $tamanho = fn ($arquivo) => $arquivo->file_size >= 1024 * 1024
+                                ? number_format($arquivo->file_size / 1024 / 1024, 1, ',', '.').' MB'
+                                : number_format($arquivo->file_size / 1024, 1, ',', '.').' KB';
+                            $dimensoes = fn ($arquivo) => $arquivo->width && $arquivo->height ? "{$arquivo->width} × {$arquivo->height} px" : null;
+                        @endphp
+
+                        @if ($arquivoOriginal)
+                            <div class="mt-4">
+                                <p class="text-[0.9rem] font-semibold wrap-anywhere text-ink-950">{{ $arquivoOriginal->nome_original ?: 'Arquivo original' }}</p>
+                                <p class="mt-0.5 text-[0.8rem] text-ink-500">
+                                    {{ collect([$formato($arquivoOriginal), $tamanho($arquivoOriginal), $dimensoes($arquivoOriginal)])->filter()->join(' · ') }}
+                                </p>
+                            </div>
+                        @endif
+
+                        <h3 class="mt-5 text-[0.8rem] font-medium text-ink-600">Versões disponíveis</h3>
+                        <ul class="mt-1 divide-y divide-mist-200">
+                            @foreach ($versoes as $arquivo)
+                                <li class="flex items-center gap-3 py-2.5">
+                                    <span class="grid size-8 flex-none place-items-center rounded-md bg-mist-100 text-ink-600" aria-hidden="true">
+                                        @if ($arquivo->mime_type === 'application/pdf')
+                                            <x-lucide-file-text class="size-4" />
+                                        @else
+                                            <x-lucide-file-image class="size-4" />
+                                        @endif
+                                    </span>
+                                    <span class="min-w-0 flex-1">
+                                        <span class="block text-[0.85rem] font-semibold text-ink-950">{{ $rotuloVersao($arquivo) }}</span>
+                                        <span class="block text-[0.75rem] text-ink-500">{{ $formato($arquivo) }} · {{ $dimensoes($arquivo) ?? '—' }}</span>
+                                    </span>
+                                    <span class="flex-none text-[0.8rem] text-ink-600 tabular-nums">{{ $tamanho($arquivo) }}</span>
                                 </li>
                             @endforeach
                         </ul>
+
+                        <details class="group mt-3 border-t border-mist-200 pt-3">
+                            <summary class="flex cursor-pointer list-none items-center gap-1.5 rounded text-[0.8rem] font-semibold text-ink-700 hover:text-institutional focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-institutional [&::-webkit-details-marker]:hidden">
+                                <x-lucide-chevron-right class="size-4 transition-transform group-open:rotate-90 motion-reduce:transition-none" aria-hidden="true" />
+                                Detalhes técnicos
+                            </summary>
+                            <div class="mt-3 grid gap-3">
+                                @foreach ($versoes as $arquivo)
+                                    <dl class="grid grid-cols-[auto_minmax(0,1fr)] gap-x-3 gap-y-1 rounded-md bg-mist-50 px-3 py-2.5 text-[0.75rem]">
+                                        <dt class="text-ink-500">Arquivo</dt>
+                                        <dd class="font-semibold wrap-anywhere text-ink-950">{{ $arquivo->nome_original ?: 'Arquivo derivado' }}</dd>
+                                        <dt class="text-ink-500">Versão</dt>
+                                        <dd class="text-ink-800">{{ $rotuloVersao($arquivo) }} ({{ $arquivo->versao_arquivo }})</dd>
+                                        <dt class="text-ink-500">Tipo e tamanho</dt>
+                                        <dd class="wrap-anywhere text-ink-800">{{ $arquivo->mime_type }} · {{ $tamanho($arquivo) }} ({{ number_format($arquivo->file_size, 0, ',', '.') }} bytes)</dd>
+                                        <dt class="text-ink-500">Dimensões</dt>
+                                        <dd class="text-ink-800">{{ $dimensoes($arquivo) ?? 'Não aplicável' }}</dd>
+                                        <dt class="text-ink-500">Armazenamento</dt>
+                                        <dd class="font-mono wrap-anywhere text-ink-800">{{ $arquivo->provider }} · {{ $arquivo->storage_path }}</dd>
+                                    </dl>
+                                @endforeach
+                            </div>
+                        </details>
                     @endif
                 </section>
             </aside>
