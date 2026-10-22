@@ -268,9 +268,56 @@
                 </section>
 
                 <section class="rounded-lg border border-stone-200 bg-white p-6 shadow-sm">
-                    <h2 class="text-2xl font-semibold text-stone-950">Arquivos</h2>
-                    @php($arquivoOriginal = $fotografia->arquivos->firstWhere('versao_arquivo', 'original'))
-                    @php($previewAdministrativa = $fotografia->visualizacaoAdministrativa())
+                    @php
+                        $arquivoOriginal = $fotografia->arquivos->firstWhere('versao_arquivo', 'original');
+                        $previewAdministrativa = $fotografia->visualizacaoAdministrativa();
+                        $podeSubstituir = $arquivoOriginal && auth()->user()->can('replaceOriginal', $arquivoOriginal);
+                    @endphp
+
+                    <div class="flex items-center justify-between gap-4">
+                        <h2 class="text-2xl font-semibold text-stone-950">Arquivos</h2>
+
+                        @if ($podeSubstituir)
+                            <div
+                                class="relative"
+                                x-data="{ open: false }"
+                                @click.outside="open = false"
+                                @keydown.escape="if (open) { open = false; $refs.actionsTrigger.focus() }"
+                            >
+                                <button
+                                    type="button"
+                                    id="arquivo-acoes-botao"
+                                    x-ref="actionsTrigger"
+                                    @click="open = !open"
+                                    :aria-expanded="open"
+                                    aria-expanded="false"
+                                    aria-controls="arquivo-acoes"
+                                    aria-label="Ações do arquivo"
+                                    title="Ações do arquivo"
+                                    class="grid size-9 cursor-pointer place-items-center rounded-md text-ink-600 transition-colors hover:bg-mist-150 hover:text-ink-950 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-institutional"
+                                >
+                                    <x-lucide-ellipsis class="size-5" aria-hidden="true" />
+                                </button>
+
+                                <div
+                                    id="arquivo-acoes"
+                                    x-show="open"
+                                    x-cloak
+                                    x-transition.origin.top.right
+                                    class="absolute top-[calc(100%+0.35rem)] right-0 z-30 w-52 rounded-md border border-mist-200 bg-white p-1.5 shadow-[0_16px_30px_rgb(24_42_63/0.18)]"
+                                >
+                                    <button
+                                        type="button"
+                                        @click="open = false; $dispatch('replace-original-open')"
+                                        class="flex min-h-10 w-full cursor-pointer items-center gap-2.5 rounded px-3 text-left text-[0.8125rem] font-semibold text-ink-700 hover:bg-institutional-soft hover:text-institutional focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-institutional"
+                                    >
+                                        <x-lucide-image-up class="size-4 flex-none" aria-hidden="true" />
+                                        Substituir imagem
+                                    </button>
+                                </div>
+                            </div>
+                        @endif
+                    </div>
 
                     <div class="mt-4">
                         @if ($previewAdministrativa)
@@ -298,50 +345,83 @@
                         @endif
                     </div>
 
-                    @if ($arquivoOriginal)
-                        @can('replaceOriginal', $arquivoOriginal)
-                            <form
+                    @if ($podeSubstituir)
+                        @php $uploadConfig = config('acervo.uploads.original'); @endphp
+
+                        {{-- O próprio modal é a confirmação; o envio segue o fluxo tradicional (redirect com toast ou com o erro). --}}
+                        <div
+                            x-data="{
+                                hasFile: false,
+                                submitting: false,
+                                open() {
+                                    this.$refs.dialog.showModal();
+                                },
+                                close() {
+                                    if (! this.submitting) this.$refs.dialog.close();
+                                },
+                                // Fechar sem enviar descarta a seleção; o original segue intacto.
+                                restore() {
+                                    if (this.submitting) return;
+                                    Alpine.$data(this.$refs.dialog.querySelector('[data-dropzone]')).clear();
+                                    // A opção do menu já fechou; o foco volta para o botão de ações.
+                                    document.getElementById('arquivo-acoes-botao')?.focus();
+                                },
+                            }"
+                            x-init="if (@js($errors->has('arquivo_original')) || location.hash === '#substituir-arquivo-original') open()"
+                            @replace-original-open.window="open()"
+                            @file-change="hasFile = $event.detail.file !== null"
+                        >
+                            <dialog
                                 id="substituir-arquivo-original"
-                                method="POST"
-                                action="{{ route('admin.fotografias.replace-original', $fotografia) }}"
-                                enctype="multipart/form-data"
-                                class="mt-4 space-y-3 border-b border-stone-200 pb-5"
-                                data-confirm-title="Confirmar substituição"
-                                data-confirm-message="Substituir o arquivo original desta fotografia? As versões otimizadas serão geradas novamente."
-                                data-confirm-label="Substituir arquivo"
-                                data-confirm-variant="primary"
+                                x-ref="dialog"
+                                aria-labelledby="substituir-imagem-titulo"
+                                aria-describedby="substituir-imagem-descricao"
+                                @cancel="if (submitting) $event.preventDefault()"
+                                @close="restore()"
+                                class="fixed top-1/2 left-1/2 m-0 box-border max-h-[calc(100dvh-2rem)] w-[min(36rem,calc(100%-2rem))] -translate-x-1/2 -translate-y-1/2 rounded-lg bg-white p-0 text-ink-950 shadow-[0_24px_64px_rgb(15_23_42/0.28)] backdrop:bg-[rgb(15_23_42/0.55)] open:flex open:flex-col"
                             >
-                                @csrf
-                                @method('PUT')
-
-                                <div>
-                                    <label for="arquivo_original" class="text-xs font-semibold uppercase tracking-[0.12em] text-stone-600">
-                                        Substituir arquivo original
-                                    </label>
-                                    <input
-                                        id="arquivo_original"
-                                        name="arquivo_original"
-                                        type="file"
-                                        accept=".jpg,.jpeg,.png,.webp,.tif,.tiff,.pdf,image/jpeg,image/png,image/webp,image/tiff,application/pdf"
-                                        required
-                                        class="mt-2 block w-full rounded-md border border-stone-300 bg-white px-3 py-2 text-sm text-stone-700 file:mr-4 file:rounded-md file:border-0 file:bg-institutional file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-institutional-strong focus:outline-none focus:ring-2 focus:ring-institutional focus:ring-offset-2"
-                                    >
-                                    <p class="mt-2 text-xs leading-5 text-stone-500">
-                                        O novo arquivo será validado, substituirá o original atual e recriará as versões otimizadas.
-                                    </p>
-                                    @error('arquivo_original')
-                                        <p class="mt-2 text-sm font-medium text-red-700">{{ $message }}</p>
-                                    @enderror
-                                </div>
-
-                                <button
-                                    type="submit"
-                                    class="inline-flex items-center justify-center rounded-md border border-stone-300 px-4 py-2 text-sm font-semibold text-stone-700 transition hover:bg-stone-100 focus:outline-none focus:ring-2 focus:ring-institutional focus:ring-offset-2"
+                                <form
+                                    method="POST"
+                                    action="{{ route('admin.fotografias.replace-original', $fotografia) }}"
+                                    enctype="multipart/form-data"
+                                    class="flex min-h-0 flex-col"
+                                    @submit="submitting = true"
+                                    :aria-busy="submitting"
                                 >
-                                    Substituir arquivo
-                                </button>
-                            </form>
-                        @endcan
+                                    @csrf
+                                    @method('PUT')
+
+                                    <div class="flex items-start justify-between gap-4 border-b border-mist-200 px-5 py-4">
+                                        <div class="min-w-0">
+                                            <h2 id="substituir-imagem-titulo" class="text-[1.05rem] font-semibold">Substituir imagem</h2>
+                                            <p id="substituir-imagem-descricao" class="mt-1 text-[0.8rem] leading-normal text-ink-600">Selecione um novo arquivo para substituir a imagem original deste registro.</p>
+                                        </div>
+                                        <button type="button" @click="close()" :disabled="submitting" aria-label="Fechar" title="Fechar" class="grid size-8 flex-none cursor-pointer place-items-center rounded-full text-ink-600 hover:bg-institutional-soft hover:text-ink-950 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-institutional disabled:cursor-wait disabled:opacity-55">
+                                            <x-lucide-x class="size-4" aria-hidden="true" />
+                                        </button>
+                                    </div>
+
+                                    <div class="min-h-0 flex-1 overflow-y-auto bg-mist-50 p-5">
+                                        <x-catalog.file-dropzone
+                                            data-dropzone
+                                            name="arquivo_original"
+                                            :mime-types="$uploadConfig['mime_types']"
+                                            :extensions="$uploadConfig['extensions']"
+                                            :max-kb="$uploadConfig['max_kb']"
+                                        />
+                                        <p class="mt-3 text-[0.75rem] leading-normal text-ink-500">As versões otimizadas serão geradas novamente a partir do novo arquivo.</p>
+                                        @error('arquivo_original') <x-catalog.error as="p" role="alert">{{ $message }}</x-catalog.error> @enderror
+                                    </div>
+
+                                    <div class="flex flex-col-reverse gap-2 border-t border-mist-200 px-5 py-4 sm:flex-row sm:justify-end">
+                                        <x-catalog.button variant="secondary" x-on:click="close()" x-bind:disabled="submitting">Cancelar</x-catalog.button>
+                                        <x-catalog.button type="submit" disabled x-bind:disabled="!hasFile || submitting">
+                                            <span x-text="submitting ? 'Substituindo…' : 'Confirmar substituição'">Confirmar substituição</span>
+                                        </x-catalog.button>
+                                    </div>
+                                </form>
+                            </dialog>
+                        </div>
                     @endif
 
                     @if ($fotografia->arquivos->isEmpty())

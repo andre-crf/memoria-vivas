@@ -291,11 +291,27 @@ class AdminFotografiaOriginalUploadTest extends TestCase
             ->actingAs($this->usuarioInterno('operador'))
             ->get(route('admin.fotografias.show', $fotografia))
             ->assertOk()
-            ->assertSee('Substituir arquivo original')
+            ->assertSee('aria-label="Ações do arquivo"', false)
+            ->assertSee('Substituir imagem')
+            ->assertSee('Selecione um novo arquivo para substituir a imagem original deste registro.')
             ->assertSee(route('admin.fotografias.replace-original', $fotografia), false)
+            ->assertSee('x-data="fileDropzone(', false)
             ->assertSee('name="arquivo_original"', false)
-            ->assertSee('Substituir o arquivo original desta fotografia? As versões otimizadas serão geradas novamente.', false)
+            ->assertSee('Confirmar substituição')
+            ->assertDontSee('Substituir o arquivo original desta fotografia?')
             ->assertSee($arquivo->storage_path);
+    }
+
+    public function test_photograph_without_original_file_has_no_file_actions_menu(): void
+    {
+        $fotografia = $this->fotografia();
+
+        $this
+            ->actingAs($this->usuarioInterno('operador'))
+            ->get(route('admin.fotografias.show', $fotografia))
+            ->assertOk()
+            ->assertDontSee('Ações do arquivo')
+            ->assertDontSee('name="arquivo_original"', false);
     }
 
     public function test_internal_user_can_replace_original_file_and_regenerate_optimized_versions(): void

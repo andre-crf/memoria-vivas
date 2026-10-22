@@ -146,6 +146,8 @@ export default function registerPhotographyForm(Alpine) {
             this.previewFailed = false;
             if (this.isImage) this.previewUrl = URL.createObjectURL(file);
             this.syncInput();
+            // Quem usa o dropzone, como o modal de substituição, acompanha a seleção por este evento.
+            this.$dispatch('file-change', { file });
 
             return true;
         },
@@ -182,6 +184,7 @@ export default function registerPhotographyForm(Alpine) {
             this.previewFailed = false;
             this.error = '';
             this.syncInput();
+            this.$dispatch('file-change', { file: null });
         },
 
         revokePreview() {

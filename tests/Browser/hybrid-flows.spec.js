@@ -288,6 +288,112 @@ test('original file can be removed and replaced, and invalid files are rejected'
     await expect(preview.getByText('teclado.png', { exact: true })).toBeVisible();
 });
 
+async function createPhotographWithOriginal(page, title, file) {
+    await page.goto('/admin/fotografias/create');
+    await page.getByLabel(/Título obrigatório/).fill(title);
+    await page.locator('#arquivo_original').setInputFiles(file);
+    await page.getByRole('button', { name: 'Salvar fotografia' }).click();
+    await expect(page).toHaveURL(/\/admin\/fotografias$/);
+}
+
+const pdf = (name, marker) => ({ name, mimeType: 'application/pdf', buffer: Buffer.from(`%PDF-1.4\n% ${marker}\n%%EOF`) });
+
+test('original file is replaced through the actions menu and the drag and drop modal', async ({ page }) => {
+    test.setTimeout(60_000);
+    const marker = unique('substituicao');
+    const duplicated = pdf('duplicado.pdf', `${marker}-a`);
+    await createPhotographWithOriginal(page, unique('Fotografia já cadastrada'), duplicated);
+    const title = unique('Fotografia a substituir');
+    await createPhotographWithOriginal(page, title, pdf('atual.pdf', `${marker}-b`));
+    await page.locator('tr').filter({ hasText: title }).getByRole('link', { name: 'Visualizar', exact: true }).click();
+
+    const trigger = page.getByRole('button', { name: 'Ações do arquivo' });
+    const option = page.getByRole('button', { name: 'Substituir imagem' });
+    const dialog = page.getByRole('dialog', { name: 'Substituir imagem' });
+    const confirm = dialog.getByRole('button', { name: 'Confirmar substituição' });
+    const preview = dialog.getByTestId('file-preview');
+    await expect(page.getByText('Substituir arquivo original')).toHaveCount(0);
+
+    // Menu: abre e fecha no botão, fecha com Esc (foco volta) e com clique fora.
+    await trigger.click();
+    await expect(trigger).toHaveAttribute('aria-expanded', 'true');
+    await expect(option).toBeVisible();
+    await trigger.click();
+    await expect(option).toBeHidden();
+    await trigger.press('Enter');
+    await expect(option).toBeVisible();
+    await page.keyboard.press('Tab');
+    await expect(option).toBeFocused();
+    await page.keyboard.press('Escape');
+    await expect(option).toBeHidden();
+    await expect(trigger).toBeFocused();
+    await trigger.click();
+    await page.getByRole('heading', { name: title }).click();
+    await expect(option).toBeHidden();
+
+    // Modal: começa vazio e sem confirmação possível.
+    await trigger.click();
+    await option.click();
+    await expect(dialog).toBeVisible();
+    await expect(dialog).toContainText('Selecione um novo arquivo para substituir a imagem original deste registro.');
+    await expect(dialog).toContainText('JPG, JPEG, PNG, WebP, TIF, TIFF ou PDF · até 50 MB');
+    await expect(confirm).toBeDisabled();
+
+    await dropFile(page, { name: 'notas.txt', type: 'text/plain' });
+    await expect(dialog.getByRole('alert').filter({ hasText: 'Formato não aceito' })).toBeVisible();
+    await expect(confirm).toBeDisabled();
+
+    await dropFile(page, { name: 'logo.png', type: 'image/png', fromPath: 'public/images/memorias-vivas-logo.png' });
+    await expect(preview.getByRole('img', { name: 'Pré-visualização de logo.png' })).toBeVisible();
+    await expect(confirm).toBeEnabled();
+    await preview.getByRole('button', { name: 'Remover' }).click();
+    await expect(confirm).toBeDisabled();
+
+    // Cancelar fecha, descarta a seleção e devolve o foco ao menu.
+    await dialog.locator('#arquivo_original').setInputFiles(pdf('descartado.pdf', `${marker}-c`));
+    await dialog.getByRole('button', { name: 'Cancelar' }).click();
+    await expect(dialog).toBeHidden();
+    await expect(trigger).toBeFocused();
+    await expect(page.getByText('atual.pdf', { exact: true })).not.toHaveCount(0);
+    await trigger.click();
+    await option.click();
+    await expect(preview).toBeHidden();
+    await expect(confirm).toBeDisabled();
+
+    // Erro do backend (arquivo de outra fotografia): o modal volta aberto com a mensagem e o original fica.
+    await dialog.locator('#arquivo_original').setInputFiles(duplicated);
+    await confirm.click();
+    await expect(dialog).toBeVisible();
+    await expect(dialog.getByRole('alert')).not.toHaveCount(0);
+    await expect(page.getByText('Arquivo original substituído com sucesso.')).toHaveCount(0);
+    await expect(page.getByText('atual.pdf', { exact: true })).not.toHaveCount(0);
+
+    // Sucesso: toast e metadados do novo arquivo.
+    await dialog.locator('#arquivo_original').setInputFiles(pdf('novo.pdf', `${marker}-d`));
+    await confirm.click();
+    await expect(page.getByText('Arquivo original substituído com sucesso.')).toBeVisible();
+    await expect(dialog).toBeHidden();
+    await expect(page.getByText('novo.pdf', { exact: true })).toBeVisible();
+    await expect(page.getByText('Substituição · novo.pdf')).toBeVisible();
+    await expect(page.getByText('atual.pdf', { exact: true })).toHaveCount(0);
+
+    // O atalho do formulário de edição abre o modal direto.
+    await page.getByRole('link', { name: 'Editar', exact: true }).click();
+    await page.getByRole('link', { name: 'Substituir na página da fotografia' }).click();
+    await expect(dialog).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(dialog).toBeHidden();
+
+    // No celular, o modal cabe na tela.
+    await page.setViewportSize({ width: 390, height: 844 });
+    await trigger.click();
+    await option.click();
+    const box = await dialog.boundingBox();
+    expect(box.x).toBeGreaterThanOrEqual(0);
+    expect(box.x + box.width).toBeLessThanOrEqual(390);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)).toBeLessThanOrEqual(0);
+});
+
 for (const mode of ['cadastro', 'edição']) {
     test(`modals preserve photograph fields and select all five catalogs during ${mode}`, async ({ page }) => {
         test.setTimeout(60_000);
