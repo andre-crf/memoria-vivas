@@ -29,7 +29,8 @@ class PublicNavigationTest extends TestCase
 
                 // Link absoluto sem caminho (ex.: a home na raiz + #fragmento) aponta para "/".
                 $path = $url['path'] ?? (isset($url['host']) ? '/' : route($route));
-                $destination = $this->get($path)->assertOk();
+                // A área administrativa leva o visitante ao login por redirecionamento.
+                $destination = $this->followingRedirects()->get($path)->assertOk();
 
                 if (isset($url['fragment'])) {
                     $targetDocument = new DOMDocument;

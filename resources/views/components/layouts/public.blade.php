@@ -131,7 +131,7 @@
                 <x-public.container
                     class="flex min-h-14 flex-wrap items-center justify-between gap-4 py-4 text-[0.75rem]">
                     <span>&copy; {{ date('Y') }} Memórias Vivas de Umuarama</span>
-                    <a href="{{ route('login') }}" class="{{ $footerLink }}">Área administrativa</a>
+                    <a href="{{ route('admin.dashboard') }}" class="{{ $footerLink }}">Área administrativa</a>
                 </x-public.container>
             </div>
         </footer>

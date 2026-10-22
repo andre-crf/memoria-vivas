@@ -24,6 +24,9 @@ return Application::configure(basePath: dirname(__DIR__))
         // exceção o middleware tentaria decifrá-lo e o descartaria. O valor não
         // é sigiloso e é validado contra a lista IANA antes de ser usado.
         $middleware->encryptCookies(except: [FusoDoUsuario::COOKIE]);
+
+        // A raiz é a home pública: quem já está logado e abre o login vai direto para o painel.
+        $middleware->redirectUsersTo(fn (): string => route('admin.dashboard'));
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(
