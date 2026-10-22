@@ -1,4 +1,4 @@
-<x-layouts.public title="Catálogo | Memórias Vivas" :catalog-query="$filtros->parametros()" :search-error="$searchError ?? null" :show-search="false">
+<x-layouts.public title="Catálogo | Memórias Vivas" :catalog-query="$filtros->parametros()" :search-error="$searchError ?? null">
     @php
         $parametros = $filtros->parametros();
         $semParametro = fn (string ...$chaves): string => route('public.catalogo', collect($parametros)->except($chaves)->all());
@@ -20,9 +20,9 @@
             <x-public.heading as="h1" class="mt-3 text-[clamp(2rem,4.5vw,3.25rem)] leading-[1.08] font-medium tracking-[-0.01em]">Explore o acervo</x-public.heading>
             <p class="mt-3 max-w-160 text-[1rem] leading-[1.65] text-ink-600">Descubra fotografias, lugares e momentos preservados na memória de Umuarama.</p>
 
-            <div x-data="catalogFilters" class="mt-7">
+            <div x-data="drawer" class="mt-7">
                 <div class="flex flex-col gap-3 sm:flex-row sm:items-start">
-                    <x-public.search-form variant="page" :catalog-query="$parametros" :search-error="$searchError ?? null" class="flex-1" />
+                    <x-public.search-form :catalog-query="$parametros" :search-error="$searchError ?? null" class="flex-1" />
                     <button
                         type="button"
                         @click="open()"

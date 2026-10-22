@@ -116,7 +116,7 @@ for (const [viewportName, viewport] of Object.entries(viewports)) {
 
             await page.goto('/contato');
             if (viewportName === 'mobile') {
-                await page.getByTestId('public-menu').locator('summary').click();
+                await page.getByRole('button', { name: 'Abrir menu' }).click();
                 await capture(page, `publico-menu-aberto-${viewportName}`);
             }
         });

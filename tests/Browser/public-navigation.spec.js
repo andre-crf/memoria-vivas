@@ -1,35 +1,67 @@
 import { expect, test } from '@playwright/test';
 import { resetDatabase } from './environment.js';
 
-test('global search preserves the term and the mobile menu supports keyboard navigation', async ({ page }) => {
-    await page.setViewportSize({ width: 390, height: 844 });
+test('desktop header: keyboard order, search shortcut and no admin link', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 800 });
     await page.goto('/contato');
+    const header = page.getByRole('banner');
 
     await page.keyboard.press('Tab');
     await expect(page.getByRole('link', { name: 'Pular para o conteúdo' })).toBeFocused();
     await page.keyboard.press('Tab');
     await expect(page.getByTestId('public-brand')).toBeFocused();
+    for (const nome of ['Início', 'Catálogo', 'Sobre nós', 'Como colaborar', 'Contato']) {
+        await page.keyboard.press('Tab');
+        await expect(header.getByRole('link', { name: nome, exact: true })).toBeFocused();
+    }
+    await expect(header.getByRole('link', { name: 'Contato', exact: true })).toHaveAttribute('aria-current', 'page');
     await page.keyboard.press('Tab');
-    await expect(page.getByRole('searchbox', { name: 'Buscar no catálogo' })).toBeFocused();
-    await page.keyboard.press('Tab');
-    await expect(page.getByRole('button', { name: 'Buscar no catálogo' })).toBeFocused();
-    await page.keyboard.press('Tab');
+    const lupa = header.getByRole('link', { name: 'Pesquisar no acervo' });
+    await expect(lupa).toBeFocused();
+    await expect(lupa).toHaveCSS('outline-style', 'solid');
 
-    const publicMenu = page.getByTestId('public-menu');
-    const menu = publicMenu.locator('summary');
-    await expect(menu).toBeFocused();
-    await expect(menu).toHaveCSS('outline-style', 'solid');
+    await expect(header.getByRole('searchbox')).toHaveCount(0);
+    await expect(header.getByText('Área administrativa')).toHaveCount(0);
+    await expect(page.getByRole('contentinfo').getByRole('link', { name: 'Área administrativa' })).toBeVisible();
+
+    // A lupa leva à busca do catálogo, com o campo já focado.
     await page.keyboard.press('Enter');
-    await expect(publicMenu).toHaveAttribute('open', '');
-    await expect(publicMenu.locator('a[aria-current="page"]')).toHaveText('Contato');
-
-    const search = page.getByRole('searchbox', { name: 'Buscar no catálogo' });
-    await search.fill('praça central');
-    await search.press('Enter');
-
+    await expect(page).toHaveURL(/\/catalogo#busca$/);
+    const busca = page.getByRole('searchbox', { name: 'Buscar no catálogo' });
+    await expect(busca).toBeFocused();
+    await busca.fill('praça central');
+    await busca.press('Enter');
     await expect(page).toHaveURL(/\/catalogo\?q=pra%C3%A7a\+central$/);
     await expect(page.getByText('Resultados para “praça central”.', { exact: true })).toBeVisible();
-    await expect(page.getByRole('searchbox', { name: 'Buscar no catálogo' })).toHaveValue('praça central');
+
+    // No catálogo, a lupa preserva a pesquisa atual.
+    await expect(page.getByRole('banner').getByRole('link', { name: 'Pesquisar no acervo' })).toHaveAttribute('href', /\/catalogo\?q=pra%C3%A7a(\+|%20)central#busca$/);
+});
+
+test('mobile header: menu drawer opens, highlights the page, closes with Escape and on navigation', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto('/contato');
+    const header = page.getByRole('banner');
+    const trigger = header.getByRole('button', { name: 'Abrir menu' });
+    const menu = page.getByTestId('public-menu');
+
+    await expect(header.getByRole('link', { name: 'Pesquisar no acervo' })).toBeVisible();
+    await expect(header.getByRole('navigation').first()).toBeHidden();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)).toBeLessThanOrEqual(0);
+
+    await trigger.focus();
+    await page.keyboard.press('Enter');
+    await expect(menu).toBeVisible();
+    await expect(menu.locator('a[aria-current="page"]')).toHaveText('Contato');
+    await expect(menu.getByText('Área administrativa')).toHaveCount(0);
+    await page.keyboard.press('Escape');
+    await expect(menu).toBeHidden();
+    await expect(trigger).toBeFocused();
+
+    await trigger.click();
+    await menu.getByRole('link', { name: 'Sobre nós' }).click();
+    await expect(page).toHaveURL(/\/sobre$/);
+    await expect(page.getByTestId('public-menu')).toBeHidden();
 });
 
 test('public carousel keeps only the visible photograph interactive', async ({ page }) => {
@@ -66,7 +98,7 @@ test('unknown pages offer a clear route back into the public area', async ({ pag
 
     expect(response?.status()).toBe(404);
     await expect(page.getByRole('heading', { name: 'Esta página não foi encontrada' })).toBeVisible();
-    await expect(page.getByRole('link', { name: 'Ir para o início' })).toHaveAttribute('href', /\/publico$/);
+    await expect(page.getByRole('link', { name: 'Ir para o início' })).toHaveAttribute('href', /^https?:\/\/[^/]+\/?$/);
     await expect(page.getByRole('link', { name: 'Abrir o catálogo' })).toHaveAttribute('href', /\/catalogo$/);
 });
 

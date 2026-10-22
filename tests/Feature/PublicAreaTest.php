@@ -24,10 +24,37 @@ class PublicAreaTest extends TestCase
             ->assertSee('Explorar o catálogo')
             ->assertSee('Uma porta de entrada para a memória local')
             ->assertSee('Navegação pública', false)
-            ->assertSee('Buscar no catálogo')
+            ->assertSee('Pesquisar no acervo')
             ->assertSee(route('public.catalogo'), false)
             ->assertSee('Área administrativa')
             ->assertDontSee('Administração do acervo');
+    }
+
+    public function test_header_keeps_only_navigation_and_a_search_shortcut(): void
+    {
+        $html = $this->get(route('public.sobre'))->assertOk()->getContent();
+        $header = str($html)->between('aria-label="Cabeçalho público"', '</header>')->toString();
+
+        // Sem campo de busca fora do catálogo: a lupa leva à busca do catálogo.
+        $this->assertStringNotContainsString('name="q"', $html);
+        $this->assertStringContainsString('href="'.route('public.catalogo').'#busca"', $header);
+        $this->assertStringContainsString('aria-label="Pesquisar no acervo"', $header);
+
+        // A área administrativa fica só no rodapé.
+        $this->assertStringNotContainsString('Área administrativa', $header);
+        $this->assertStringContainsString('Área administrativa', $html);
+
+        $this->assertMatchesRegularExpression(
+            '/Início.*Catálogo.*Sobre nós.*Como colaborar.*Contato/s',
+            str($header)->between('<nav', '</nav>')->toString(),
+        );
+    }
+
+    public function test_header_search_shortcut_preserves_the_current_catalog_query(): void
+    {
+        $this->get(route('public.catalogo', ['q' => 'praça']))
+            ->assertOk()
+            ->assertSee('href="'.e(route('public.catalogo', ['q' => 'praça'])).'#busca"', false);
     }
 
     public function test_authenticated_user_can_access_public_home_without_being_redirected(): void

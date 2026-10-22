@@ -1,6 +1,7 @@
-export default function registerCatalogFilters(Alpine) {
-    // Drawer de filtros do catálogo: <dialog> modal (foco preso, Esc fecha), com a rolagem da página travada.
-    Alpine.data('catalogFilters', () => ({
+export default function registerDrawer(Alpine) {
+    // Painel lateral (<dialog> modal: foco preso, Esc fecha), usado pelos filtros do catálogo e pelo menu público.
+    // Trava a rolagem da página enquanto aberto e devolve o foco a quem abriu.
+    Alpine.data('drawer', () => ({
         previousOverflow: '',
         opener: null,
 
