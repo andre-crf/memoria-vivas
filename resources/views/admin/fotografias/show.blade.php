@@ -61,6 +61,7 @@
                         <x-admin.info-block label="Data">{{ $fotografia->dataHistorica()->label() }}</x-admin.info-block>
                         <x-admin.info-block label="Local atual" :empty="! $fotografia->local_atual">{{ $fotografia->local_atual ?: 'Não informado' }}</x-admin.info-block>
                         <x-admin.info-block label="Local na época" :empty="! $fotografia->local_epoca">{{ $fotografia->local_epoca ?: 'Não informado' }}</x-admin.info-block>
+                        <x-admin.info-block label="Localização física do original" :empty="! $fotografia->localizacao_fisica">{{ $fotografia->localizacao_fisica ?: 'Não informado' }}</x-admin.info-block>
                         <x-admin.info-block label="Evento relacionado" :empty="! $fotografia->evento">{{ $fotografia->evento ?: 'Não informado' }}</x-admin.info-block>
                         <x-admin.info-block label="Cedente" :empty="! $fotografia->cedente">{{ $fotografia->cedente ?: 'Não informado' }}</x-admin.info-block>
                         <x-admin.info-block label="Estado de conservação">{{ $fotografia->estadoConservacaoLabel() }}</x-admin.info-block>

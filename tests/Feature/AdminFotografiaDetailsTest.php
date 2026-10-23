@@ -43,6 +43,7 @@ class AdminFotografiaDetailsTest extends TestCase
             'ano' => 1980,
             'local_atual' => 'Praça Santos Dumont',
             'local_epoca' => 'Praça Central',
+            'localizacao_fisica' => 'Reserva técnica, estante 4',
             'evento' => 'Reforma urbana',
             'cedente' => 'Família Silva',
             'estado_conservacao' => 'bom',
@@ -96,6 +97,8 @@ class AdminFotografiaDetailsTest extends TestCase
             ->assertSee('Data exata')
             ->assertSee('Praça Santos Dumont')
             ->assertSee('Praça Central')
+            ->assertSee('Localização física do original')
+            ->assertSee('Reserva técnica, estante 4')
             ->assertSee('Reforma da praça')
             ->assertSee('Família Silva')
             ->assertSee('Bom')

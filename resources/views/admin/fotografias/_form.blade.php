@@ -128,6 +128,17 @@
         </div>
     </x-catalog.section>
 
+    <x-catalog.section
+        title="Localização física do original"
+        description="Informe onde o material original está armazenado. Este dado é interno e não aparece no catálogo público."
+    >
+        <x-catalog.label for="localizacao_fisica" text="Localização física">
+            <x-catalog.control as="textarea" id="localizacao_fisica" name="localizacao_fisica" rows="2" maxlength="1000">{{ $value('localizacao_fisica') }}</x-catalog.control>
+            <span class="text-[0.72rem] leading-relaxed text-ink-500">Diferente dos locais históricos retratados acima; este dado é interno e não aparece no catálogo público.</span>
+            @error('localizacao_fisica') <x-catalog.error>{{ $message }}</x-catalog.error> @enderror
+        </x-catalog.label>
+    </x-catalog.section>
+
     <x-catalog.section title="Pessoas identificadas" description="Opcional. Indique somente quem aparece na imagem.">
         <livewire:admin.catalog-picker catalog="pessoa" :initial-selected="$selectedPessoas" :key="'picker-pessoa-'.($fotografia?->id ?? 'new')" />
     </x-catalog.section>

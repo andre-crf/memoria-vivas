@@ -54,6 +54,7 @@ class AdminFotografiaEditingTest extends TestCase
             'ano' => 1981,
             'local_atual' => 'Praça Santos Dumont',
             'local_epoca' => 'Praça Central antiga',
+            'localizacao_fisica' => 'Reserva técnica, estante 9',
             'evento' => 'Comemoração municipal',
             'cedente' => 'Arquivo Municipal',
             'estado_conservacao' => 'regular',
@@ -90,6 +91,7 @@ class AdminFotografiaEditingTest extends TestCase
                 ->assertSee("Fotografia editável {$role}")
                 ->assertSee('Registro da reforma da praça central.')
                 ->assertSee('Praça Santos Dumont')
+                ->assertSee('Localização física do original')
                 ->assertSee('Salvar alterações');
         }
     }
@@ -121,6 +123,7 @@ class AdminFotografiaEditingTest extends TestCase
             'ano' => 1981,
             'decada' => null,
             'local_epoca' => 'Praça Central antiga',
+            'localizacao_fisica' => 'Reserva técnica, estante 9',
             'evento' => 'Comemoração municipal',
             'cedente' => 'Arquivo Municipal',
             'estado_conservacao' => 'regular',

@@ -89,6 +89,7 @@ class AuditItemAcervoIntegrationTest extends TestCase
                 'titulo' => 'Coreto da praça',
                 'tipo_data' => 'ano',
                 'ano' => 1975,
+                'localizacao_fisica' => 'Reserva técnica, armário 2',
                 'estado_conservacao' => 'bom',
                 'status' => 'rascunho',
                 'visibilidade' => Visibilidade::Privado->value,
@@ -115,6 +116,7 @@ class AuditItemAcervoIntegrationTest extends TestCase
         $this->assertSame(1975, $event->new_values['ano']);
         $this->assertSame('ano', $event->new_values['tipo_data']);
         $this->assertSame('privado', $event->new_values['visibilidade']);
+        $this->assertSame('Reserva técnica, armário 2', $event->new_values['localizacao_fisica']);
         $this->assertSame(['id' => $autor->id, 'label' => 'Foto Estrela'], $event->new_values['autor']);
         $this->assertSame([['id' => $categoria->id, 'label' => 'Arquitetura']], $event->new_values['categorias']);
         $this->assertSame([['id' => $assunto->id, 'label' => 'Praças']], $event->new_values['assuntos']);
@@ -143,6 +145,7 @@ class AuditItemAcervoIntegrationTest extends TestCase
         $this->actingAs($admin)
             ->put(route('admin.fotografias.update', $fotografia), $this->payload($fotografia, [
                 'titulo' => 'Praça central reformada',
+                'localizacao_fisica' => 'Reserva técnica, armário 5',
                 'status' => 'publicado',
                 'categorias' => [$mantida->id, $adicionada->id],
                 'pessoas' => [$pessoa->id],
@@ -156,6 +159,7 @@ class AuditItemAcervoIntegrationTest extends TestCase
         $this->assertSame('Praça central reformada', $event->subject_label);
         $this->assertSame([
             'titulo' => 'Praça central',
+            'localizacao_fisica' => null,
             'status' => 'rascunho',
             'categorias' => [
                 ['id' => $mantida->id, 'label' => 'Arquitetura'],
@@ -165,6 +169,7 @@ class AuditItemAcervoIntegrationTest extends TestCase
         ], $event->old_values);
         $this->assertSame([
             'titulo' => 'Praça central reformada',
+            'localizacao_fisica' => 'Reserva técnica, armário 5',
             'status' => 'publicado',
             'categorias' => [
                 ['id' => $mantida->id, 'label' => 'Arquitetura'],
@@ -179,7 +184,7 @@ class AuditItemAcervoIntegrationTest extends TestCase
             ['descriptive', 'publication', 'relationships'],
             $event->metadata['change_groups'],
         );
-        $this->assertSame(['titulo', 'status', 'categorias', 'pessoas'], $event->metadata['changed_fields']);
+        $this->assertSame(['titulo', 'localizacao_fisica', 'status', 'categorias', 'pessoas'], $event->metadata['changed_fields']);
         $this->assertSame([
             'categorias' => ['added' => [$adicionada->id], 'removed' => [$removida->id]],
             'pessoas' => ['added' => [$pessoa->id], 'removed' => []],

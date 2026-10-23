@@ -36,6 +36,7 @@ class FotografiaPublicaDetalheTest extends TestCase
             'ano' => 1985,
             'local_atual' => 'Avenida Paraná',
             'local_epoca' => 'Rua Principal',
+            'localizacao_fisica' => 'Depósito restrito, armário confidencial',
             'evento' => 'Aniversário de Umuarama',
             'cedente' => 'Família Oliveira',
             'estado_conservacao' => 'critico',
@@ -93,6 +94,8 @@ class FotografiaPublicaDetalheTest extends TestCase
             ->assertSee('Data exata')
             ->assertSee('Avenida Paraná')
             ->assertSee('Rua Principal')
+            ->assertDontSee('Depósito restrito, armário confidencial')
+            ->assertDontSee('Localização física do original')
             ->assertSee('Aniversário de Umuarama')
             ->assertSee('Família Oliveira')
             ->assertSee('Arquivo Histórico Municipal')

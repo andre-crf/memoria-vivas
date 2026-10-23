@@ -25,6 +25,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
     'tipo_data',
     'local_atual',
     'local_epoca',
+    'localizacao_fisica',
     'evento',
     'cedente',
     'estado_conservacao',

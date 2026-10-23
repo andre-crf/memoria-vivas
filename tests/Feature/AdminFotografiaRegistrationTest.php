@@ -40,6 +40,7 @@ class AdminFotografiaRegistrationTest extends TestCase
                 ->assertSee('Precisão da data')
                 ->assertSee('Local atual')
                 ->assertSee('Local na época')
+                ->assertSee('Localização física do original')
                 ->assertSee('Evento relacionado')
                 ->assertSee('Cedente')
                 ->assertSee('Estado de conservação')
@@ -64,6 +65,7 @@ class AdminFotografiaRegistrationTest extends TestCase
                 'ano' => 1980,
                 'local_atual' => 'Praça Santos Dumont',
                 'local_epoca' => 'Praça Central',
+                'localizacao_fisica' => 'Reserva técnica, estante 4, caixa 12',
                 'evento' => 'Reforma urbana',
                 'cedente' => 'Família Silva',
                 'estado_conservacao' => 'bom',
@@ -84,6 +86,7 @@ class AdminFotografiaRegistrationTest extends TestCase
             'ano' => 1980,
             'local_atual' => 'Praça Santos Dumont',
             'local_epoca' => 'Praça Central',
+            'localizacao_fisica' => 'Reserva técnica, estante 4, caixa 12',
             'evento' => 'Reforma urbana',
             'cedente' => 'Família Silva',
             'estado_conservacao' => 'bom',
@@ -158,6 +161,23 @@ class AdminFotografiaRegistrationTest extends TestCase
         ]);
     }
 
+    public function test_registration_validates_physical_location_length(): void
+    {
+        $this
+            ->actingAs($this->usuarioInterno())
+            ->from(route('admin.fotografias.create'))
+            ->post(route('admin.fotografias.store'), [
+                'titulo' => 'Foto com localização extensa',
+                'tipo_data' => 'desconhecida',
+                'localizacao_fisica' => str_repeat('a', 1001),
+                'estado_conservacao' => 'desconhecido',
+                'status' => 'rascunho',
+                'visibilidade' => Visibilidade::Privado->value,
+            ])
+            ->assertRedirect(route('admin.fotografias.create'))
+            ->assertSessionHasErrors('localizacao_fisica');
+    }
+
     public function test_optional_empty_fields_are_stored_as_null(): void
     {
         $this
@@ -181,6 +201,7 @@ class AdminFotografiaRegistrationTest extends TestCase
         $this->assertNull($fotografia->legenda);
         $this->assertNull($fotografia->local_atual);
         $this->assertNull($fotografia->local_epoca);
+        $this->assertNull($fotografia->localizacao_fisica);
         $this->assertNull($fotografia->evento);
         $this->assertNull($fotografia->cedente);
     }
