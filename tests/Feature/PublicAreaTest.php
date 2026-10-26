@@ -30,6 +30,58 @@ class PublicAreaTest extends TestCase
             ->assertDontSee('Administração do acervo');
     }
 
+    public function test_home_keeps_the_existing_hero_until_an_approved_photo_is_configured(): void
+    {
+        config()->set('hero.slides', [
+            ['imagem' => 'images/hero/nao-existe.jpg', 'alt' => 'Fotografia ausente'],
+            ['imagem' => '../.env', 'alt' => 'Caminho inválido'],
+        ]);
+
+        $this->get(route('public.home'))
+            ->assertOk()
+            ->assertSee('Identidade visual do projeto')
+            ->assertDontSee('data-hero-carousel', false);
+    }
+
+    public function test_one_configured_hero_photo_has_context_without_redundant_controls(): void
+    {
+        config()->set('hero.slides', [[
+            'imagem' => 'images/memorias-vivas-logo.png',
+            'alt' => 'Fotografia de referência',
+            'titulo' => 'Praça central',
+            'descricao' => 'Umuarama, década de 1970.',
+        ]]);
+
+        $this->get(route('public.home'))
+            ->assertOk()
+            ->assertSee('data-hero-carousel', false)
+            ->assertSee('Fotografia de referência')
+            ->assertSee('Praça central')
+            ->assertSee('Umuarama, década de 1970.')
+            ->assertSee('fetchpriority="high"', false)
+            ->assertDontSee('data-hero-controls', false)
+            ->assertDontSee('Identidade visual do projeto');
+    }
+
+    public function test_multiple_hero_photos_render_navigation_and_hidden_inactive_slide(): void
+    {
+        config()->set('hero.slides', [
+            ['imagem' => 'images/memorias-vivas-logo.png', 'alt' => 'Primeira imagem'],
+            ['imagem' => 'images/umuarama-panorama-horizontal.png', 'alt' => 'Segunda imagem'],
+        ]);
+
+        $this->get(route('public.home'))
+            ->assertOk()
+            ->assertSee('aria-roledescription="carrossel"', false)
+            ->assertSee('Fotografia anterior')
+            ->assertSee('Próxima fotografia')
+            ->assertSee('Exibir fotografia 2 de 2')
+            ->assertSee('aria-hidden="true"', false)
+            ->assertSee('motion-reduce:transition-none', false)
+            ->assertSee('data-hero-caption', false)
+            ->assertDontSee('Identidade visual do projeto');
+    }
+
     public function test_header_keeps_only_navigation_and_a_search_shortcut(): void
     {
         $html = $this->get(route('public.sobre'))->assertOk()->getContent();

@@ -4,6 +4,9 @@
         $carouselControl = 'absolute bottom-2 z-1 grid size-10 place-items-center rounded-full border border-mist-500 bg-white text-[1.1rem] text-institutional hover:border-institutional hover:bg-institutional hover:text-white md:top-1/2 md:bottom-auto md:-translate-y-1/2';
     @endphp
 
+    @if ($heroSlides->isNotEmpty())
+        @include('public._hero-carousel', ['slides' => $heroSlides])
+    @else
     <section class="border-b border-mist-200 bg-institutional-soft">
         <x-public.container class="grid grid-cols-1 items-center gap-8 md:min-h-[min(43rem,calc(100vh-5rem))] md:grid-cols-[minmax(0,1.35fr)_minmax(14rem,0.65fr)] md:gap-16">
             <div class="py-[clamp(4rem,10vw,8rem)]">
@@ -30,6 +33,7 @@
             </div>
         </x-public.container>
     </section>
+    @endif
 
     <x-public.section id="sobre">
         <x-public.container class="grid grid-cols-1 gap-8 md:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] md:gap-16">
