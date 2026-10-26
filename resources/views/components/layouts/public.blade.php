@@ -37,7 +37,7 @@
         <header class="relative z-20 border-b border-mist-200 bg-white" aria-label="Cabeçalho público" x-data="drawer">
             <x-public.container class="flex h-18 items-center justify-between gap-6">
                 <a href="{{ route('public.home') }}" class="inline-flex min-w-0 items-center gap-3 text-institutional" data-testid="public-brand">
-                    <img src="{{ asset('images/memorias-vivas-logo.png') }}" alt="Memórias Vivas de Umuarama" width="48" height="48" class="size-11 flex-none rounded-full border-2 border-mist-200 object-cover">
+                    <img src="{{ asset('images/memorias-vivas-logo.jpeg') }}" alt="Memórias Vivas de Umuarama" width="48" height="48" class="size-11 flex-none rounded-full border-2 border-mist-200 object-cover">
                     <span class="min-w-0">
                         <strong class="block truncate font-serif text-[1.1rem] leading-[1.15] font-medium">Memórias Vivas</strong>
                         <small class="mt-0.5 block truncate text-[0.66rem] font-bold tracking-[0.08em] text-ink-500 uppercase">Acervo de Umuarama</small>
@@ -92,7 +92,7 @@
                 class="grid min-h-[clamp(14rem,18vw,18rem)] grid-cols-1 gap-8 py-8 sm:grid-cols-2 sm:pb-12 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,0.8fr)_minmax(0,1fr)] lg:gap-12">
                 <div class="sm:col-span-full lg:col-auto">
                     <a href="{{ route('public.home') }}" class="inline-flex items-center gap-4 {{ $footerLink }}">
-                        <img src="{{ asset('images/memorias-vivas-logo.png') }}" alt="" width="64"
+                        <img src="{{ asset('images/memorias-vivas-logo.jpeg') }}" alt="" width="64"
                             height="64" class="size-16 flex-none rounded-full border-2 border-white object-cover">
                         <span><strong class="block font-serif text-[1.3rem] leading-[1.2] sm:text-[1.5rem]">Memórias
                                 Vivas</strong><small class="mt-[0.3rem] block text-[0.75rem]">Acervo de

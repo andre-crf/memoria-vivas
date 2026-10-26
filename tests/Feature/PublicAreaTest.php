@@ -6,6 +6,8 @@ use App\Enums\Visibilidade;
 use App\Models\Arquivo;
 use App\Models\ItemAcervo;
 use App\Models\User;
+use DOMDocument;
+use DOMXPath;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -19,7 +21,7 @@ class PublicAreaTest extends TestCase
             ->get(route('public.home'))
             ->assertOk()
             ->assertSee('Memórias Vivas de Umuarama')
-            ->assertSee('images/memorias-vivas-logo.png', false)
+            ->assertSee('images/memorias-vivas-logo.jpeg', false)
             ->assertSee('Pular para o conteúdo')
             ->assertSee('Explorar o catálogo')
             ->assertSee('Uma porta de entrada para a memória local')
@@ -28,6 +30,28 @@ class PublicAreaTest extends TestCase
             ->assertSee(route('public.catalogo'), false)
             ->assertSee('Área administrativa')
             ->assertDontSee('Administração do acervo');
+    }
+
+    public function test_about_page_lists_the_documented_institutional_references(): void
+    {
+        $response = $this->get(route('public.sobre'))
+            ->assertOk()
+            ->assertSee('Referências institucionais')
+            ->assertSee('Instituto Federal do Paraná — Campus Umuarama')
+            ->assertSee('Fundação Cultural de Umuarama')
+            ->assertSee('Centro de Documentação Histórica de Umuarama');
+
+        $document = new DOMDocument;
+        @$document->loadHTML('<?xml encoding="UTF-8"'.$response->getContent());
+        $xpath = new DOMXPath($document);
+
+        $items = $xpath->query('//*[@id="instituicoes"]//ul/li');
+        $links = $xpath->query('//*[@id="instituicoes"]//ul/li/a[@target="_blank" and @rel="noopener noreferrer"]');
+
+        $this->assertCount(3, $items);
+        $this->assertCount(3, $links);
+        $this->assertCount(3, $xpath->query('//*[@id="instituicoes"]//img[@alt=""]'));
+        $this->assertCount(1, $xpath->query('//*[@id="instituicoes"]//li[contains(., "Centro de Documentação Histórica")]//img[contains(@src, "cedhu-transparent.png")]'));
     }
 
     public function test_home_keeps_the_existing_hero_until_an_approved_photo_is_configured(): void
@@ -46,7 +70,7 @@ class PublicAreaTest extends TestCase
     public function test_one_configured_hero_photo_has_context_without_redundant_controls(): void
     {
         config()->set('hero.slides', [[
-            'imagem' => 'images/memorias-vivas-logo.png',
+            'imagem' => 'images/memorias-vivas-logo.jpeg',
             'alt' => 'Fotografia de referência',
             'titulo' => 'Praça central',
             'descricao' => 'Umuarama, década de 1970.',
@@ -66,7 +90,7 @@ class PublicAreaTest extends TestCase
     public function test_multiple_hero_photos_render_navigation_and_hidden_inactive_slide(): void
     {
         config()->set('hero.slides', [
-            ['imagem' => 'images/memorias-vivas-logo.png', 'alt' => 'Primeira imagem'],
+            ['imagem' => 'images/memorias-vivas-logo.jpeg', 'alt' => 'Primeira imagem'],
             ['imagem' => 'images/umuarama-panorama-horizontal.png', 'alt' => 'Segunda imagem'],
         ]);
 

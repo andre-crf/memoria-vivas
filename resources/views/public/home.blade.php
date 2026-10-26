@@ -23,7 +23,7 @@
 
             <div class="grid max-w-76 justify-items-start gap-5 border-t border-mist-500 pt-8 pb-12 text-left text-ink-600 md:justify-items-center md:border-t-0 md:border-l md:pb-8 md:pl-12 md:text-center" aria-label="Identidade visual do projeto">
                 <img
-                    src="{{ asset('images/memorias-vivas-logo.png') }}"
+                    src="{{ asset('images/memorias-vivas-logo.jpeg') }}"
                     alt="Logo Memórias Vivas de Umuarama"
                     width="180"
                     height="180"

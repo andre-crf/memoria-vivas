@@ -71,7 +71,7 @@
                 <div class="mx-auto flex min-h-[4.5rem] w-full max-w-7xl min-w-0 items-center justify-between gap-2 px-4 sm:gap-4 sm:px-6 lg:px-8">
                     <a href="{{ route('admin.dashboard') }}" class="inline-flex min-w-0 items-center gap-[0.7rem] {{ $focusRing }}">
                         <img
-                            src="{{ asset('images/memorias-vivas-logo.png') }}"
+                            src="{{ asset('images/memorias-vivas-logo.jpeg') }}"
                             alt=""
                             width="48"
                             height="48"

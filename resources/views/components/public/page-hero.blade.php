@@ -17,7 +17,7 @@
             </div>
         </div>
         <div class="hidden justify-items-center gap-4 border-l border-mist-400 py-8 pl-10 text-center text-institutional md:grid">
-            <img src="{{ asset('images/memorias-vivas-logo.png') }}" alt="Memórias Vivas de Umuarama" width="180" height="180" class="size-[clamp(9rem,16vw,12rem)] rounded-full border-[0.55rem] border-white object-cover shadow-[0_1rem_2rem_rgb(23_62_99/0.12)]">
+            <img src="{{ asset('images/memorias-vivas-logo.jpeg') }}" alt="Memórias Vivas de Umuarama" width="180" height="180" class="size-[clamp(9rem,16vw,12rem)] rounded-full border-[0.55rem] border-white object-cover shadow-[0_1rem_2rem_rgb(23_62_99/0.12)]">
             <p class="font-serif text-[1.1rem] leading-[1.35] font-bold">Memórias Vivas<br><span class="font-sans text-[0.72rem] font-[650]">Acervo de Umuarama</span></p>
         </div>
     </x-public.container>
