@@ -14,6 +14,7 @@ enum AuditAction: string
     case Deactivated = 'deactivated';
     case Uploaded = 'uploaded';
     case Replaced = 'replaced';
+    case Regenerated = 'regenerated';
 
     public function label(): string
     {
@@ -28,6 +29,7 @@ enum AuditAction: string
             self::Deactivated => 'Inativação',
             self::Uploaded => 'Upload',
             self::Replaced => 'Substituição',
+            self::Regenerated => 'Regeneração',
         };
     }
 }

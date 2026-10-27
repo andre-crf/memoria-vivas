@@ -42,6 +42,16 @@ class Arquivo extends Model
         return $this->versao_arquivo === 'original';
     }
 
+    public static function rotuloVersao(string $versao): string
+    {
+        return [
+            'original' => 'Original',
+            'large' => 'Grande',
+            'medium' => 'Média',
+            'thumbnail' => 'Miniatura',
+        ][$versao] ?? ucfirst($versao);
+    }
+
     /**
      * Get the attributes that should be cast.
      *

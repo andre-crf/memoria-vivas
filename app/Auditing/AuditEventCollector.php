@@ -102,7 +102,8 @@ final class AuditEventCollector
                 $subjectLabel,
                 $metadata,
             ),
-            AuditAction::PasswordChanged => new AuditEventData(
+            AuditAction::PasswordChanged,
+            AuditAction::Regenerated => new AuditEventData(
                 action: $action,
                 subjectType: $subjectType,
                 subjectId: $subjectId,

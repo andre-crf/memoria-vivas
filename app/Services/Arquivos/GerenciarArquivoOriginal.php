@@ -281,6 +281,7 @@ final readonly class GerenciarArquivoOriginal
                 'applicable' => $derivations->applicable,
                 'generated' => ArquivoAuditSnapshot::summaries($derivations->generated),
                 'failed_versions' => $derivations->failedVersions,
+                'dispensed_versions' => $derivations->dispensedVersions,
             ],
         ];
     }

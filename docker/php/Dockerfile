@@ -6,6 +6,7 @@ RUN apt-get update \
     && apt-get install -y \
         git \
         curl \
+        icc-profiles-free \
         unzip \
         libjpeg62-turbo-dev \
         libpng-dev \
@@ -21,6 +22,8 @@ RUN apt-get update \
         zip \
     && pecl install imagick-3.8.1 \
     && docker-php-ext-enable imagick \
+    # O perfil sRGB converte para a web as cores de originais com perfil embutido (config/acervo.php).
+    && test -r /usr/share/color/icc/sRGB.icc \
     && rm -rf /var/lib/apt/lists/*
 
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer

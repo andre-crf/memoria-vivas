@@ -65,6 +65,7 @@ final class AuditEventPresenter
         'deletion_type' => 'Tipo de exclusão',
         'derivations' => 'Derivações',
         'derivations_removed' => 'Derivações removidas',
+        'dispensed_versions' => 'Versões dispensadas',
         'descricao' => 'Descrição',
         'dia' => 'Dia',
         'email' => 'E-mail',
@@ -86,6 +87,7 @@ final class AuditEventPresenter
         'mes' => 'Mês',
         'method' => 'Método',
         'mime_type' => 'Tipo MIME',
+        'mode' => 'Modo',
         'nome' => 'Nome',
         'nome_original' => 'Nome original',
         'observacao' => 'Observação',
@@ -119,6 +121,8 @@ final class AuditEventPresenter
         'inativo' => 'Inativo',
         'fotografia' => 'Fotografia',
         'imagem' => 'Imagem',
+        'todas' => 'Todas as versões',
+        'ausentes' => 'Somente versões ausentes',
         'documento' => 'Documento',
         'audio' => 'Áudio',
         'video' => 'Vídeo',
@@ -154,6 +158,7 @@ final class AuditEventPresenter
         'arquivo_original_replace' => 'Substituição do arquivo original',
         'arquivo_group_delete' => 'Remoção dos arquivos do item',
         'arquivo_orphan_delete' => 'Remoção de arquivo derivado sem original',
+        'arquivo_derivations_regenerate' => 'Regeneração das versões otimizadas',
     ];
 
     /**

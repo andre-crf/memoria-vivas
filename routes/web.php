@@ -97,6 +97,7 @@ Route::middleware(['auth', 'admin.access'])
                 Route::get('/{fotografia}/edit', [FotografiaController::class, 'edit'])->name('edit');
                 Route::put('/{fotografia}', [FotografiaController::class, 'update'])->name('update');
                 Route::put('/{fotografia}/arquivo-original', [FotografiaController::class, 'replaceOriginal'])->name('replace-original');
+                Route::post('/{fotografia}/versoes-otimizadas', [FotografiaController::class, 'regenerateVersions'])->name('regenerate-versions');
                 Route::patch('/{fotografia}/restore', [FotografiaController::class, 'restore'])->name('restore');
                 Route::delete('/{fotografia}/force', [FotografiaController::class, 'forceDestroy'])->name('force-destroy');
                 Route::get('/{fotografia}', [FotografiaController::class, 'show'])->name('show');

@@ -9,8 +9,10 @@
         ->filter()
         ->values();
     $imagem = $versoes->first();
+    // Um descritor por largura: versões antigas com dimensões repetidas não podem duplicar o srcset.
     $srcset = $versoes
         ->filter(fn ($arquivo) => $arquivo->width)
+        ->unique('width')
         ->map(fn ($arquivo) => route('public.imagens.show', $arquivo).' '.$arquivo->width.'w')
         ->join(', ');
     $sizes = '(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw';
