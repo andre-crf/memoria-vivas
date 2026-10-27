@@ -44,6 +44,16 @@ class OptimizedImageVersionsTest extends TestCase
         Storage::fake('local');
     }
 
+    protected function tearDown(): void
+    {
+        config([
+            'acervo.optimized_output.format' => 'webp',
+            'acervo.image_processing.srgb_profile' => '/usr/share/color/icc/sRGB.icc',
+        ]);
+
+        parent::tearDown();
+    }
+
     public function test_plan_keeps_only_the_smallest_of_versions_with_identical_dimensions(): void
     {
         $versions = app(OptimizedImageVersions::class);
