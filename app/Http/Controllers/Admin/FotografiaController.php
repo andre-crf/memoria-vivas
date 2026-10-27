@@ -10,6 +10,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\ReplaceArquivoOriginalRequest;
 use App\Http\Requests\Admin\StoreFotografiaRequest;
 use App\Http\Requests\Admin\UpdateFotografiaRequest;
+use App\Models\Arquivo;
 use App\Models\AuditEvent;
 use App\Models\ItemAcervo;
 use App\Models\User;
@@ -18,6 +19,7 @@ use App\Services\Acervo\CriarItemAcervo;
 use App\Services\Acervo\ExcluirItemAcervo;
 use App\Services\Acervo\ExcluirItemAcervoDefinitivamente;
 use App\Services\Acervo\RestaurarItemAcervo;
+use App\Services\Arquivos\RegenerarVersoesOtimizadas;
 use App\Services\Arquivos\SubstituirArquivoOriginal;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -178,6 +180,33 @@ class FotografiaController extends Controller
         return redirect()
             ->route('admin.fotografias.show', $fotografia)
             ->with('success', 'Arquivo original substituído com sucesso.');
+    }
+
+    public function regenerateVersions(
+        Request $request,
+        ItemAcervo $fotografia,
+        RegenerarVersoesOtimizadas $service,
+        AuditContextFactory $contexts,
+    ): RedirectResponse {
+        $this->ensurePhotograph($fotografia);
+
+        $resultado = $service->execute(
+            actor: $request->user(),
+            item: $fotografia,
+            context: $contexts->fromRequest($request),
+        );
+
+        $falhas = collect($resultado->failedVersions)->map(Arquivo::rotuloVersao(...))->join(', ', ' e ');
+        [$tipo, $mensagem] = match (true) {
+            ! $resultado->applicable => ['warning', 'O arquivo original não é uma imagem; versões otimizadas não se aplicam.'],
+            $falhas === '' => ['success', 'Versões otimizadas regeneradas com sucesso.'],
+            $resultado->generated === [] => ['error', "Não foi possível regenerar as versões ({$falhas}). As versões anteriores foram mantidas."],
+            default => ['warning', "Versões regeneradas, exceto {$falhas}. As versões anteriores dessas foram mantidas."],
+        };
+
+        return redirect()
+            ->route('admin.fotografias.show', $fotografia)
+            ->with($tipo, $mensagem);
     }
 
     public function destroy(

@@ -90,7 +90,9 @@ class AdminFotografiaOriginalUploadTest extends TestCase
         $medium = $arquivos->firstWhere('versao_arquivo', 'medium');
         $large = $arquivos->firstWhere('versao_arquivo', 'large');
 
-        $this->assertCount(4, $arquivos);
+        // 640 px cabem na versão média: a grande teria as mesmas dimensões e é dispensada.
+        $this->assertCount(3, $arquivos);
+        $this->assertNull($large);
         $this->assertSame('praca-central.jpg', $arquivo->nome_original);
         $this->assertSame('local', $arquivo->provider);
         $this->assertSame('image/jpeg', $arquivo->mime_type);
@@ -104,12 +106,12 @@ class AdminFotografiaOriginalUploadTest extends TestCase
 
         $this->assertSame([320, 240], [$thumbnail->width, $thumbnail->height]);
         $this->assertSame([640, 480], [$medium->width, $medium->height]);
-        $this->assertSame([640, 480], [$large->width, $large->height]);
 
-        foreach ([$thumbnail, $medium, $large] as $derivacao) {
+        foreach ([$thumbnail, $medium] as $derivacao) {
             $this->assertNull($derivacao->nome_original);
             $this->assertSame('local', $derivacao->provider);
-            $this->assertSame('image/jpeg', $derivacao->mime_type);
+            $this->assertSame('image/webp', $derivacao->mime_type);
+            $this->assertStringEndsWith('.webp', $derivacao->storage_path);
             $this->assertSame('imagem', $derivacao->tipo_arquivo);
             $this->assertSame(64, strlen((string) $derivacao->sha256));
             $this->assertStringStartsWith("acervo/derivados/{$fotografia->id}/", $derivacao->storage_path);
@@ -137,10 +139,10 @@ class AdminFotografiaOriginalUploadTest extends TestCase
             ->assertSessionHasNoErrors();
 
         $item = ItemAcervo::where('titulo', 'Imagem em banco atualizado')->firstOrFail();
-        $this->assertCount(4, $item->arquivos);
+        $this->assertCount(3, $item->arquivos);
         $this->assertNotNull($item->thumbnailAdministrativa());
         $this->assertNotNull($item->visualizacaoAdministrativa());
-        $this->assertSame(3, $item->arquivos->whereNull('nome_original')->count());
+        $this->assertSame(2, $item->arquivos->whereNull('nome_original')->count());
     }
 
     public function test_internal_user_can_attach_original_file_during_edit_when_missing(): void
@@ -164,8 +166,9 @@ class AdminFotografiaOriginalUploadTest extends TestCase
         $this->assertSame(300, $arquivo->width);
         $this->assertSame(200, $arquivo->height);
         Storage::disk('local')->assertExists($arquivo->storage_path);
+        // Até 320 px, média e grande repetiriam a miniatura.
         $this->assertSame(
-            ['large', 'medium', 'original', 'thumbnail'],
+            ['original', 'thumbnail'],
             Arquivo::where('item_acervo_id', $fotografia->id)->pluck('versao_arquivo')->sort()->values()->all(),
         );
     }
@@ -203,7 +206,7 @@ class AdminFotografiaOriginalUploadTest extends TestCase
         ]))->assertRedirect(route('admin.fotografias.show', $edited))->assertSessionHasNoErrors();
 
         foreach ([$created, $edited] as $item) {
-            $this->assertSame(['large', 'medium', 'original', 'thumbnail'], $item->arquivos()->orderBy('versao_arquivo')->pluck('versao_arquivo')->sort()->values()->all());
+            $this->assertSame(['medium', 'original', 'thumbnail'], $item->arquivos()->orderBy('versao_arquivo')->pluck('versao_arquivo')->sort()->values()->all());
             foreach ($item->arquivos as $file) {
                 Storage::disk('local')->assertExists($file->storage_path);
             }
@@ -213,7 +216,7 @@ class AdminFotografiaOriginalUploadTest extends TestCase
         $this->put(route('admin.fotografias.replace-original', $created), [
             'arquivo_original' => $makeTiff('blue'),
         ])->assertRedirect(route('admin.fotografias.show', $created))->assertSessionHasNoErrors();
-        $this->assertCount(4, $created->arquivos()->get());
+        $this->assertCount(3, $created->arquivos()->get());
         foreach ($oldPaths as $path) {
             Storage::disk('local')->assertMissing($path);
         }
@@ -350,7 +353,8 @@ class AdminFotografiaOriginalUploadTest extends TestCase
         $medium = $arquivos->firstWhere('versao_arquivo', 'medium');
         $large = $arquivos->firstWhere('versao_arquivo', 'large');
 
-        $this->assertCount(4, $arquivos);
+        $this->assertCount(3, $arquivos);
+        $this->assertNull($large);
         $this->assertSame($oldOriginal->id, $original->id);
         $this->assertSame('original-novo.png', $original->nome_original);
         $this->assertSame('image/png', $original->mime_type);
@@ -364,11 +368,10 @@ class AdminFotografiaOriginalUploadTest extends TestCase
 
         $this->assertSame([320, 213], [$thumbnail->width, $thumbnail->height]);
         $this->assertSame([900, 600], [$medium->width, $medium->height]);
-        $this->assertSame([900, 600], [$large->width, $large->height]);
 
-        foreach ([$thumbnail, $medium, $large] as $derivacao) {
+        foreach ([$thumbnail, $medium] as $derivacao) {
             $this->assertNull($derivacao->nome_original);
-            $this->assertSame('image/jpeg', $derivacao->mime_type);
+            $this->assertSame('image/webp', $derivacao->mime_type);
             $this->assertSame('imagem', $derivacao->tipo_arquivo);
             $this->assertStringStartsWith("acervo/derivados/{$fotografia->id}/", $derivacao->storage_path);
             Storage::disk('local')->assertExists($derivacao->storage_path);

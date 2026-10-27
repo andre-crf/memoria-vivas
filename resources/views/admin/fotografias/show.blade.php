@@ -195,6 +195,17 @@
                         $arquivoOriginal = $fotografia->arquivos->firstWhere('versao_arquivo', 'original');
                         $previewAdministrativa = $fotografia->visualizacaoAdministrativa();
                         $podeSubstituir = $arquivoOriginal && auth()->user()->can('replaceOriginal', $arquivoOriginal);
+                        $originalEhImagem = $arquivoOriginal?->isImagem() ?? false;
+                        // Versão esperada que falta é falha (ou geração não concluída). Versão que repetiria as
+                        // dimensões de uma menor é dispensada, assim como todas quando o original não é imagem.
+                        $geradorVersoes = app(\App\Support\OptimizedImageVersions::class);
+                        $versoesExistentes = $fotografia->arquivos->pluck('versao_arquivo');
+                        $versoesAusentes = $originalEhImagem
+                            ? collect($geradorVersoes->expectedVersions($arquivoOriginal))->diff($versoesExistentes)->values()
+                            : collect();
+                        $versoesDispensadas = $originalEhImagem && $arquivoOriginal->width && $arquivoOriginal->height
+                            ? collect($geradorVersoes->plan($arquivoOriginal->width, $arquivoOriginal->height)['dispensed'])->except($versoesExistentes->all())
+                            : collect();
                     @endphp
 
                     <div class="flex items-center justify-between gap-4">
@@ -237,6 +248,26 @@
                                         <x-lucide-image-up class="size-4 flex-none" aria-hidden="true" />
                                         Substituir imagem
                                     </button>
+                                    @if ($originalEhImagem)
+                                        <form
+                                            method="POST"
+                                            action="{{ route('admin.fotografias.regenerate-versions', $fotografia) }}"
+                                            data-confirm-title="Regenerar versões otimizadas"
+                                            data-confirm-message="A miniatura e as versões média e grande serão recriadas a partir do original, que não é alterado. Se alguma versão falhar, a anterior é mantida."
+                                            data-confirm-label="Regenerar versões"
+                                            data-confirm-variant="primary"
+                                        >
+                                            @csrf
+                                            <button
+                                                type="submit"
+                                                @click="open = false"
+                                                class="flex min-h-10 w-full cursor-pointer items-center gap-2.5 rounded px-3 text-left text-[0.8125rem] font-semibold text-ink-700 hover:bg-institutional-soft hover:text-institutional focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-institutional"
+                                            >
+                                                <x-lucide-refresh-cw class="size-4 flex-none" aria-hidden="true" />
+                                                Regenerar versões
+                                            </button>
+                                        </form>
+                                    @endif
                                 </div>
                             </div>
                         @endif
@@ -261,7 +292,13 @@
                                 <div>
                                     <p class="text-sm font-semibold text-stone-700">Prévia indisponível</p>
                                     <p class="mt-1 text-xs leading-5 text-stone-500">
-                                        Cadastre ou regenere versões otimizadas para visualizar a fotografia aqui.
+                                        @if ($originalEhImagem)
+                                            As versões otimizadas não foram geradas. Use “Regenerar versões” no menu de ações do arquivo.
+                                        @elseif ($arquivoOriginal)
+                                            O arquivo original não é uma imagem, então não há versões otimizadas para exibir.
+                                        @else
+                                            Cadastre um arquivo original para visualizar a fotografia aqui.
+                                        @endif
                                     </p>
                                 </div>
                             </div>
@@ -356,7 +393,6 @@
                                 in_array($arquivo->versao_arquivo, $ordemVersoes, true) ? array_search($arquivo->versao_arquivo, $ordemVersoes, true) : count($ordemVersoes),
                                 $arquivo->id,
                             ]);
-                            $rotuloVersao = fn ($arquivo) => ['original' => 'Original', 'large' => 'Grande', 'medium' => 'Média', 'thumbnail' => 'Miniatura'][$arquivo->versao_arquivo] ?? Str::ucfirst($arquivo->versao_arquivo);
                             $formato = fn ($arquivo) => match ($subtipo = Str::after((string) $arquivo->mime_type, '/')) {
                                 'webp' => 'WebP',
                                 '' => 'Desconhecido',
@@ -389,13 +425,48 @@
                                         @endif
                                     </span>
                                     <span class="min-w-0 flex-1">
-                                        <span class="block text-[0.85rem] font-semibold text-ink-950">{{ $rotuloVersao($arquivo) }}</span>
+                                        <span class="block text-[0.85rem] font-semibold text-ink-950">{{ \App\Models\Arquivo::rotuloVersao($arquivo->versao_arquivo) }}</span>
                                         <span class="block text-[0.75rem] text-ink-500">{{ $formato($arquivo) }} · {{ $dimensoes($arquivo) ?? '—' }}</span>
                                     </span>
                                     <span class="flex-none text-[0.8rem] text-ink-600 tabular-nums">{{ $tamanho($arquivo) }}</span>
                                 </li>
                             @endforeach
+                            @foreach ($versoesAusentes as $versao)
+                                <li class="flex items-center gap-3 py-2.5" data-versao-ausente="{{ $versao }}">
+                                    <span class="grid size-8 flex-none place-items-center rounded-md bg-error-soft text-danger" aria-hidden="true">
+                                        <x-lucide-triangle-alert class="size-4" />
+                                    </span>
+                                    <span class="min-w-0 flex-1">
+                                        <span class="block text-[0.85rem] font-semibold text-ink-950">{{ \App\Models\Arquivo::rotuloVersao($versao) }}</span>
+                                        <span class="block text-[0.75rem] text-danger">Ausente: a geração falhou ou não foi concluída</span>
+                                    </span>
+                                </li>
+                            @endforeach
+                            @foreach ($versoesDispensadas as $versao => $substituta)
+                                <li class="flex items-center gap-3 py-2.5" data-versao-dispensada="{{ $versao }}">
+                                    <span class="grid size-8 flex-none place-items-center rounded-md bg-mist-100 text-ink-500" aria-hidden="true">
+                                        <x-lucide-copy-check class="size-4" />
+                                    </span>
+                                    <span class="min-w-0 flex-1">
+                                        <span class="block text-[0.85rem] font-semibold text-ink-700">{{ \App\Models\Arquivo::rotuloVersao($versao) }}</span>
+                                        <span class="block text-[0.75rem] text-ink-500">Dispensada: teria as mesmas dimensões da versão {{ \App\Models\Arquivo::rotuloVersao($substituta) }}</span>
+                                    </span>
+                                </li>
+                            @endforeach
                         </ul>
+                        @if ($versoesAusentes->isNotEmpty())
+                            <p class="mt-2 text-[0.75rem] leading-normal text-ink-600" role="note">
+                                @if ($podeSubstituir)
+                                    Use “Regenerar versões” no menu de ações para tentar de novo a partir do original.
+                                @else
+                                    Peça a regeneração das versões a um administrador.
+                                @endif
+                            </p>
+                        @elseif ($arquivoOriginal && ! $originalEhImagem)
+                            <p class="mt-2 text-[0.75rem] leading-normal text-ink-500" role="note">
+                                Versões otimizadas dispensadas: o original não é uma imagem.
+                            </p>
+                        @endif
 
                         <details class="group mt-3 border-t border-mist-200 pt-3">
                             <summary class="flex cursor-pointer list-none items-center gap-1.5 rounded text-[0.8rem] font-semibold text-ink-700 hover:text-institutional focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-institutional [&::-webkit-details-marker]:hidden">
@@ -408,7 +479,7 @@
                                         <dt class="text-ink-500">Arquivo</dt>
                                         <dd class="font-semibold wrap-anywhere text-ink-950">{{ $arquivo->nome_original ?: 'Arquivo derivado' }}</dd>
                                         <dt class="text-ink-500">Versão</dt>
-                                        <dd class="text-ink-800">{{ $rotuloVersao($arquivo) }} ({{ $arquivo->versao_arquivo }})</dd>
+                                        <dd class="text-ink-800">{{ \App\Models\Arquivo::rotuloVersao($arquivo->versao_arquivo) }} ({{ $arquivo->versao_arquivo }})</dd>
                                         <dt class="text-ink-500">Tipo e tamanho</dt>
                                         <dd class="wrap-anywhere text-ink-800">{{ $arquivo->mime_type }} · {{ $tamanho($arquivo) }} ({{ number_format($arquivo->file_size, 0, ',', '.') }} bytes)</dd>
                                         <dt class="text-ink-500">Dimensões</dt>

@@ -2,6 +2,11 @@
     @php
         $parametros = $filtros->parametros();
         $semParametro = fn (string ...$chaves): string => route('public.catalogo', collect($parametros)->except($chaves)->all());
+        $parametrosDaNavegacao = collect($parametros)->except(['decada', 'page'])->all();
+        $linkDaDecada = fn (?string $decada): string => route('public.catalogo', array_filter([
+            ...$parametrosDaNavegacao,
+            'decada' => $decada,
+        ], static fn (string|int|null $valor): bool => $valor !== null && $valor !== ''));
         // Chips só dos filtros já aplicados (na URL), nunca de seleções não confirmadas no drawer.
         $filtrosAplicados = array_filter([
             'decada' => $filtros->decada !== null ? 'Década de '.$filtros->decada : null,
@@ -50,6 +55,32 @@
                         @endforeach
                         <a href="{{ route('public.catalogo', $filtros->parametrosDaPesquisa()) }}" class="ml-1 text-[0.8rem] font-semibold text-institutional underline decoration-mist-500 underline-offset-4 hover:decoration-institutional">Limpar todos</a>
                     </div>
+                @endif
+
+                @if ($decadas !== [])
+                    <nav class="mt-7" aria-label="Navegação por décadas">
+                        <h2 class="text-[0.8rem] font-semibold tracking-[0.04em] text-ink-700 uppercase">Navegue por décadas</h2>
+                        <div class="mt-3 -mx-1 overflow-x-auto px-1 pb-1">
+                            <ul role="list" class="flex min-w-max gap-2">
+                                <li>
+                                    <a
+                                        href="{{ $linkDaDecada(null) }}"
+                                        @if ($filtros->decada === null) aria-current="page" @endif
+                                        class="inline-flex min-h-10 items-center rounded-full border px-4 text-[0.82rem] font-semibold transition-colors {{ $filtros->decada === null ? 'border-institutional bg-institutional text-white' : 'border-mist-300 bg-white text-institutional hover:border-institutional hover:bg-institutional-soft' }}"
+                                    >Todas</a>
+                                </li>
+                                @foreach ($decadas as $decada)
+                                    <li>
+                                        <a
+                                            href="{{ $linkDaDecada($decada) }}"
+                                            @if ($filtros->decada === $decada) aria-current="page" @endif
+                                            class="inline-flex min-h-10 items-center rounded-full border px-4 text-[0.82rem] font-semibold transition-colors {{ $filtros->decada === $decada ? 'border-institutional bg-institutional text-white' : 'border-mist-300 bg-white text-institutional hover:border-institutional hover:bg-institutional-soft' }}"
+                                        >{{ $decada }}</a>
+                                    </li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    </nav>
                 @endif
 
                 <dialog

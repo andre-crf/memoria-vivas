@@ -6,8 +6,9 @@ export default function registerToaster(Alpine) {
         items: [],
         nextId: 0,
 
-        push(message) {
-            this.items.push({ id: this.nextId++, message });
+        // type: 'success' (padrão), 'warning' (sucesso parcial) ou 'error' (falha).
+        push(message, type = 'success') {
+            this.items.push({ id: this.nextId++, message, type: ['warning', 'error'].includes(type) ? type : 'success' });
         },
     }));
 

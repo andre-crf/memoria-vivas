@@ -35,7 +35,7 @@ class AuditArquivoIntegrationTest extends TestCase
 
         $this->actingAs($actor)
             ->post(route('admin.fotografias.store'), $this->payload([
-                'arquivo_original' => UploadedFile::fake()->image('memoria.jpg', 640, 480),
+                'arquivo_original' => UploadedFile::fake()->image('memoria.jpg', 2400, 1800),
             ]))
             ->assertRedirect(route('admin.fotografias.index'));
 
@@ -102,7 +102,7 @@ class AuditArquivoIntegrationTest extends TestCase
 
         $this->actingAs($actor)
             ->post(route('admin.fotografias.store'), $this->payload([
-                'arquivo_original' => UploadedFile::fake()->image('antiga.jpg', 640, 480),
+                'arquivo_original' => UploadedFile::fake()->image('antiga.jpg', 2400, 1800),
             ]));
 
         $item = ItemAcervo::query()->sole();
@@ -284,7 +284,7 @@ class AuditArquivoIntegrationTest extends TestCase
 
         $this->actingAs($actor)
             ->post(route('admin.fotografias.store'), $this->payload([
-                'arquivo_original' => UploadedFile::fake()->image('excluir.jpg', 640, 480),
+                'arquivo_original' => UploadedFile::fake()->image('excluir.jpg', 2400, 1800),
             ]));
 
         $item = ItemAcervo::query()->sole();

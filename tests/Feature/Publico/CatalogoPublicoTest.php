@@ -439,6 +439,50 @@ class CatalogoPublicoTest extends TestCase
             ->assertDontSee('Década de 2020');
     }
 
+    public function test_navegacao_visual_por_decadas_preserva_os_demais_filtros(): void
+    {
+        $categoria = Categoria::create(['titulo' => 'Espaços urbanos']);
+
+        foreach ([
+            ['titulo' => 'Registro de 1970', 'tipo_data' => 'ano', 'ano' => 1975],
+            ['titulo' => 'Registro de 1980', 'tipo_data' => 'ano', 'ano' => 1985],
+            ['titulo' => 'Registro de 2000', 'tipo_data' => 'decada', 'decada' => '2000'],
+        ] as $atributos) {
+            $fotografia = $this->fotografia($atributos);
+            $this->arquivo($fotografia, 'thumbnail');
+            $fotografia->categorias()->attach($categoria);
+        }
+
+        $resposta = $this->get(route('public.catalogo', [
+            'q' => 'Registro',
+            'decada' => '1980',
+            'categoria' => $categoria->id,
+        ]));
+
+        $resposta
+            ->assertOk()
+            ->assertSee('Navegação por décadas')
+            ->assertSee('aria-label="Navegação por décadas"', false)
+            ->assertSee('aria-current="page"', false)
+            ->assertSee('href="'.e(route('public.catalogo', [
+                'q' => 'Registro',
+                'categoria' => $categoria->id,
+            ])).'"', false)
+            ->assertSee('href="'.e(route('public.catalogo', [
+                'q' => 'Registro',
+                'categoria' => $categoria->id,
+                'decada' => '1970',
+            ])).'"', false)
+            ->assertSee('href="'.e(route('public.catalogo', [
+                'q' => 'Registro',
+                'categoria' => $categoria->id,
+                'decada' => '2000',
+            ])).'"', false)
+            ->assertSee('Registro de 1980')
+            ->assertDontSee('Registro de 1970')
+            ->assertDontSee('Registro de 2000');
+    }
+
     public function test_parametros_invalidos_ou_indisponiveis_sao_ignorados_com_seguranca(): void
     {
         $interna = Categoria::create(['titulo' => 'Categoria sem conteúdo público']);

@@ -222,7 +222,7 @@ class AdminFotografiaDetailsTest extends TestCase
             ->assertSee('Prévia administrativa: versão large.');
     }
 
-    public function test_files_card_lists_only_existing_versions_and_hides_technical_details(): void
+    public function test_files_card_lists_existing_versions_flags_missing_ones_and_hides_technical_details(): void
     {
         $fotografia = $this->fotografia(['titulo' => 'Fotografia com versões']);
         $fotografia->arquivos()->create([
@@ -253,7 +253,8 @@ class AdminFotografiaDetailsTest extends TestCase
             ->get(route('admin.fotografias.show', $fotografia))
             ->assertOk()
             ->assertSeeInOrder(['original.jpg', 'JPEG · 2,0 MB · 1600 × 1200 px', 'Versões disponíveis', 'Original', 'Grande', 'WebP · 1400 × 1050 px', '3,0 KB'])
-            ->assertDontSee('Miniatura')
+            ->assertSeeInOrder(['data-versao-ausente="thumbnail"', 'Miniatura', 'Ausente: a geração falhou', 'data-versao-ausente="medium"', 'Média'], false)
+            ->assertDontSee('data-versao-ausente="large"', false)
             ->assertDontSee('uppercase tracking-[0.12em]', false)
             ->getContent();
 
