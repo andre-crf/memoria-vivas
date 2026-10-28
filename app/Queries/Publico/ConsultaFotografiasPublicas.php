@@ -185,7 +185,8 @@ class ConsultaFotografiasPublicas
      */
     private function restringirAoTermo(Builder $query, string $termo): void
     {
-        $query->where(fn (Builder $pesquisa) => $this->contemTermo($pesquisa, ['titulo', 'legenda'], $termo));
+        // Só campos já exibidos na página pública; a localização física do original é administrativa.
+        $query->where(fn (Builder $pesquisa) => $this->contemTermo($pesquisa, ['titulo', 'legenda', 'local_atual', 'local_epoca'], $termo));
     }
 
     /**
