@@ -7,6 +7,7 @@ use App\Models\Arquivo;
 use App\Models\Assunto;
 use App\Models\Categoria;
 use App\Models\ItemAcervo;
+use App\Queries\Concerns\PesquisaTextual;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -16,6 +17,8 @@ use Illuminate\Pagination\LengthAwarePaginator;
 
 class ConsultaFotografiasPublicas
 {
+    use PesquisaTextual;
+
     private const VERSOES_PUBLICAS = ['thumbnail', 'medium', 'large'];
 
     /**
@@ -182,18 +185,7 @@ class ConsultaFotografiasPublicas
      */
     private function restringirAoTermo(Builder $query, string $termo): void
     {
-        $termoEscapado = str_replace(
-            ['!', '%', '_'],
-            ['!!', '!%', '!_'],
-            $termo,
-        );
-        $padrao = "%{$termoEscapado}%";
-
-        $query->where(function (Builder $pesquisa) use ($padrao): void {
-            $pesquisa
-                ->whereRaw("titulo LIKE ? ESCAPE '!'", [$padrao])
-                ->orWhereRaw("legenda LIKE ? ESCAPE '!'", [$padrao]);
-        });
+        $query->where(fn (Builder $pesquisa) => $this->contemTermo($pesquisa, ['titulo', 'legenda'], $termo));
     }
 
     /**

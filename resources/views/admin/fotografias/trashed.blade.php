@@ -21,8 +21,25 @@
             a exclusão permanente remove o registro e seus vínculos definitivamente. Essa operação é irreversível.
         </div>
 
+        <x-admin.filtros-fotografias
+            :action="route('admin.fotografias.trashed')"
+            :filtros="$filtros"
+            :status-options="$statusOptions"
+            :visibilidades="$visibilidades"
+            :total="$fotografias->total()"
+            :search-error="$searchError"
+        />
+
         <section class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm">
-            @if ($fotografias->isEmpty())
+            @if ($fotografias->isEmpty() && $filtros->possuiCriterios())
+                <div class="px-6 py-16 text-center">
+                    <h2 class="text-xl font-semibold text-stone-950">Nenhuma fotografia encontrada para os filtros aplicados</h2>
+                    <p class="mx-auto mt-2 max-w-md text-sm leading-6 text-stone-600">
+                        Revise o texto pesquisado ou remova algum filtro.
+                    </p>
+                    <a href="{{ route('admin.fotografias.trashed') }}" class="mt-4 inline-flex text-sm font-semibold text-institutional hover:text-institutional-strong hover:underline hover:underline-offset-4">Limpar filtros</a>
+                </div>
+            @elseif ($fotografias->isEmpty())
                 <div class="px-6 py-16 text-center">
                     <h2 class="text-xl font-semibold text-stone-950">Nenhuma fotografia na lixeira</h2>
                     <p class="mx-auto mt-2 max-w-md text-sm leading-6 text-stone-600">

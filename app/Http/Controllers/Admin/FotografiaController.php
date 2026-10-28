@@ -14,6 +14,8 @@ use App\Models\Arquivo;
 use App\Models\AuditEvent;
 use App\Models\ItemAcervo;
 use App\Models\User;
+use App\Queries\Admin\ConsultaFotografiasAdmin;
+use App\Queries\Admin\FiltrosFotografiasAdmin;
 use App\Services\Acervo\AtualizarItemAcervo;
 use App\Services\Acervo\CriarItemAcervo;
 use App\Services\Acervo\ExcluirItemAcervo;
@@ -21,47 +23,29 @@ use App\Services\Acervo\ExcluirItemAcervoDefinitivamente;
 use App\Services\Acervo\RestaurarItemAcervo;
 use App\Services\Arquivos\RegenerarVersoesOtimizadas;
 use App\Services\Arquivos\SubstituirArquivoOriginal;
+use Closure;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Validator;
 
 class FotografiaController extends Controller
 {
-    public function index(): View
+    public function index(Request $request, ConsultaFotografiasAdmin $consulta): Response
     {
         Gate::authorize('viewAny', ItemAcervo::class);
 
-        $fotografias = ItemAcervo::query()
-            ->with(['arquivos' => fn ($query) => $query->where('versao_arquivo', 'thumbnail')])
-            ->where('tipo_item', 'fotografia')
-            ->latest('id')
-            ->paginate(15);
-
-        return view('admin.fotografias.index', [
-            'fotografias' => $fotografias,
-        ]);
+        return $this->listagem('admin.fotografias.index', $request, fn (FiltrosFotografiasAdmin $filtros) => $consulta->ativas($filtros));
     }
 
-    public function trashed(): View
+    public function trashed(Request $request, ConsultaFotografiasAdmin $consulta): Response
     {
         Gate::authorize('restore', new ItemAcervo);
 
-        $fotografias = ItemAcervo::query()
-            ->onlyTrashed()
-            ->where('tipo_item', 'fotografia')
-            ->with([
-                'excluidoPor',
-                'arquivos' => fn ($query) => $query->whereIn('versao_arquivo', ['thumbnail', 'medium', 'large', 'original']),
-            ])
-            ->latest('deleted_at')
-            ->paginate(15);
-
-        return view('admin.fotografias.trashed', [
-            'fotografias' => $fotografias,
-        ]);
+        return $this->listagem('admin.fotografias.trashed', $request, fn (FiltrosFotografiasAdmin $filtros) => $consulta->excluidas($filtros));
     }
 
     public function create(): View
@@ -276,6 +260,38 @@ class FotografiaController extends Controller
         $this->ensurePhotograph($fotografia);
 
         return $fotografia;
+    }
+
+    /**
+     * Pesquisa inválida responde 422 e é ignorada; status e visibilidade fora das opções são ignorados,
+     * como no catálogo público.
+     *
+     * @param  Closure(FiltrosFotografiasAdmin): LengthAwarePaginator<ItemAcervo>  $consultar
+     */
+    private function listagem(string $view, Request $request, Closure $consultar): Response
+    {
+        $validator = Validator::make($request->query(), [
+            'q' => ['nullable', 'string', 'max:200'],
+        ], [
+            'q.string' => 'Digite um texto válido para pesquisar.',
+            'q.max' => 'A pesquisa deve ter no máximo 200 caracteres.',
+        ]);
+        $pesquisaInvalida = $validator->fails();
+        $status = $request->query('status');
+        $visibilidade = $request->query('visibilidade');
+        $filtros = new FiltrosFotografiasAdmin(
+            termo: $pesquisaInvalida ? '' : trim((string) ($validator->validated()['q'] ?? '')),
+            status: is_string($status) && array_key_exists($status, ItemAcervo::STATUS) ? $status : null,
+            visibilidade: is_string($visibilidade) && Visibilidade::tryFrom($visibilidade) !== null ? $visibilidade : null,
+        );
+
+        return response()->view($view, [
+            'fotografias' => $consultar($filtros),
+            'filtros' => $filtros,
+            'statusOptions' => ItemAcervo::STATUS,
+            'visibilidades' => Visibilidade::cases(),
+            'searchError' => $validator->errors()->first('q'),
+        ], $pesquisaInvalida ? 422 : 200);
     }
 
     private function ensurePhotograph(ItemAcervo $fotografia): void
