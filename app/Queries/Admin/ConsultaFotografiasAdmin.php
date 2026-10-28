@@ -2,9 +2,13 @@
 
 namespace App\Queries\Admin;
 
+use App\Enums\Visibilidade;
 use App\Models\ItemAcervo;
 use App\Queries\Concerns\PesquisaTextual;
+use App\Support\OrdenacaoListagem;
+use Closure;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 
 /**
@@ -20,15 +24,42 @@ class ConsultaFotografiasAdmin
     private const COLUNAS_PESQUISADAS = ['titulo', 'legenda', 'local_atual', 'local_epoca', 'evento', 'cedente', 'localizacao_fisica'];
 
     /**
+     * Colunas ordenáveis; a lixeira acrescenta a data de exclusão.
+     *
+     * @return array<string, string|Closure(Builder, string): mixed>
+     */
+    public static function ordenaveis(bool $lixeira = false): array
+    {
+        return [
+            'recentes' => 'id',
+            'titulo' => 'titulo',
+            'data' => fn (Builder $query, string $direcao) => $query->ordenadoPorDataHistorica($direcao),
+            'status' => OrdenacaoListagem::porValores('status', array_keys(ItemAcervo::STATUS)),
+            'visibilidade' => OrdenacaoListagem::porValores('visibilidade', array_column(Visibilidade::cases(), 'value')),
+            ...($lixeira ? ['exclusao' => 'deleted_at'] : []),
+        ];
+    }
+
+    public static function ordenacao(Request $request, bool $lixeira = false): OrdenacaoListagem
+    {
+        return OrdenacaoListagem::fromRequest(
+            $request,
+            self::ordenaveis($lixeira),
+            padrao: $lixeira ? 'exclusao' : 'recentes',
+            direcaoPadrao: 'desc',
+            comecamDecrescentes: ['recentes', 'data', 'exclusao'],
+        );
+    }
+
+    /**
      * @return LengthAwarePaginator<ItemAcervo>
      */
-    public function ativas(FiltrosFotografiasAdmin $filtros, int $porPagina = self::POR_PAGINA): LengthAwarePaginator
+    public function ativas(FiltrosFotografiasAdmin $filtros, OrdenacaoListagem $ordenacao, int $porPagina = self::POR_PAGINA): LengthAwarePaginator
     {
         $query = ItemAcervo::query()
-            ->with(['arquivos' => fn ($query) => $query->where('versao_arquivo', 'thumbnail')])
-            ->latest('id');
+            ->with(['arquivos' => fn ($query) => $query->where('versao_arquivo', 'thumbnail')]);
 
-        return $this->paginar($query, $filtros, $porPagina);
+        return $this->paginar($query, $filtros, $ordenacao, $porPagina);
     }
 
     /**
@@ -36,24 +67,23 @@ class ConsultaFotografiasAdmin
      *
      * @return LengthAwarePaginator<ItemAcervo>
      */
-    public function excluidas(FiltrosFotografiasAdmin $filtros, int $porPagina = self::POR_PAGINA): LengthAwarePaginator
+    public function excluidas(FiltrosFotografiasAdmin $filtros, OrdenacaoListagem $ordenacao, int $porPagina = self::POR_PAGINA): LengthAwarePaginator
     {
         $query = ItemAcervo::query()
             ->onlyTrashed()
             ->with([
                 'excluidoPor',
                 'arquivos' => fn ($query) => $query->whereIn('versao_arquivo', ['thumbnail', 'medium', 'large', 'original']),
-            ])
-            ->latest('deleted_at');
+            ]);
 
-        return $this->paginar($query, $filtros, $porPagina);
+        return $this->paginar($query, $filtros, $ordenacao, $porPagina);
     }
 
     /**
      * @param  Builder<ItemAcervo>  $query
      * @return LengthAwarePaginator<ItemAcervo>
      */
-    private function paginar(Builder $query, FiltrosFotografiasAdmin $filtros, int $porPagina): LengthAwarePaginator
+    private function paginar(Builder $query, FiltrosFotografiasAdmin $filtros, OrdenacaoListagem $ordenacao, int $porPagina): LengthAwarePaginator
     {
         $query->where('tipo_item', 'fotografia');
 
@@ -69,7 +99,9 @@ class ConsultaFotografiasAdmin
             $query->where('visibilidade', $filtros->visibilidade);
         }
 
-        return $query->paginate($porPagina)->appends($filtros->parametros());
+        return $ordenacao->aplicar($query)
+            ->paginate($porPagina)
+            ->appends([...$filtros->parametros(), ...$ordenacao->parametros()]);
     }
 
     /**

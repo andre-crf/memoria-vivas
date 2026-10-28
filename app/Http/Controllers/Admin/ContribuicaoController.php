@@ -5,16 +5,28 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Contribuicao;
 use App\Models\ContribuicaoArquivo;
+use App\Support\OrdenacaoListagem;
 use Illuminate\Contracts\View\View;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class ContribuicaoController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
+        $ordenacao = OrdenacaoListagem::fromRequest($request, [
+            'assunto' => 'titulo',
+            'colaborador' => 'nome',
+            'arquivos' => 'arquivos_count',
+            'recebida' => 'created_at',
+        ], 'recebida', 'desc', comecamDecrescentes: ['arquivos', 'recebida']);
+
         return view('admin.contribuicoes.index', [
-            'contribuicoes' => Contribuicao::withCount('arquivos')->latest()->paginate(20),
+            'contribuicoes' => $ordenacao->aplicar(Contribuicao::withCount('arquivos'))
+                ->paginate(20)
+                ->appends($ordenacao->parametros()),
+            'ordenacao' => $ordenacao,
         ]);
     }
 

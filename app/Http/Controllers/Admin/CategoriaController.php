@@ -2,31 +2,37 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Admin\Concerns\ListagemPesquisavel;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreCategoriaRequest;
 use App\Http\Requests\Admin\UpdateCategoriaRequest;
 use App\Models\Categoria;
+use App\Support\OrdenacaoListagem;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
 
 class CategoriaController extends Controller
 {
+    use ListagemPesquisavel;
+
     /**
      * Display a listing of the resource.
      */
-    public function index(): View
+    public function index(Request $request): Response
     {
         Gate::authorize('viewAny', Categoria::class);
 
-        $categorias = Categoria::query()
-            ->withCount('itensAcervo')
-            ->orderBy('titulo')
-            ->get();
-
-        return view('admin.categorias.index', [
-            'categorias' => $categorias,
-        ]);
+        return $this->listagemPesquisavel(
+            $request,
+            Categoria::query()->withCount('itensAcervo'),
+            ['titulo', 'descricao'],
+            OrdenacaoListagem::fromRequest($request, ['titulo' => 'titulo', 'itens' => 'itens_acervo_count'], 'titulo', comecamDecrescentes: ['itens']),
+            'admin.categorias.index',
+            'categorias',
+        );
     }
 
     /**

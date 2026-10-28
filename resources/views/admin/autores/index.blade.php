@@ -22,29 +22,37 @@
             </a>
         </div>
 
-        @if ($autores->isEmpty())
-            <div class="mt-6 rounded-lg border border-dashed border-stone-300 bg-white p-8 text-center">
+        <x-admin.busca-listagem
+            class="mt-6"
+            :action="route('admin.autores.index')"
+            :termo="$termo"
+            placeholder="Nome ou observação"
+            :total="$autores->total()"
+            singular="autor encontrado"
+            plural="autores encontrados"
+            :search-error="$searchError"
+            :ordenacao="$ordenacao"
+        />
+
+        @if ($autores->isEmpty() && $termo !== '')
+            <div class="rounded-lg border border-stone-200 bg-white shadow-sm"><x-admin.busca-sem-resultados :action="route('admin.autores.index')" mensagem="Nenhum autor encontrado para a pesquisa" /></div>
+        @elseif ($autores->isEmpty())
+            <div class="rounded-lg border border-dashed border-stone-300 bg-white p-8 text-center">
                 <p class="text-sm text-stone-600">
                     Nenhum autor cadastrado.
                 </p>
             </div>
         @else
-            <div class="mt-6 overflow-hidden rounded-lg border border-stone-200 bg-white shadow-[0_18px_40px_rgb(28_25_23/0.05)]">
+            <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-[0_18px_40px_rgb(28_25_23/0.05)]">
                 <div class="overflow-x-auto">
                     <table class="min-w-full divide-y divide-stone-200">
                         <thead class="bg-stone-50">
                             <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wide text-stone-500">
-                                    Nome
-                                </th>
+                                <x-admin.coluna-ordenavel rotulo="Nome" chave="nome" :ordenacao="$ordenacao" :action="route('admin.autores.index')" :parametros="$parametros" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wide text-stone-500" />
 
-                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wide text-stone-500">
-                                    Tipo
-                                </th>
+                                <x-admin.coluna-ordenavel rotulo="Tipo" chave="tipo" :ordenacao="$ordenacao" :action="route('admin.autores.index')" :parametros="$parametros" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wide text-stone-500" />
 
-                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wide text-stone-500">
-                                    Itens associados
-                                </th>
+                                <x-admin.coluna-ordenavel rotulo="Itens associados" chave="itens" :ordenacao="$ordenacao" :action="route('admin.autores.index')" :parametros="$parametros" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wide text-stone-500" />
 
                                 <th class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wide text-stone-500">
                                     Ações
@@ -102,6 +110,12 @@
                         </tbody>
                     </table>
                 </div>
+
+                @if ($autores->hasPages())
+                    <div class="border-t border-stone-200 px-5 py-4">
+                        {{ $autores->links() }}
+                    </div>
+                @endif
             </div>
         @endif
     </div>

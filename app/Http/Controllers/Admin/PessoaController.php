@@ -2,28 +2,34 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Admin\Concerns\ListagemPesquisavel;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StorePessoaRequest;
 use App\Http\Requests\Admin\UpdatePessoaRequest;
 use App\Models\Pessoa;
+use App\Support\OrdenacaoListagem;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
 
 class PessoaController extends Controller
 {
-    public function index(): View
+    use ListagemPesquisavel;
+
+    public function index(Request $request): Response
     {
         Gate::authorize('viewAny', Pessoa::class);
 
-        $pessoas = Pessoa::query()
-            ->withCount('itensAcervo')
-            ->orderBy('nome')
-            ->get();
-
-        return view('admin.pessoas.index', [
-            'pessoas' => $pessoas,
-        ]);
+        return $this->listagemPesquisavel(
+            $request,
+            Pessoa::query()->withCount('itensAcervo'),
+            ['nome', 'observacao'],
+            OrdenacaoListagem::fromRequest($request, ['nome' => 'nome', 'itens' => 'itens_acervo_count'], 'nome', comecamDecrescentes: ['itens']),
+            'admin.pessoas.index',
+            'pessoas',
+        );
     }
 
     public function create(): View

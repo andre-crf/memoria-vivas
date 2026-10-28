@@ -8,6 +8,8 @@ use App\Observers\ItemAcervoObserver;
 use App\Support\DataHistorica;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
+use Illuminate\Database\Eloquent\Attributes\Scope;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -152,6 +154,33 @@ class ItemAcervo extends Model
     public function registroDownloads(): HasMany
     {
         return $this->hasMany(RegistroDownload::class);
+    }
+
+    /**
+     * Ordena pela data histórica, com uma regra única para todas as precisões:
+     *
+     * - a chave é o início do período (ano ou década, mês e dia; o que falta vale 0),
+     *   então "década de 1960" vem antes de "1965", que vem antes de "03/1965";
+     * - em datas iguais, a mais precisa vem primeiro (exata, mês/ano, ano, década);
+     * - itens sem data ficam sempre no fim, nas duas direções.
+     *
+     * @param  Builder<self>  $query
+     */
+    #[Scope]
+    protected function ordenadoPorDataHistorica(Builder $query, string $direcao = 'asc'): void
+    {
+        $direcao = $direcao === 'desc' ? 'desc' : 'asc';
+        // "decada + 0" converte o texto da década em número no MySQL e no SQLite.
+        $chave = "CASE WHEN tipo_data = 'desconhecida' OR (ano IS NULL AND decada IS NULL) THEN NULL"
+            .' ELSE COALESCE(ano, decada + 0) * 10000 + COALESCE(mes, 0) * 100 + COALESCE(dia, 0) END';
+        $precisao = collect(TipoData::cases())
+            ->map(fn (TipoData $tipo, int $posicao): string => "WHEN '{$tipo->value}' THEN {$posicao}")
+            ->join(' ');
+
+        $query
+            ->orderByRaw("({$chave}) IS NULL")
+            ->orderByRaw("{$chave} {$direcao}")
+            ->orderByRaw("CASE tipo_data {$precisao} END");
     }
 
     public function dataHistorica(): DataHistorica

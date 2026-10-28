@@ -6,6 +6,7 @@ use App\Auditing\AuditContextFactory;
 use App\Auditing\Enums\AuditEntity;
 use App\Enums\TipoData;
 use App\Enums\Visibilidade;
+use App\Http\Controllers\Admin\Concerns\ListagemPesquisavel;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\ReplaceArquivoOriginalRequest;
 use App\Http\Requests\Admin\StoreFotografiaRequest;
@@ -23,6 +24,7 @@ use App\Services\Acervo\ExcluirItemAcervoDefinitivamente;
 use App\Services\Acervo\RestaurarItemAcervo;
 use App\Services\Arquivos\RegenerarVersoesOtimizadas;
 use App\Services\Arquivos\SubstituirArquivoOriginal;
+use App\Support\OrdenacaoListagem;
 use Closure;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -30,22 +32,27 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Facades\Validator;
 
 class FotografiaController extends Controller
 {
+    use ListagemPesquisavel;
+
     public function index(Request $request, ConsultaFotografiasAdmin $consulta): Response
     {
         Gate::authorize('viewAny', ItemAcervo::class);
 
-        return $this->listagem('admin.fotografias.index', $request, fn (FiltrosFotografiasAdmin $filtros) => $consulta->ativas($filtros));
+        $ordenacao = ConsultaFotografiasAdmin::ordenacao($request);
+
+        return $this->listagem('admin.fotografias.index', $request, $ordenacao, fn (FiltrosFotografiasAdmin $filtros) => $consulta->ativas($filtros, $ordenacao));
     }
 
     public function trashed(Request $request, ConsultaFotografiasAdmin $consulta): Response
     {
         Gate::authorize('restore', new ItemAcervo);
 
-        return $this->listagem('admin.fotografias.trashed', $request, fn (FiltrosFotografiasAdmin $filtros) => $consulta->excluidas($filtros));
+        $ordenacao = ConsultaFotografiasAdmin::ordenacao($request, lixeira: true);
+
+        return $this->listagem('admin.fotografias.trashed', $request, $ordenacao, fn (FiltrosFotografiasAdmin $filtros) => $consulta->excluidas($filtros, $ordenacao));
     }
 
     public function create(): View
@@ -268,19 +275,13 @@ class FotografiaController extends Controller
      *
      * @param  Closure(FiltrosFotografiasAdmin): LengthAwarePaginator<ItemAcervo>  $consultar
      */
-    private function listagem(string $view, Request $request, Closure $consultar): Response
+    private function listagem(string $view, Request $request, OrdenacaoListagem $ordenacao, Closure $consultar): Response
     {
-        $validator = Validator::make($request->query(), [
-            'q' => ['nullable', 'string', 'max:200'],
-        ], [
-            'q.string' => 'Digite um texto válido para pesquisar.',
-            'q.max' => 'A pesquisa deve ter no máximo 200 caracteres.',
-        ]);
-        $pesquisaInvalida = $validator->fails();
+        [$termo, $searchError] = $this->pesquisa($request);
         $status = $request->query('status');
         $visibilidade = $request->query('visibilidade');
         $filtros = new FiltrosFotografiasAdmin(
-            termo: $pesquisaInvalida ? '' : trim((string) ($validator->validated()['q'] ?? '')),
+            termo: $termo,
             status: is_string($status) && array_key_exists($status, ItemAcervo::STATUS) ? $status : null,
             visibilidade: is_string($visibilidade) && Visibilidade::tryFrom($visibilidade) !== null ? $visibilidade : null,
         );
@@ -288,10 +289,11 @@ class FotografiaController extends Controller
         return response()->view($view, [
             'fotografias' => $consultar($filtros),
             'filtros' => $filtros,
+            'ordenacao' => $ordenacao,
             'statusOptions' => ItemAcervo::STATUS,
             'visibilidades' => Visibilidade::cases(),
-            'searchError' => $validator->errors()->first('q'),
-        ], $pesquisaInvalida ? 422 : 200);
+            'searchError' => $searchError,
+        ], $searchError !== null ? 422 : 200);
     }
 
     private function ensurePhotograph(ItemAcervo $fotografia): void
