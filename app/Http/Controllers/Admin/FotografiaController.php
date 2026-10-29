@@ -6,6 +6,7 @@ use App\Auditing\AuditContextFactory;
 use App\Auditing\Enums\AuditEntity;
 use App\Enums\TipoData;
 use App\Enums\Visibilidade;
+use App\Http\Controllers\Admin\Concerns\ListagemPesquisavel;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\ReplaceArquivoOriginalRequest;
 use App\Http\Requests\Admin\StoreFotografiaRequest;
@@ -14,6 +15,8 @@ use App\Models\Arquivo;
 use App\Models\AuditEvent;
 use App\Models\ItemAcervo;
 use App\Models\User;
+use App\Queries\Admin\ConsultaFotografiasAdmin;
+use App\Queries\Admin\FiltrosFotografiasAdmin;
 use App\Services\Acervo\AtualizarItemAcervo;
 use App\Services\Acervo\CriarItemAcervo;
 use App\Services\Acervo\ExcluirItemAcervo;
@@ -22,6 +25,8 @@ use App\Services\Acervo\RestaurarItemAcervo;
 use App\Services\Arquivos\RegenerarVersoesOtimizadas;
 use App\Services\Arquivos\SubstituirArquivoOriginal;
 use App\Support\OptimizedImageVersions;
+use App\Support\OrdenacaoListagem;
+use Closure;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -31,38 +36,24 @@ use Illuminate\Support\Facades\Gate;
 
 class FotografiaController extends Controller
 {
-    public function index(): View
+    use ListagemPesquisavel;
+
+    public function index(Request $request, ConsultaFotografiasAdmin $consulta): Response
     {
         Gate::authorize('viewAny', ItemAcervo::class);
 
-        $fotografias = ItemAcervo::query()
-            ->with(['arquivos' => fn ($query) => $query->where('versao_arquivo', 'thumbnail')])
-            ->where('tipo_item', 'fotografia')
-            ->latest('id')
-            ->paginate(15);
+        $ordenacao = ConsultaFotografiasAdmin::ordenacao($request);
 
-        return view('admin.fotografias.index', [
-            'fotografias' => $fotografias,
-        ]);
+        return $this->listagem('admin.fotografias.index', $request, $ordenacao, fn (FiltrosFotografiasAdmin $filtros) => $consulta->ativas($filtros, $ordenacao));
     }
 
-    public function trashed(): View
+    public function trashed(Request $request, ConsultaFotografiasAdmin $consulta): Response
     {
         Gate::authorize('restore', new ItemAcervo);
 
-        $fotografias = ItemAcervo::query()
-            ->onlyTrashed()
-            ->where('tipo_item', 'fotografia')
-            ->with([
-                'excluidoPor',
-                'arquivos' => fn ($query) => $query->whereIn('versao_arquivo', ['thumbnail', 'medium', 'large', 'original']),
-            ])
-            ->latest('deleted_at')
-            ->paginate(15);
+        $ordenacao = ConsultaFotografiasAdmin::ordenacao($request, lixeira: true);
 
-        return view('admin.fotografias.trashed', [
-            'fotografias' => $fotografias,
-        ]);
+        return $this->listagem('admin.fotografias.trashed', $request, $ordenacao, fn (FiltrosFotografiasAdmin $filtros) => $consulta->excluidas($filtros, $ordenacao));
     }
 
     public function create(): View
@@ -333,6 +324,33 @@ class FotografiaController extends Controller
         $this->ensurePhotograph($fotografia);
 
         return $fotografia;
+    }
+
+    /**
+     * Pesquisa inválida responde 422 e é ignorada; status e visibilidade fora das opções são ignorados,
+     * como no catálogo público.
+     *
+     * @param  Closure(FiltrosFotografiasAdmin): LengthAwarePaginator<ItemAcervo>  $consultar
+     */
+    private function listagem(string $view, Request $request, OrdenacaoListagem $ordenacao, Closure $consultar): Response
+    {
+        [$termo, $searchError] = $this->pesquisa($request);
+        $status = $request->query('status');
+        $visibilidade = $request->query('visibilidade');
+        $filtros = new FiltrosFotografiasAdmin(
+            termo: $termo,
+            status: is_string($status) && array_key_exists($status, ItemAcervo::STATUS) ? $status : null,
+            visibilidade: is_string($visibilidade) && Visibilidade::tryFrom($visibilidade) !== null ? $visibilidade : null,
+        );
+
+        return response()->view($view, [
+            'fotografias' => $consultar($filtros),
+            'filtros' => $filtros,
+            'ordenacao' => $ordenacao,
+            'statusOptions' => ItemAcervo::STATUS,
+            'visibilidades' => Visibilidade::cases(),
+            'searchError' => $searchError,
+        ], $searchError !== null ? 422 : 200);
     }
 
     private function ensurePhotograph(ItemAcervo $fotografia): void

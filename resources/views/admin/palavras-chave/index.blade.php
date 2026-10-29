@@ -10,8 +10,21 @@
                 <a href="{{ route('admin.palavras-chave.create') }}" class="inline-flex items-center justify-center rounded-md bg-institutional px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-institutional-strong focus:outline-none focus:ring-2 focus:ring-institutional focus:ring-offset-2">Nova palavra-chave</a>
             </section>
 
+            <x-admin.busca-listagem
+                :action="route('admin.palavras-chave.index')"
+                :termo="$termo"
+                placeholder="Termo"
+                :total="$palavrasChave->total()"
+                singular="palavra-chave encontrada"
+                plural="palavras-chave encontradas"
+                :search-error="$searchError"
+                :ordenacao="$ordenacao"
+            />
+
             <section class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm">
-                @if ($palavrasChave->isEmpty())
+                @if ($palavrasChave->isEmpty() && $termo !== '')
+                    <x-admin.busca-sem-resultados :action="route('admin.palavras-chave.index')" mensagem="Nenhuma palavra-chave encontrada para a pesquisa" />
+                @elseif ($palavrasChave->isEmpty())
                     <div class="px-6 py-16 text-center">
                         <h3 class="text-base font-semibold text-stone-950">Nenhuma palavra-chave cadastrada</h3>
                         <p class="mx-auto mt-2 max-w-md text-sm leading-6 text-stone-600">Quando houver palavras-chave cadastradas, elas aparecerão nesta listagem.</p>
@@ -21,8 +34,8 @@
                         <table class="min-w-full divide-y divide-stone-200">
                             <thead class="bg-stone-100">
                                 <tr>
-                                    <th scope="col" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-[0.12em] text-stone-600">Termo</th>
-                                    <th scope="col" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-[0.12em] text-stone-600">Itens associados</th>
+                                    <x-admin.coluna-ordenavel rotulo="Termo" chave="termo" :ordenacao="$ordenacao" :action="route('admin.palavras-chave.index')" :parametros="$parametros" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-[0.12em] text-stone-600" />
+                                    <x-admin.coluna-ordenavel rotulo="Itens associados" chave="itens" :ordenacao="$ordenacao" :action="route('admin.palavras-chave.index')" :parametros="$parametros" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-[0.12em] text-stone-600" />
                                     <th scope="col" class="px-5 py-3 text-right text-xs font-semibold uppercase tracking-[0.12em] text-stone-600">Ações</th>
                                 </tr>
                             </thead>
@@ -55,6 +68,12 @@
                             </tbody>
                         </table>
                     </div>
+
+                    @if ($palavrasChave->hasPages())
+                        <div class="border-t border-stone-200 px-5 py-4">
+                            {{ $palavrasChave->links() }}
+                        </div>
+                    @endif
                 @endif
             </section>
     </div>

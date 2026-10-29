@@ -53,6 +53,15 @@ class CatalogoTest extends TestCase
         $this->get(route('public.fotografias.show', $withoutImage->id))->assertNotFound();
     }
 
+    public function test_search_does_not_expose_the_physical_location_of_the_original(): void
+    {
+        $this->photograph(['titulo' => 'Praça central', 'localizacao_fisica' => 'Arquivo Municipal, caixa 12']);
+
+        $this->get(route('public.catalogo', ['q' => 'caixa 12']))->assertOk()
+            ->assertDontSee('Praça central')
+            ->assertSee('Nenhuma fotografia encontrada para esta busca');
+    }
+
     public function test_search_filters_title_caption_and_locations_and_treats_wildcards_as_text(): void
     {
         $this->photograph(['titulo' => 'Praça central']);

@@ -12,6 +12,7 @@ use App\Models\Autor;
 use App\Models\Categoria;
 use App\Models\PalavraChave;
 use App\Models\Pessoa;
+use App\Queries\Concerns\PesquisaTextual;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Gate;
@@ -26,6 +27,8 @@ use Livewire\Component;
  */
 final class CatalogPicker extends Component
 {
+    use PesquisaTextual;
+
     private const RESULT_LIMIT = 8;
 
     #[Locked]
@@ -84,7 +87,7 @@ final class CatalogPicker extends Component
         return $definition['model']::query()
             ->when($term !== '', fn ($query) => $query->whereRaw(
                 "{$column} LIKE ? ESCAPE '!'",
-                ['%'.str_replace(['!', '%', '_'], ['!!', '!%', '!_'], $term).'%'],
+                [$this->padraoDeBusca($term)],
             ))
             ->whereNotIn('id', $this->selectedIds())
             ->orderBy($column)

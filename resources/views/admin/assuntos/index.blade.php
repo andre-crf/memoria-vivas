@@ -10,8 +10,21 @@
                 <a href="{{ route('admin.assuntos.create') }}" class="inline-flex items-center justify-center rounded-md bg-institutional px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-institutional-strong focus:outline-none focus:ring-2 focus:ring-institutional focus:ring-offset-2">Novo assunto</a>
             </section>
 
+            <x-admin.busca-listagem
+                :action="route('admin.assuntos.index')"
+                :termo="$termo"
+                placeholder="Título ou descrição"
+                :total="$assuntos->total()"
+                singular="assunto encontrado"
+                plural="assuntos encontrados"
+                :search-error="$searchError"
+                :ordenacao="$ordenacao"
+            />
+
             <section class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm">
-                @if ($assuntos->isEmpty())
+                @if ($assuntos->isEmpty() && $termo !== '')
+                    <x-admin.busca-sem-resultados :action="route('admin.assuntos.index')" mensagem="Nenhum assunto encontrado para a pesquisa" />
+                @elseif ($assuntos->isEmpty())
                     <div class="px-6 py-16 text-center">
                         <h3 class="text-base font-semibold text-stone-950">Nenhum assunto cadastrado</h3>
                         <p class="mx-auto mt-2 max-w-md text-sm leading-6 text-stone-600">Quando houver assuntos cadastrados, eles aparecerão nesta listagem.</p>
@@ -21,9 +34,9 @@
                         <table class="min-w-full divide-y divide-stone-200">
                             <thead class="bg-stone-100">
                                 <tr>
-                                    <th scope="col" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-[0.12em] text-stone-600">Título</th>
+                                    <x-admin.coluna-ordenavel rotulo="Título" chave="titulo" :ordenacao="$ordenacao" :action="route('admin.assuntos.index')" :parametros="$parametros" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-[0.12em] text-stone-600" />
                                     <th scope="col" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-[0.12em] text-stone-600">Descrição</th>
-                                    <th scope="col" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-[0.12em] text-stone-600">Itens associados</th>
+                                    <x-admin.coluna-ordenavel rotulo="Itens associados" chave="itens" :ordenacao="$ordenacao" :action="route('admin.assuntos.index')" :parametros="$parametros" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-[0.12em] text-stone-600" />
                                     <th scope="col" class="px-5 py-3 text-right text-xs font-semibold uppercase tracking-[0.12em] text-stone-600">Ações</th>
                                 </tr>
                             </thead>
@@ -57,6 +70,12 @@
                             </tbody>
                         </table>
                     </div>
+
+                    @if ($assuntos->hasPages())
+                        <div class="border-t border-stone-200 px-5 py-4">
+                            {{ $assuntos->links() }}
+                        </div>
+                    @endif
                 @endif
             </section>
     </div>

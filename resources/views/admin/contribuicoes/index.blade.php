@@ -10,7 +10,7 @@
             @else
                 <table class="min-w-full divide-y divide-stone-200 text-sm">
                     <thead class="bg-stone-50 text-left text-stone-600"><tr>
-                        <th class="px-5 py-3">Assunto</th><th class="px-5 py-3">Colaborador</th><th class="px-5 py-3">Arquivos</th><th class="px-5 py-3">Recebida em</th><th class="px-5 py-3"><span class="sr-only">Ações</span></th>
+                        <x-admin.coluna-ordenavel rotulo="Assunto" chave="assunto" :ordenacao="$ordenacao" :action="route('admin.contribuicoes.index')" :parametros="[]" class="px-5 py-3" /><x-admin.coluna-ordenavel rotulo="Colaborador" chave="colaborador" :ordenacao="$ordenacao" :action="route('admin.contribuicoes.index')" :parametros="[]" class="px-5 py-3" /><x-admin.coluna-ordenavel rotulo="Arquivos" chave="arquivos" :ordenacao="$ordenacao" :action="route('admin.contribuicoes.index')" :parametros="[]" class="px-5 py-3" /><x-admin.coluna-ordenavel rotulo="Recebida em" chave="recebida" :ordenacao="$ordenacao" :action="route('admin.contribuicoes.index')" :parametros="[]" class="px-5 py-3" /><th class="px-5 py-3"><span class="sr-only">Ações</span></th>
                     </tr></thead>
                     <tbody class="divide-y divide-stone-200">
                         @foreach ($contribuicoes as $contribuicao)

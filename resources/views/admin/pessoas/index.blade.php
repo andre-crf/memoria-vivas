@@ -17,8 +17,21 @@
             </a>
         </section>
 
+        <x-admin.busca-listagem
+            :action="route('admin.pessoas.index')"
+            :termo="$termo"
+            placeholder="Nome ou observação"
+            :total="$pessoas->total()"
+            singular="pessoa encontrada"
+            plural="pessoas encontradas"
+            :search-error="$searchError"
+            :ordenacao="$ordenacao"
+        />
+
         <section class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm">
-            @if ($pessoas->isEmpty())
+            @if ($pessoas->isEmpty() && $termo !== '')
+                <x-admin.busca-sem-resultados :action="route('admin.pessoas.index')" mensagem="Nenhuma pessoa encontrada para a pesquisa" />
+            @elseif ($pessoas->isEmpty())
                 <div class="px-6 py-16 text-center">
                     <h3 class="text-base font-semibold text-stone-950">Nenhuma pessoa cadastrada</h3>
                     <p class="mx-auto mt-2 max-w-md text-sm leading-6 text-stone-600">
@@ -30,9 +43,9 @@
                     <table class="min-w-full divide-y divide-stone-200">
                         <thead class="bg-stone-100">
                             <tr>
-                                <th scope="col" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-[0.12em] text-stone-600">Nome</th>
+                                <x-admin.coluna-ordenavel rotulo="Nome" chave="nome" :ordenacao="$ordenacao" :action="route('admin.pessoas.index')" :parametros="$parametros" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-[0.12em] text-stone-600" />
                                 <th scope="col" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-[0.12em] text-stone-600">Observação</th>
-                                <th scope="col" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-[0.12em] text-stone-600">Itens associados</th>
+                                <x-admin.coluna-ordenavel rotulo="Itens associados" chave="itens" :ordenacao="$ordenacao" :action="route('admin.pessoas.index')" :parametros="$parametros" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-[0.12em] text-stone-600" />
                                 <th scope="col" class="px-5 py-3 text-right text-xs font-semibold uppercase tracking-[0.12em] text-stone-600">Ações</th>
                             </tr>
                         </thead>
@@ -94,6 +107,12 @@
                         </tbody>
                     </table>
                 </div>
+
+                @if ($pessoas->hasPages())
+                    <div class="border-t border-stone-200 px-5 py-4">
+                        {{ $pessoas->links() }}
+                    </div>
+                @endif
             @endif
         </section>
     </div>

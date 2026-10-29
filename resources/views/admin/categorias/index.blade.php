@@ -23,8 +23,21 @@
                 </a>
             </section>
 
+            <x-admin.busca-listagem
+                :action="route('admin.categorias.index')"
+                :termo="$termo"
+                placeholder="Título ou descrição"
+                :total="$categorias->total()"
+                singular="categoria encontrada"
+                plural="categorias encontradas"
+                :search-error="$searchError"
+                :ordenacao="$ordenacao"
+            />
+
             <section class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm">
-                @if ($categorias->isEmpty())
+                @if ($categorias->isEmpty() && $termo !== '')
+                    <x-admin.busca-sem-resultados :action="route('admin.categorias.index')" mensagem="Nenhuma categoria encontrada para a pesquisa" />
+                @elseif ($categorias->isEmpty())
                     <div class="px-6 py-16 text-center">
                         <h3 class="text-base font-semibold text-stone-950">
                             Nenhuma categoria cadastrada
@@ -39,12 +52,7 @@
                         <table class="min-w-full divide-y divide-stone-200">
                             <thead class="bg-stone-100">
                                 <tr>
-                                    <th
-                                        scope="col"
-                                        class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-[0.12em] text-stone-600"
-                                    >
-                                        Título
-                                    </th>
+                                    <x-admin.coluna-ordenavel rotulo="Título" chave="titulo" :ordenacao="$ordenacao" :action="route('admin.categorias.index')" :parametros="$parametros" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-[0.12em] text-stone-600" />
 
                                     <th
                                         scope="col"
@@ -53,12 +61,7 @@
                                         Descrição
                                     </th>
 
-                                    <th
-                                        scope="col"
-                                        class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-[0.12em] text-stone-600"
-                                    >
-                                        Itens associados
-                                    </th>
+                                    <x-admin.coluna-ordenavel rotulo="Itens associados" chave="itens" :ordenacao="$ordenacao" :action="route('admin.categorias.index')" :parametros="$parametros" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-[0.12em] text-stone-600" />
 
                                     <th
                                         scope="col"
@@ -129,6 +132,12 @@
                             </tbody>
                         </table>
                     </div>
+
+                    @if ($categorias->hasPages())
+                        <div class="border-t border-stone-200 px-5 py-4">
+                            {{ $categorias->links() }}
+                        </div>
+                    @endif
                 @endif
             </section>
     </div>

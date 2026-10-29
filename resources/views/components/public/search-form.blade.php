@@ -18,7 +18,7 @@
     <form method="GET" action="{{ route('public.catalogo') }}" role="search" class="flex h-12 w-full min-w-0 items-center rounded-md border border-mist-300 bg-white focus-within:border-institutional focus-within:shadow-[0_0_0_3px_rgb(23_62_99/0.14)]">
         <x-lucide-search class="ml-3.5 size-4 flex-none text-ink-500" aria-hidden="true" />
         <label class="sr-only" for="public-search">Buscar no catálogo</label>
-        <input id="public-search" name="q" type="search" value="{{ $termo }}" maxlength="200" @if ($searchError) aria-invalid="true" aria-describedby="catalog-search-error" @endif placeholder="Buscar por título ou descrição" autocomplete="off" class="h-full min-w-0 flex-1 bg-transparent px-3 text-[0.92rem] text-ink-950 outline-none">
+        <input id="public-search" name="q" type="search" value="{{ $termo }}" maxlength="200" @if ($searchError) aria-invalid="true" aria-describedby="catalog-search-error" @endif placeholder="Buscar por título, descrição ou local" autocomplete="off" class="h-full min-w-0 flex-1 bg-transparent px-3 text-[0.92rem] text-ink-950 outline-none">
         @foreach (['decada', 'categoria', 'assunto'] as $parametro)
             @if (isset($catalogQuery[$parametro]))
                 <input type="hidden" name="{{ $parametro }}" value="{{ $catalogQuery[$parametro] }}">

@@ -27,8 +27,25 @@
             </div>
         </section>
 
+        <x-admin.filtros-fotografias
+            :action="route('admin.fotografias.index')"
+            :filtros="$filtros"
+            :status-options="$statusOptions"
+            :visibilidades="$visibilidades"
+            :total="$fotografias->total()"
+            :search-error="$searchError"
+            :ordenacao="$ordenacao"
+        />
+
         <section class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm">
-            @if ($fotografias->isEmpty())
+            @if ($fotografias->isEmpty() && $filtros->possuiCriterios())
+                <x-admin.busca-sem-resultados
+                    :action="route('admin.fotografias.index')"
+                    mensagem="Nenhuma fotografia encontrada para os filtros aplicados"
+                    dica="Revise o texto pesquisado ou remova algum filtro."
+                    limpar="Limpar filtros"
+                />
+            @elseif ($fotografias->isEmpty())
                 <div class="px-6 py-16 text-center">
                     <h2 class="text-xl font-semibold text-stone-950">Nenhuma fotografia cadastrada</h2>
                     <p class="mx-auto mt-2 max-w-md text-sm leading-6 text-stone-600">
@@ -41,10 +58,10 @@
                         <thead class="bg-stone-100">
                             <tr>
                                 <th scope="col" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-[0.12em] text-stone-600">Imagem</th>
-                                <th scope="col" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-[0.12em] text-stone-600">Título</th>
-                                <th scope="col" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-[0.12em] text-stone-600">Data</th>
-                                <th scope="col" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-[0.12em] text-stone-600">Status</th>
-                                <th scope="col" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-[0.12em] text-stone-600">Visibilidade</th>
+                                <x-admin.coluna-ordenavel rotulo="Título" chave="titulo" :ordenacao="$ordenacao" :action="route('admin.fotografias.index')" :parametros="$filtros->parametros()" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-[0.12em] text-stone-600" />
+                                <x-admin.coluna-ordenavel rotulo="Data" chave="data" :ordenacao="$ordenacao" :action="route('admin.fotografias.index')" :parametros="$filtros->parametros()" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-[0.12em] text-stone-600" />
+                                <x-admin.coluna-ordenavel rotulo="Status" chave="status" :ordenacao="$ordenacao" :action="route('admin.fotografias.index')" :parametros="$filtros->parametros()" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-[0.12em] text-stone-600" />
+                                <x-admin.coluna-ordenavel rotulo="Visibilidade" chave="visibilidade" :ordenacao="$ordenacao" :action="route('admin.fotografias.index')" :parametros="$filtros->parametros()" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-[0.12em] text-stone-600" />
                                 <th scope="col" class="px-5 py-3 text-right text-xs font-semibold uppercase tracking-[0.12em] text-stone-600">Ações</th>
                             </tr>
                         </thead>

@@ -9,8 +9,21 @@
             <a href="{{ route('admin.usuarios.create') }}" class="inline-flex items-center justify-center rounded-md bg-institutional px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-institutional-strong focus:outline-none focus:ring-2 focus:ring-institutional focus:ring-offset-2">Novo usuário</a>
         </section>
 
+        <x-admin.busca-listagem
+            :action="route('admin.usuarios.index')"
+            :termo="$termo"
+            placeholder="Nome ou e-mail"
+            :total="$usuarios->total()"
+            singular="usuário encontrado"
+            plural="usuários encontrados"
+            :search-error="$searchError"
+            :ordenacao="$ordenacao"
+        />
+
         <section class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm">
-            @if ($usuarios->isEmpty())
+            @if ($usuarios->isEmpty() && $termo !== '')
+                <x-admin.busca-sem-resultados :action="route('admin.usuarios.index')" mensagem="Nenhum usuário encontrado para a pesquisa" />
+            @elseif ($usuarios->isEmpty())
                 <div class="px-6 py-16 text-center">
                     <h3 class="text-base font-semibold text-stone-950">Nenhum usuário cadastrado</h3>
                     <p class="mx-auto mt-2 max-w-md text-sm leading-6 text-stone-600">Quando houver usuários cadastrados, eles aparecerão nesta listagem.</p>
@@ -20,10 +33,10 @@
                     <table class="min-w-full divide-y divide-stone-200">
                         <thead class="bg-stone-100">
                             <tr>
-                                <th scope="col" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-[0.12em] text-stone-600">Nome</th>
-                                <th scope="col" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-[0.12em] text-stone-600">E-mail</th>
-                                <th scope="col" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-[0.12em] text-stone-600">Perfil</th>
-                                <th scope="col" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-[0.12em] text-stone-600">Situação</th>
+                                <x-admin.coluna-ordenavel rotulo="Nome" chave="nome" :ordenacao="$ordenacao" :action="route('admin.usuarios.index')" :parametros="$parametros" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-[0.12em] text-stone-600" />
+                                <x-admin.coluna-ordenavel rotulo="E-mail" chave="email" :ordenacao="$ordenacao" :action="route('admin.usuarios.index')" :parametros="$parametros" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-[0.12em] text-stone-600" />
+                                <x-admin.coluna-ordenavel rotulo="Perfil" chave="perfil" :ordenacao="$ordenacao" :action="route('admin.usuarios.index')" :parametros="$parametros" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-[0.12em] text-stone-600" />
+                                <x-admin.coluna-ordenavel rotulo="Situação" chave="situacao" :ordenacao="$ordenacao" :action="route('admin.usuarios.index')" :parametros="$parametros" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-[0.12em] text-stone-600" />
                                 <th scope="col" class="px-5 py-3 text-right text-xs font-semibold uppercase tracking-[0.12em] text-stone-600">Ações</th>
                             </tr>
                         </thead>
@@ -49,6 +62,12 @@
                         </tbody>
                     </table>
                 </div>
+
+                @if ($usuarios->hasPages())
+                    <div class="border-t border-stone-200 px-5 py-4">
+                        {{ $usuarios->links() }}
+                    </div>
+                @endif
             @endif
         </section>
     </div>

@@ -2,31 +2,37 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Admin\Concerns\ListagemPesquisavel;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreAutorRequest;
 use App\Http\Requests\Admin\UpdateAutorRequest;
 use App\Models\Autor;
+use App\Support\OrdenacaoListagem;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
 
 class AutorController extends Controller
 {
+    use ListagemPesquisavel;
+
     /**
      * Display a listing of the resource.
      */
-    public function index(): View
+    public function index(Request $request): Response
     {
         Gate::authorize('viewAny', Autor::class);
 
-        $autores = Autor::query()
-            ->withCount('itensAcervo')
-            ->orderBy('nome')
-            ->get();
-
-        return view('admin.autores.index', [
-            'autores' => $autores,
-        ]);
+        return $this->listagemPesquisavel(
+            $request,
+            Autor::query()->withCount('itensAcervo'),
+            ['nome', 'observacao'],
+            OrdenacaoListagem::fromRequest($request, ['nome' => 'nome', 'tipo' => OrdenacaoListagem::porValores('tipo', ['pessoa', 'instituicao']), 'itens' => 'itens_acervo_count'], 'nome', comecamDecrescentes: ['itens']),
+            'admin.autores.index',
+            'autores',
+        );
     }
 
     /**

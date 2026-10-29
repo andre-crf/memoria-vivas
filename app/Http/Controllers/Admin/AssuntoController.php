@@ -2,28 +2,34 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Admin\Concerns\ListagemPesquisavel;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreAssuntoRequest;
 use App\Http\Requests\Admin\UpdateAssuntoRequest;
 use App\Models\Assunto;
+use App\Support\OrdenacaoListagem;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
 
 class AssuntoController extends Controller
 {
-    public function index(): View
+    use ListagemPesquisavel;
+
+    public function index(Request $request): Response
     {
         Gate::authorize('viewAny', Assunto::class);
 
-        $assuntos = Assunto::query()
-            ->withCount('itensAcervo')
-            ->orderBy('titulo')
-            ->get();
-
-        return view('admin.assuntos.index', [
-            'assuntos' => $assuntos,
-        ]);
+        return $this->listagemPesquisavel(
+            $request,
+            Assunto::query()->withCount('itensAcervo'),
+            ['titulo', 'descricao'],
+            OrdenacaoListagem::fromRequest($request, ['titulo' => 'titulo', 'itens' => 'itens_acervo_count'], 'titulo', comecamDecrescentes: ['itens']),
+            'admin.assuntos.index',
+            'assuntos',
+        );
     }
 
     public function create(): View
