@@ -65,6 +65,8 @@ class AdminFotografiaOriginalUploadTest extends TestCase
             ->assertSee('Arquivo original')
             ->assertSee('Arraste e solte seu arquivo aqui')
             ->assertSee('JPG, JPEG, PNG, WebP, TIF, TIFF ou PDF · até 50 MB')
+            ->assertSee('PDFs são preservados como originais, mas não geram versões de imagem nem aparecem no catálogo público.')
+            ->assertSee('Imagens só podem ser exibidas publicamente com ao menos uma versão otimizada e o registro publicado como público.')
             ->assertSee('name="arquivo_original"', false)
             ->assertSee('x-data="fileDropzone(', false)
             ->assertSee('Pré-visualização de', false)
@@ -81,7 +83,8 @@ class AdminFotografiaOriginalUploadTest extends TestCase
                 'titulo' => 'Fotografia com original',
                 'arquivo_original' => UploadedFile::fake()->image('praca-central.jpg', 640, 480)->size(256),
             ]))
-            ->assertRedirect(route('admin.fotografias.index'));
+            ->assertRedirect(route('admin.fotografias.index'))
+            ->assertSessionHas('success', 'Fotografia cadastrada com sucesso.');
 
         $fotografia = ItemAcervo::where('titulo', 'Fotografia com original')->firstOrFail();
         $arquivos = Arquivo::where('item_acervo_id', $fotografia->id)->orderBy('id')->get();
@@ -232,7 +235,9 @@ class AdminFotografiaOriginalUploadTest extends TestCase
                 'titulo' => 'Fotografia com PDF original',
                 'arquivo_original' => UploadedFile::fake()->create('documento.pdf', 128, 'application/pdf'),
             ]))
-            ->assertRedirect(route('admin.fotografias.index'));
+            ->assertRedirect(route('admin.fotografias.index'))
+            ->assertSessionHas('warning', 'Arquivo original salvo. PDFs são preservados, mas não geram versões de imagem e não podem ser exibidos no catálogo público.')
+            ->assertSessionMissing('success');
 
         $fotografia = ItemAcervo::where('titulo', 'Fotografia com PDF original')->firstOrFail();
         $arquivo = Arquivo::where('item_acervo_id', $fotografia->id)->sole();
@@ -244,6 +249,27 @@ class AdminFotografiaOriginalUploadTest extends TestCase
         $this->assertNull($arquivo->width);
         $this->assertNull($arquivo->height);
         Storage::disk('local')->assertExists($arquivo->storage_path);
+    }
+
+    public function test_failed_derivation_shows_warning_and_preserves_the_original(): void
+    {
+        Storage::fake('local');
+        config(['acervo.image_processing.engine' => 'invalid-engine']);
+
+        $this
+            ->actingAs($this->usuarioInterno())
+            ->post(route('admin.fotografias.store'), $this->validPayload([
+                'titulo' => 'Fotografia sem versões',
+                'arquivo_original' => UploadedFile::fake()->image('sem-versoes.jpg', 640, 480),
+            ]))
+            ->assertRedirect(route('admin.fotografias.index'))
+            ->assertSessionHas('warning', fn (string $message): bool => str_contains($message, 'não foi possível gerar nenhuma versão de imagem'))
+            ->assertSessionMissing('success');
+
+        $original = Arquivo::query()->where('versao_arquivo', 'original')->sole();
+        $this->assertSame('image/jpeg', $original->mime_type);
+        Storage::disk('local')->assertExists($original->storage_path);
+        $this->assertSame(['original'], Arquivo::query()->pluck('versao_arquivo')->all());
     }
 
     public function test_edit_form_shows_current_original_without_a_new_upload_field(): void
@@ -398,7 +424,9 @@ class AdminFotografiaOriginalUploadTest extends TestCase
             ->put(route('admin.fotografias.replace-original', $fotografia), [
                 'arquivo_original' => UploadedFile::fake()->create('novo-original.pdf', 128, 'application/pdf'),
             ])
-            ->assertRedirect(route('admin.fotografias.show', $fotografia));
+            ->assertRedirect(route('admin.fotografias.show', $fotografia))
+            ->assertSessionHas('warning', 'Arquivo original salvo. PDFs são preservados, mas não geram versões de imagem e não podem ser exibidos no catálogo público.')
+            ->assertSessionMissing('success');
 
         foreach ($oldStoragePaths as $oldStoragePath) {
             Storage::disk('local')->assertMissing($oldStoragePath);

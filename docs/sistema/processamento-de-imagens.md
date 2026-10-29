@@ -8,6 +8,14 @@ Como o Memórias Vivas gera as versões otimizadas das fotografias e como medir 
 - A partir dele são geradas até três **versões otimizadas**: `thumbnail` (320 px), `medium` (1024 px) e `large` (1920 px), pelo maior lado. As versões nunca são ampliadas.
 - Uma versão que teria exatamente as dimensões de uma versão menor é **dispensada**: uma foto de 800 px tem só `thumbnail` e `medium`. As telas usam a próxima versão disponível.
 - Formato e qualidade ficam em `config/acervo.php` (`optimized_output`): WebP com qualidade 80 por padrão.
+- Uploads aceitos continuam definidos pela política existente (`ACERVO_ORIGINAL_UPLOAD_MIME_TYPES`, `ACERVO_ORIGINAL_UPLOAD_EXTENSIONS` e `ACERVO_ORIGINAL_UPLOAD_MAX_KB`); os limites não são ampliados por este processamento.
+- PDF pode ser preservado como original, mas não gera versões de imagem nem é exibido no catálogo público. Para exibir uma imagem, o registro também precisa estar publicado e público, e ao menos uma derivação otimizada deve ter sido gerada; o painel avisa quando nenhuma ou apenas parte das versões é criada.
+
+### Formatos aceitos
+
+Por padrão, o upload aceita JPEG (`.jpg`, `.jpeg`), PNG (`.png`), WebP (`.webp`), TIFF (`.tif`, `.tiff`) e PDF (`.pdf`), até 50 MB. A lista e o tamanho máximo continuam configuráveis pelas variáveis `ACERVO_ORIGINAL_UPLOAD_MIME_TYPES`, `ACERVO_ORIGINAL_UPLOAD_EXTENSIONS` e `ACERVO_ORIGINAL_UPLOAD_MAX_KB`.
+
+JPEG, PNG e WebP podem ser processados pelo Imagick ou GD. TIFF exige Imagick para gerar derivações; sem esse motor, o original continua preservado, mas o painel avisa que a imagem não terá exibição pública até as versões serem geradas. PDF é armazenado como documento original e não é convertido em imagem.
 
 ### Etapas
 
@@ -26,8 +34,14 @@ Sobre a transparência: no WebP ela é mantida; no JPEG, vira fundo branco.
 ### Motores
 
 - **Imagick** é o motor principal.
-- **GD** é a alternativa quando o Imagick não está disponível. Lê JPEG, PNG e WebP, mas não lê TIFF e não converte perfis de cor. Só aplica a orientação EXIF se a extensão `exif` estiver instalada.
+- **GD** é a alternativa quando o Imagick não está disponível. Lê JPEG, PNG e WebP, mas não lê TIFF e não converte perfis de cor. O contêiner instala a extensão `exif`, necessária para aplicar as oito orientações EXIF no GD, incluindo espelhamento.
 - O motor é escolhido em `ACERVO_IMAGEM_MOTOR`: `auto`, `imagick` ou `gd`.
+
+### Limites de recursos para originais grandes
+
+Antes de ler uma imagem com Imagick, o processador aplica tetos por processo: 128 MiB de memória, 256 MiB de mapa, 1 GiB de cache em disco e 16 milhões de pixels na área de memória. Se o servidor já impuser um limite menor, ele é mantido; estes tetos nunca elevam os limites do ImageMagick. Ao ultrapassar memória/área, o ImageMagick pode usar mapa ou cache em disco dentro dos respectivos limites. Se ainda não conseguir processar o arquivo, a derivação falha de forma registrada e o original permanece preservado.
+
+Esses limites não alteram o tamanho máximo do upload nem a lista de formatos aceitos. TIFFs multipágina continuam usando apenas a primeira página, inclusive em imagens de 16 bits. O comando de medição informa os limites efetivos e o pico de memória do processo para avaliar amostras reais antes de regenerar o acervo.
 
 ### Perfil sRGB
 
@@ -45,6 +59,7 @@ Sobre a transparência: no WebP ela é mantida; no JPEG, vira fundo branco.
   - o site público não recebe nenhuma informação do processamento.
 - Uma versão que falha não impede as demais.
 - Na regeneração, a versão anterior é mantida quando a nova falha.
+- No upload ou substituição, o painel apresenta aviso administrativo se alguma derivação falhar; o original continua guardado e versões ausentes podem ser regeneradas.
 
 ## Medir o processamento com imagens reais
 

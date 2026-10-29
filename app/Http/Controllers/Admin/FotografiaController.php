@@ -21,6 +21,7 @@ use App\Services\Acervo\ExcluirItemAcervoDefinitivamente;
 use App\Services\Acervo\RestaurarItemAcervo;
 use App\Services\Arquivos\RegenerarVersoesOtimizadas;
 use App\Services\Arquivos\SubstituirArquivoOriginal;
+use App\Support\OptimizedImageVersions;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -80,8 +81,9 @@ class FotografiaController extends Controller
         StoreFotografiaRequest $request,
         CriarItemAcervo $service,
         AuditContextFactory $contexts,
+        OptimizedImageVersions $optimizedVersions,
     ): RedirectResponse {
-        $service->execute(
+        $fotografia = $service->execute(
             actor: $request->user(),
             data: [
                 ...$request->payload(),
@@ -90,10 +92,13 @@ class FotografiaController extends Controller
             context: $contexts->fromRequest($request),
             arquivoOriginal: $request->file('arquivo_original'),
         );
+        [$tipo, $mensagem] = $request->hasFile('arquivo_original')
+            ? $this->originalUploadFeedback($fotografia, $optimizedVersions, 'Fotografia cadastrada com sucesso.')
+            : ['success', 'Fotografia cadastrada com sucesso.'];
 
         return redirect()
             ->route('admin.fotografias.index')
-            ->with('success', 'Fotografia cadastrada com sucesso.');
+            ->with($tipo, $mensagem);
     }
 
     public function show(ItemAcervo $fotografia): View
@@ -143,10 +148,11 @@ class FotografiaController extends Controller
         ItemAcervo $fotografia,
         AtualizarItemAcervo $service,
         AuditContextFactory $contexts,
+        OptimizedImageVersions $optimizedVersions,
     ): RedirectResponse {
         $this->ensurePhotograph($fotografia);
 
-        $service->execute(
+        $fotografia = $service->execute(
             actor: $request->user(),
             item: $fotografia,
             data: [
@@ -156,10 +162,13 @@ class FotografiaController extends Controller
             context: $contexts->fromRequest($request),
             arquivoOriginal: $request->file('arquivo_original'),
         );
+        [$tipo, $mensagem] = $request->hasFile('arquivo_original')
+            ? $this->originalUploadFeedback($fotografia, $optimizedVersions, 'Fotografia atualizada com sucesso.')
+            : ['success', 'Fotografia atualizada com sucesso.'];
 
         return redirect()
             ->route('admin.fotografias.show', $fotografia)
-            ->with('success', 'Fotografia atualizada com sucesso.');
+            ->with($tipo, $mensagem);
     }
 
     public function replaceOriginal(
@@ -167,6 +176,7 @@ class FotografiaController extends Controller
         ItemAcervo $fotografia,
         SubstituirArquivoOriginal $service,
         AuditContextFactory $contexts,
+        OptimizedImageVersions $optimizedVersions,
     ): RedirectResponse {
         $this->ensurePhotograph($fotografia);
 
@@ -176,10 +186,57 @@ class FotografiaController extends Controller
             file: $request->file('arquivo_original'),
             context: $contexts->fromRequest($request),
         );
+        [$tipo, $mensagem] = $this->originalUploadFeedback(
+            $fotografia->refresh(),
+            $optimizedVersions,
+            'Arquivo original substituído com sucesso.',
+        );
 
         return redirect()
             ->route('admin.fotografias.show', $fotografia)
-            ->with('success', 'Arquivo original substituído com sucesso.');
+            ->with($tipo, $mensagem);
+    }
+
+    /**
+     * @return array{0: string, 1: string}
+     */
+    private function originalUploadFeedback(
+        ItemAcervo $fotografia,
+        OptimizedImageVersions $optimizedVersions,
+        string $successMessage,
+    ): array {
+        $original = $fotografia->arquivos()->where('versao_arquivo', 'original')->firstOrFail();
+
+        if (! $original->isImagem()) {
+            return [
+                'warning',
+                'Arquivo original salvo. PDFs são preservados, mas não geram versões de imagem e não podem ser exibidos no catálogo público.',
+            ];
+        }
+
+        $presentes = $fotografia->arquivos()
+            ->whereIn('versao_arquivo', $optimizedVersions->versions())
+            ->pluck('versao_arquivo')
+            ->all();
+        $ausentes = array_values(array_diff($optimizedVersions->expectedVersions($original), $presentes));
+
+        if ($ausentes === []) {
+            return ['success', $successMessage];
+        }
+
+        $rotulos = collect($ausentes)->map(Arquivo::rotuloVersao(...))->join(', ', ' e ');
+
+        if (count($presentes) === 0) {
+            return [
+                'warning',
+                "O arquivo original foi preservado, mas não foi possível gerar nenhuma versão de imagem ({$rotulos}). Ele não poderá ser exibido no catálogo público até a regeneração. Consulte os logs ou tente regenerar as versões.",
+            ];
+        }
+
+        return [
+            'warning',
+            "O arquivo original foi preservado, mas algumas versões não foram geradas ({$rotulos}). As versões disponíveis continuam acessíveis; tente regenerar as versões ausentes.",
+        ];
     }
 
     public function regenerateVersions(

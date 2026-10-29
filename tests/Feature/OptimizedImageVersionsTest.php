@@ -287,6 +287,29 @@ class OptimizedImageVersionsTest extends TestCase
         $this->assertGreaterThan(0.9, $imagem->getImagePixelColor(10, 10)->getColor(true)['r']);
     }
 
+    public function test_large_tiff_uses_bounded_imagick_resources_and_preserves_the_original(): void
+    {
+        $tiff = new Imagick;
+        $tiff->newImage(5000, 3500, new ImagickPixel('rgb(80, 120, 160)'));
+        $tiff->setImageDepth(8);
+        $tiff->setImageFormat('tiff');
+        $bytes = $tiff->getImageBlob();
+        $tiff->clear();
+
+        [$item, $original] = $this->itemWithOriginal($bytes, 'image/tiff', 5000, 3500);
+        $originalBytes = Storage::disk('local')->get($original->storage_path);
+
+        $result = $this->generate($item, $original);
+
+        $this->assertSame([], $result->failedVersions);
+        $this->assertSame($originalBytes, Storage::disk('local')->get($original->storage_path));
+        $this->assertSame([1920, 1344], [$this->derivatives($item)['large']->width, $this->derivatives($item)['large']->height]);
+        $this->assertLessThanOrEqual(128 * 1024 * 1024, Imagick::getResourceLimit(Imagick::RESOURCETYPE_MEMORY));
+        $this->assertLessThanOrEqual(256 * 1024 * 1024, Imagick::getResourceLimit(Imagick::RESOURCETYPE_MAP));
+        $this->assertLessThanOrEqual(1024 * 1024 * 1024, Imagick::getResourceLimit(Imagick::RESOURCETYPE_DISK));
+        $this->assertLessThanOrEqual(16_000_000, Imagick::getResourceLimit(Imagick::RESOURCETYPE_AREA));
+    }
+
     public function test_quality_is_configurable(): void
     {
         $foto = $this->photo(1200, 900, 'png');

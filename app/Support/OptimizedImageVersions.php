@@ -263,6 +263,7 @@ class OptimizedImageVersions
      */
     private function openWithImagick(string $sourcePath, ItemAcervo $item, Arquivo $original, string &$stage): array
     {
+        $this->applyImagickResourceLimits();
         $image = new Imagick;
 
         try {
@@ -350,7 +351,7 @@ class OptimizedImageVersions
             throw new RuntimeException('O formato da imagem não pode ser processado.');
         }
 
-        return $mimeType === 'image/jpeg' ? $this->orientGd($source, $sourcePath) : $source;
+        return $this->orientGd($source, $sourcePath);
     }
 
     /**
@@ -363,14 +364,54 @@ class OptimizedImageVersions
         }
 
         $orientation = (int) (@exif_read_data($sourcePath)['Orientation'] ?? 1);
+        return $this->orientGdByExifOrientation($image, $orientation);
+    }
+
+    private function orientGdByExifOrientation(GdImage $image, int $orientation): GdImage
+    {
         $rotated = match ($orientation) {
-            3 => imagerotate($image, 180, 0),
-            6 => imagerotate($image, -90, 0),
-            8 => imagerotate($image, 90, 0),
+            2 => $this->flipGd($image, IMG_FLIP_HORIZONTAL),
+            3 => $this->rotateGd($image, 180),
+            4 => $this->flipGd($image, IMG_FLIP_VERTICAL),
+            5 => $this->rotateGd($this->flipGd($image, IMG_FLIP_HORIZONTAL), 90),
+            6 => $this->rotateGd($image, -90),
+            7 => $this->flipGd($this->rotateGd($image, -90), IMG_FLIP_VERTICAL),
+            8 => $this->rotateGd($image, 90),
             default => $image,
         };
 
         return $rotated instanceof GdImage ? $rotated : $image;
+    }
+
+    private function rotateGd(GdImage $image, int $angle): GdImage
+    {
+        $rotated = imagerotate($image, $angle, 0);
+
+        return $rotated instanceof GdImage ? $rotated : throw new RuntimeException('Não foi possível aplicar a orientação EXIF.');
+    }
+
+    private function flipGd(GdImage $image, int $mode): GdImage
+    {
+        return imageflip($image, $mode) ? $image : throw new RuntimeException('Não foi possível aplicar a orientação EXIF.');
+    }
+
+    private function applyImagickResourceLimits(): void
+    {
+        $limits = [
+            Imagick::RESOURCETYPE_MEMORY => 128 * 1024 * 1024,
+            Imagick::RESOURCETYPE_MAP => 256 * 1024 * 1024,
+            Imagick::RESOURCETYPE_DISK => 1024 * 1024 * 1024,
+            Imagick::RESOURCETYPE_AREA => 16_000_000,
+        ];
+
+        foreach ($limits as $resource => $maximum) {
+            $current = Imagick::getResourceLimit($resource);
+            $limit = $current > 0 ? min($current, $maximum) : $maximum;
+
+            if (! Imagick::setResourceLimit($resource, $limit)) {
+                throw new RuntimeException("Não foi possível aplicar o limite de recurso do Imagick ({$resource}).");
+            }
+        }
     }
 
     /**

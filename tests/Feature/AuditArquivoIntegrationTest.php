@@ -161,6 +161,31 @@ class AuditArquivoIntegrationTest extends TestCase
         )->once();
     }
 
+    public function test_partial_derivation_failure_shows_administrative_warning_for_missing_version(): void
+    {
+        Storage::fake('local');
+        $this->app->bind(
+            ArquivoStorage::class,
+            fn (): ArquivoStorage => new FailingThumbnailStorage(new LaravelArquivoStorage),
+        );
+
+        $this->actingAs($this->internalUser())
+            ->post(route('admin.fotografias.store'), $this->payload([
+                'arquivo_original' => UploadedFile::fake()->image('original.jpg', 2400, 1800),
+            ]))
+            ->assertRedirect(route('admin.fotografias.index'))
+            ->assertSessionHas(
+                'warning',
+                'O arquivo original foi preservado, mas algumas versões não foram geradas (Miniatura). As versões disponíveis continuam acessíveis; tente regenerar as versões ausentes.',
+            )
+            ->assertSessionMissing('success');
+
+        $this->assertSame(
+            ['large', 'medium', 'original'],
+            Arquivo::query()->orderBy('versao_arquivo')->pluck('versao_arquivo')->all(),
+        );
+    }
+
     public function test_audit_failure_rolls_back_database_and_removes_new_storage_objects(): void
     {
         Storage::fake('local');
@@ -407,6 +432,35 @@ final readonly class FailingDerivativeStorage implements ArquivoStorage
     {
         if (str_contains($path, 'acervo/derivados/')) {
             throw new RuntimeException('Falha técnica que não deve entrar no evento.');
+        }
+
+        return $this->delegate->absolutePath($provider, $path);
+    }
+
+    public function delete(string $provider, array $paths): bool
+    {
+        return $this->delegate->delete($provider, $paths);
+    }
+}
+
+final readonly class FailingThumbnailStorage implements ArquivoStorage
+{
+    public function __construct(private ArquivoStorage $delegate) {}
+
+    public function storeUploaded(string $provider, UploadedFile $file, string $directory, string $filename): string
+    {
+        return $this->delegate->storeUploaded($provider, $file, $directory, $filename);
+    }
+
+    public function makeDirectory(string $provider, string $directory): void
+    {
+        $this->delegate->makeDirectory($provider, $directory);
+    }
+
+    public function absolutePath(string $provider, string $path): string
+    {
+        if (str_contains($path, '-thumbnail.')) {
+            throw new RuntimeException('Falha simulada na miniatura.');
         }
 
         return $this->delegate->absolutePath($provider, $path);

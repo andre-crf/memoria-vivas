@@ -36,7 +36,7 @@
             type="file"
             accept="{{ implode(',', $mimeTypes) }}"
             class="sr-only"
-            aria-describedby="{{ $name }}-formatos"
+            aria-describedby="{{ $name }}-formatos {{ $name }}-publicacao"
             @change="change($event)"
         >
         <span class="grid size-11 place-items-center rounded-full bg-white text-institutional ring-1 ring-mist-200 transition-colors group-data-dragging:bg-institutional group-data-dragging:text-white" aria-hidden="true">
@@ -45,6 +45,7 @@
         <span class="text-[0.9rem] font-semibold text-ink-950" x-text="dragging ? 'Solte o arquivo para enviar' : 'Arraste e solte seu arquivo aqui'">Arraste e solte seu arquivo aqui</span>
         <span class="text-[0.8rem] text-ink-600">ou <span class="font-semibold text-institutional underline decoration-mist-500 underline-offset-4">clique para selecionar um arquivo</span></span>
         <span id="{{ $name }}-formatos" class="text-[0.72rem] text-ink-500">{{ $formats }} · até {{ $maxLabel }}</span>
+        <span id="{{ $name }}-publicacao" class="max-w-xl text-[0.72rem] leading-normal text-ink-500">PDFs são preservados como originais, mas não geram versões de imagem nem aparecem no catálogo público. Imagens só podem ser exibidas publicamente com ao menos uma versão otimizada e o registro publicado como público.</span>
     </label>
 
     <div class="overflow-hidden rounded-lg border border-mist-200" data-testid="file-preview" x-show="file !== null" style="display: none;">
