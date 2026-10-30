@@ -76,11 +76,11 @@
                                 @foreach ($categorias as $categoria)
                                     <tr
                                         id="categoria-{{ $categoria->id }}"
-                                        class="hover:bg-stone-50"
+                                        class="relative hover:bg-stone-50"
                                     >
                                         <td class="max-w-sm px-5 py-4">
                                             <p class="truncate text-sm font-semibold text-stone-950">
-                                                {{ $categoria->titulo }}
+                                                <x-admin.link-linha :href="route('admin.categorias.edit', $categoria)">{{ $categoria->titulo }}</x-admin.link-linha>
                                             </p>
 
                                             <p class="mt-1 text-xs text-stone-500">
@@ -101,7 +101,7 @@
                                         </td>
 
                                         <td class="px-5 py-4">
-                                            <div class="flex justify-end gap-2">
+                                            <div class="relative z-10 flex justify-end gap-2">
                                                 <a
                                                     href="{{ route('admin.categorias.edit', $categoria) }}"
                                                     class="rounded-md border border-stone-300 px-3 py-2 text-sm font-medium text-stone-700 transition hover:bg-stone-100 focus:outline-none focus:ring-2 focus:ring-institutional focus:ring-offset-2"

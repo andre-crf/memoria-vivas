@@ -62,9 +62,9 @@
 
                         <tbody class="divide-y divide-stone-200">
                             @foreach ($autores as $autor)
-                                <tr>
+                                <tr class="relative hover:bg-stone-50">
                                     <td class="px-6 py-4 text-sm font-medium text-stone-900">
-                                        {{ $autor->nome }}
+                                        <x-admin.link-linha :href="route('admin.autores.edit', $autor)">{{ $autor->nome }}</x-admin.link-linha>
                                     </td>
 
                                     <td class="px-6 py-4 text-sm text-stone-600">
@@ -76,7 +76,7 @@
                                     </td>
 
                                     <td class="px-6 py-4">
-                                        <div class="flex justify-end items-center gap-2">
+                                        <div class="relative z-10 flex justify-end items-center gap-2">
                                             <a
                                                 href="{{ route('admin.autores.edit', $autor) }}"
                                                 class="rounded-md border border-stone-300 px-3 py-2 text-xs font-medium text-stone-700 hover:bg-stone-50"

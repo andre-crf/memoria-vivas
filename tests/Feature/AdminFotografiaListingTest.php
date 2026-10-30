@@ -74,7 +74,7 @@ class AdminFotografiaListingTest extends TestCase
             ->assertSee('15/03/1980')
             ->assertSee('Publicado')
             ->assertSee('Público')
-            ->assertSee('Visualizar')
+            ->assertDontSee('Visualizar')
             ->assertSee('Editar')
             ->assertSee('Excluir');
     }

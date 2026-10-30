@@ -62,13 +62,14 @@
                                 <x-admin.coluna-ordenavel rotulo="Data" chave="data" :ordenacao="$ordenacao" :action="route('admin.fotografias.index')" :parametros="$filtros->parametros()" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-[0.12em] text-stone-600" />
                                 <x-admin.coluna-ordenavel rotulo="Status" chave="status" :ordenacao="$ordenacao" :action="route('admin.fotografias.index')" :parametros="$filtros->parametros()" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-[0.12em] text-stone-600" />
                                 <x-admin.coluna-ordenavel rotulo="Visibilidade" chave="visibilidade" :ordenacao="$ordenacao" :action="route('admin.fotografias.index')" :parametros="$filtros->parametros()" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-[0.12em] text-stone-600" />
+                                <x-admin.coluna-ordenavel rotulo="Adicionada em" chave="adicionada" :ordenacao="$ordenacao" :action="route('admin.fotografias.index')" :parametros="$filtros->parametros()" class="px-5 py-3 text-left text-xs font-semibold whitespace-nowrap uppercase tracking-[0.12em] text-stone-600" />
                                 <th scope="col" class="px-5 py-3 text-right text-xs font-semibold uppercase tracking-[0.12em] text-stone-600">Ações</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-stone-200 bg-white">
                             @foreach ($fotografias as $fotografia)
                                 @php($thumbnail = $fotografia->thumbnailAdministrativa())
-                                <tr id="fotografia-{{ $fotografia->id }}" class="hover:bg-stone-50">
+                                <tr id="fotografia-{{ $fotografia->id }}" class="relative hover:bg-stone-50">
                                     <td class="px-5 py-4">
                                         @if ($thumbnail)
                                             <img
@@ -86,7 +87,7 @@
                                         @endif
                                     </td>
                                     <td class="max-w-md px-5 py-4">
-                                        <p class="truncate text-sm font-semibold text-stone-950" title="{{ $fotografia->titulo }}">{{ $fotografia->titulo }}</p>
+                                        <p class="truncate text-sm font-semibold text-stone-950" title="{{ $fotografia->titulo }}"><x-admin.link-linha :href="route('admin.fotografias.show', $fotografia)">{{ $fotografia->titulo }}</x-admin.link-linha></p>
                                         <p class="mt-1 text-xs text-stone-500">#{{ $fotografia->id }}</p>
                                     </td>
                                     <td class="whitespace-nowrap px-5 py-4 text-sm text-stone-700">
@@ -102,14 +103,11 @@
                                             {{ $fotografia->visibilidade->label() }}
                                         </span>
                                     </td>
+                                    <td class="whitespace-nowrap px-5 py-4 text-sm text-stone-600">
+                                        <x-data-hora :valor="$fotografia->created_at" formato="curto" vazio="Não registrada" />
+                                    </td>
                                     <td class="px-5 py-4">
-                                        <div class="flex justify-end gap-2">
-                                            <a
-                                                href="{{ route('admin.fotografias.show', $fotografia) }}"
-                                                class="rounded-md border border-stone-300 px-3 py-2 text-sm font-medium text-stone-700 transition hover:bg-stone-100 focus:outline-none focus:ring-2 focus:ring-institutional focus:ring-offset-2"
-                                            >
-                                                Visualizar
-                                            </a>
+                                        <div class="relative z-10 flex justify-end gap-2">
                                             <a
                                                 href="{{ route('admin.fotografias.edit', $fotografia) }}"
                                                 class="rounded-md border border-stone-300 px-3 py-2 text-sm font-medium text-stone-700 transition hover:bg-stone-100 focus:outline-none focus:ring-2 focus:ring-institutional focus:ring-offset-2"

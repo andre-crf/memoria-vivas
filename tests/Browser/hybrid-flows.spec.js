@@ -244,7 +244,7 @@ test('dropped original file is previewed and sent with the traditional POST', as
     // O Playwright não expõe corpos de upload; a prova é o arquivo vinculado depois de salvar.
     await page.getByRole('button', { name: 'Salvar fotografia' }).click();
     await expect(page).toHaveURL(/\/admin\/fotografias$/);
-    await page.getByRole('row').filter({ hasText: title }).getByRole('link', { name: 'Visualizar' }).click();
+    await page.getByRole('row').filter({ hasText: title }).getByRole('link', { name: title }).click();
     await expect(page.getByText('praca-central.png').first()).toBeVisible();
 });
 
@@ -305,7 +305,7 @@ test('original file is replaced through the actions menu and the drag and drop m
     await createPhotographWithOriginal(page, unique('Fotografia já cadastrada'), duplicated);
     const title = unique('Fotografia a substituir');
     await createPhotographWithOriginal(page, title, pdf('atual.pdf', `${marker}-b`));
-    await page.locator('tr').filter({ hasText: title }).getByRole('link', { name: 'Visualizar', exact: true }).click();
+    await page.locator('tr').filter({ hasText: title }).getByRole('link', { name: title }).click();
 
     const trigger = page.getByRole('button', { name: 'Ações do arquivo' });
     const option = page.getByRole('button', { name: 'Substituir imagem' });
@@ -371,7 +371,7 @@ test('original file is replaced through the actions menu and the drag and drop m
     // Sucesso: toast e metadados do novo arquivo.
     await dialog.locator('#arquivo_original').setInputFiles(pdf('novo.pdf', `${marker}-d`));
     await confirm.click();
-    await expect(page.getByText('Arquivo original substituído com sucesso.')).toBeVisible();
+    await expect(page.getByText('Arquivo original salvo. PDFs são preservados')).toBeVisible();
     await expect(dialog).toBeHidden();
     await expect(page.getByText('novo.pdf', { exact: true }).first()).toBeVisible();
     await expect(page.getByText('Substituição · novo.pdf')).toBeVisible();

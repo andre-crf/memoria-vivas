@@ -10,16 +10,15 @@
             @else
                 <table class="min-w-full divide-y divide-stone-200 text-sm">
                     <thead class="bg-stone-50 text-left text-stone-600"><tr>
-                        <x-admin.coluna-ordenavel rotulo="Assunto" chave="assunto" :ordenacao="$ordenacao" :action="route('admin.contribuicoes.index')" :parametros="[]" class="px-5 py-3" /><x-admin.coluna-ordenavel rotulo="Colaborador" chave="colaborador" :ordenacao="$ordenacao" :action="route('admin.contribuicoes.index')" :parametros="[]" class="px-5 py-3" /><x-admin.coluna-ordenavel rotulo="Arquivos" chave="arquivos" :ordenacao="$ordenacao" :action="route('admin.contribuicoes.index')" :parametros="[]" class="px-5 py-3" /><x-admin.coluna-ordenavel rotulo="Recebida em" chave="recebida" :ordenacao="$ordenacao" :action="route('admin.contribuicoes.index')" :parametros="[]" class="px-5 py-3" /><th class="px-5 py-3"><span class="sr-only">Ações</span></th>
+                        <x-admin.coluna-ordenavel rotulo="Assunto" chave="assunto" :ordenacao="$ordenacao" :action="route('admin.contribuicoes.index')" :parametros="[]" class="px-5 py-3" /><x-admin.coluna-ordenavel rotulo="Colaborador" chave="colaborador" :ordenacao="$ordenacao" :action="route('admin.contribuicoes.index')" :parametros="[]" class="px-5 py-3" /><x-admin.coluna-ordenavel rotulo="Arquivos" chave="arquivos" :ordenacao="$ordenacao" :action="route('admin.contribuicoes.index')" :parametros="[]" class="px-5 py-3" /><x-admin.coluna-ordenavel rotulo="Recebida em" chave="recebida" :ordenacao="$ordenacao" :action="route('admin.contribuicoes.index')" :parametros="[]" class="px-5 py-3" />
                     </tr></thead>
                     <tbody class="divide-y divide-stone-200">
                         @foreach ($contribuicoes as $contribuicao)
-                            <tr>
-                                <td class="px-5 py-4 font-semibold text-stone-900">{{ $contribuicao->titulo }}</td>
+                            <tr class="relative hover:bg-stone-50">
+                                <td class="px-5 py-4 font-semibold text-stone-900"><x-admin.link-linha :href="route('admin.contribuicoes.show', $contribuicao)">{{ $contribuicao->titulo }}</x-admin.link-linha></td>
                                 <td class="px-5 py-4 text-stone-700">{{ $contribuicao->nome }}</td>
                                 <td class="px-5 py-4 text-stone-700">{{ $contribuicao->arquivos_count }}</td>
                                 <td class="px-5 py-4 text-stone-700"><x-data-hora :valor="$contribuicao->created_at" formato="curto" /></td>
-                                <td class="px-5 py-4"><a class="font-semibold text-institutional underline" href="{{ route('admin.contribuicoes.show', $contribuicao) }}">Ver detalhes</a></td>
                             </tr>
                         @endforeach
                     </tbody>

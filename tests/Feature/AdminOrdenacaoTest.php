@@ -91,6 +91,37 @@ class AdminOrdenacaoTest extends TestCase
         $this->assertSame(['Terceira', 'Segunda', 'Primeira'], $this->titulos($resposta));
     }
 
+    public function test_photos_order_by_date_added_regardless_of_id(): void
+    {
+        // O ID não acompanha a data de adição, para provar que a ordenação usa a data.
+        $this->fotografiaAdicionadaEm('Do meio', '2026-10-02 10:00:00');
+        $this->fotografiaAdicionadaEm('Mais nova', '2026-10-03 10:00:00');
+        $this->fotografiaAdicionadaEm('Mais antiga', '2026-10-01 10:00:00');
+
+        $padrao = $this->listagem('admin.fotografias.index')
+            ->assertSee('Adicionada em')
+            ->assertSee('aria-sort="descending"', false)
+            ->assertSee('Ordenar por adicionada em, ordem crescente', false);
+
+        $this->assertSame(['Mais nova', 'Do meio', 'Mais antiga'], $this->titulos($padrao));
+        $this->assertSame(['ordem' => 'adicionada', 'direcao' => 'asc'], $this->linkDoCabecalho($padrao, 'adicionada'));
+
+        $crescente = $this->listagem('admin.fotografias.index', ['ordem' => 'adicionada', 'direcao' => 'asc']);
+
+        $this->assertSame(['Mais antiga', 'Do meio', 'Mais nova'], $this->titulos($crescente));
+        $this->assertSame([], $this->linkDoCabecalho($crescente, 'adicionada'));
+    }
+
+    public function test_trash_does_not_offer_the_date_added(): void
+    {
+        $this->fotografiaAdicionadaEm('Excluída A', '2026-10-02 10:00:00')->delete();
+        $this->fotografiaAdicionadaEm('Excluída B', '2026-10-01 10:00:00')->delete();
+
+        $this->listagem('admin.fotografias.trashed')
+            ->assertDontSee('Adicionada em')
+            ->assertDontSee('data-ordem="adicionada"', false);
+    }
+
     /**
      * @return array<string, array{0: string, 1: string, 2: string}>
      */
@@ -165,7 +196,7 @@ class AdminOrdenacaoTest extends TestCase
             ['ordem' => 'titulo; drop table users'],
             ['ordem' => 'id'],
             ['ordem' => ['titulo']],
-            ['ordem' => 'recentes', 'direcao' => 'lado'],
+            ['ordem' => 'adicionada', 'direcao' => 'lado'],
             ['direcao' => 'desc; --'],
         ] as $parametros) {
             DB::flushQueryLog();
@@ -255,7 +286,7 @@ class AdminOrdenacaoTest extends TestCase
 
         $base = $contar([]);
 
-        foreach (['titulo', 'data', 'status', 'visibilidade'] as $coluna) {
+        foreach (['titulo', 'data', 'status', 'visibilidade', 'adicionada'] as $coluna) {
             $this->assertSame($base, $contar(['ordem' => $coluna, 'direcao' => 'desc', 'page' => 2]), $coluna);
         }
 
@@ -299,6 +330,15 @@ class AdminOrdenacaoTest extends TestCase
             'status' => 'rascunho',
             'visibilidade' => Visibilidade::Privado,
         ]);
+    }
+
+    private function fotografiaAdicionadaEm(string $titulo, string $data): ItemAcervo
+    {
+        Carbon::setTestNow($data);
+        $fotografia = $this->fotografia($titulo);
+        Carbon::setTestNow();
+
+        return $fotografia;
     }
 
     private function cadastro(string $chave, string $rotulo, int $itens): Model

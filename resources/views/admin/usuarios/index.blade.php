@@ -42,9 +42,9 @@
                         </thead>
                         <tbody class="divide-y divide-stone-200 bg-white">
                             @foreach ($usuarios as $usuario)
-                                <tr id="usuario-{{ $usuario->id }}" class="hover:bg-stone-50">
+                                <tr id="usuario-{{ $usuario->id }}" class="relative hover:bg-stone-50">
                                     <td class="max-w-sm px-5 py-4">
-                                        <p class="truncate text-sm font-semibold text-stone-950">{{ $usuario->nome }}</p>
+                                        <p class="truncate text-sm font-semibold text-stone-950"><x-admin.link-linha :href="route('admin.usuarios.edit', $usuario)">{{ $usuario->nome }}</x-admin.link-linha></p>
                                         <p class="mt-1 text-xs text-stone-500">#{{ $usuario->id }}</p>
                                     </td>
                                     <td class="px-5 py-4 text-sm text-stone-700">{{ $usuario->email }}</td>
@@ -55,7 +55,7 @@
                                         </span>
                                     </td>
                                     <td class="px-5 py-4 text-right">
-                                        <a href="{{ route('admin.usuarios.edit', $usuario) }}" class="rounded-md border border-stone-300 px-3 py-2 text-sm font-medium text-stone-700 transition hover:bg-stone-100 focus:outline-none focus:ring-2 focus:ring-institutional focus:ring-offset-2">Editar</a>
+                                        <a href="{{ route('admin.usuarios.edit', $usuario) }}" class="relative z-10 rounded-md border border-stone-300 px-3 py-2 text-sm font-medium text-stone-700 transition hover:bg-stone-100 focus:outline-none focus:ring-2 focus:ring-institutional focus:ring-offset-2">Editar</a>
                                     </td>
                                 </tr>
                             @endforeach

@@ -96,12 +96,11 @@
                             <th scope="col" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-[0.12em] text-stone-600">Responsável</th>
                             <th scope="col" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-[0.12em] text-stone-600">Ação</th>
                             <th scope="col" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-[0.12em] text-stone-600">Entidade afetada</th>
-                            <th scope="col" class="px-5 py-3 text-right text-xs font-semibold uppercase tracking-[0.12em] text-stone-600">Detalhes</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-stone-200 bg-white">
                         @foreach ($eventos as $evento)
-                            <tr id="evento-auditoria-{{ $evento->id }}" wire:key="audit-event-{{ $evento->id }}" class="hover:bg-stone-50">
+                            <tr id="evento-auditoria-{{ $evento->id }}" wire:key="audit-event-{{ $evento->id }}" class="relative hover:bg-stone-50">
                                 <td class="whitespace-nowrap px-5 py-4 text-sm text-stone-700"><x-data-hora :valor="$evento->occurred_at" /></td>
                                 <td class="min-w-52 px-5 py-4">
                                     <p class="text-sm font-semibold text-stone-950">{{ $evento->actor_name ?: 'Sistema' }}</p>
@@ -115,11 +114,8 @@
                                 </td>
                                 <td class="whitespace-nowrap px-5 py-4"><span class="inline-flex rounded-full bg-heritage-100 px-2.5 py-1 text-xs font-medium text-heritage-900">{{ $evento->action->label() }}</span></td>
                                 <td class="min-w-64 px-5 py-4">
-                                    <p class="text-sm font-semibold text-stone-950">{{ $evento->subject_label ?: 'Sem identificação' }}</p>
+                                    <p class="text-sm font-semibold text-stone-950"><x-admin.link-linha :href="route('admin.auditoria.show', array_merge(['evento' => $evento], $navigationQuery))">{{ $evento->subject_label ?: 'Sem identificação' }}</x-admin.link-linha></p>
                                     <p class="mt-1 text-xs text-stone-500">{{ $evento->subject_type->label() }} · #{{ $evento->subject_id }}</p>
-                                </td>
-                                <td class="whitespace-nowrap px-5 py-4 text-right">
-                                    <a href="{{ route('admin.auditoria.show', array_merge(['evento' => $evento], $navigationQuery)) }}" class="text-sm font-semibold text-institutional hover:text-institutional-strong">Ver detalhes</a>
                                 </td>
                             </tr>
                         @endforeach

@@ -3,7 +3,6 @@
 @import '@fontsource-variable/instrument-sans';
 @import '@fontsource-variable/newsreader/opsz.css';
 
-@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
 
 @theme {

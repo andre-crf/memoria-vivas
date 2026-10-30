@@ -52,9 +52,9 @@
 
                         <tbody class="divide-y divide-stone-200 bg-white">
                             @foreach ($pessoas as $pessoa)
-                                <tr id="pessoa-{{ $pessoa->id }}" class="hover:bg-stone-50">
+                                <tr id="pessoa-{{ $pessoa->id }}" class="relative hover:bg-stone-50">
                                     <td class="max-w-sm px-5 py-4">
-                                        <p class="truncate text-sm font-semibold text-stone-950">{{ $pessoa->nome }}</p>
+                                        <p class="truncate text-sm font-semibold text-stone-950"><x-admin.link-linha :href="route('admin.pessoas.edit', $pessoa)">{{ $pessoa->nome }}</x-admin.link-linha></p>
                                         <p class="mt-1 text-xs text-stone-500">#{{ $pessoa->id }}</p>
                                     </td>
 
@@ -69,7 +69,7 @@
                                     </td>
 
                                     <td class="px-5 py-4">
-                                        <div class="flex justify-end gap-2">
+                                        <div class="relative z-10 flex justify-end gap-2">
                                             <a
                                                 href="{{ route('admin.pessoas.edit', $pessoa) }}"
                                                 class="rounded-md border border-stone-300 px-3 py-2 text-sm font-medium text-stone-700 transition hover:bg-stone-100 focus:outline-none focus:ring-2 focus:ring-institutional focus:ring-offset-2"

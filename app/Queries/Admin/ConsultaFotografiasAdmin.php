@@ -24,19 +24,18 @@ class ConsultaFotografiasAdmin
     private const COLUNAS_PESQUISADAS = ['titulo', 'legenda', 'local_atual', 'local_epoca', 'evento', 'cedente', 'localizacao_fisica'];
 
     /**
-     * Colunas ordenáveis; a lixeira acrescenta a data de exclusão.
+     * Colunas ordenáveis; a lixeira troca a data de adição pela de exclusão.
      *
      * @return array<string, string|Closure(Builder, string): mixed>
      */
     public static function ordenaveis(bool $lixeira = false): array
     {
         return [
-            'recentes' => 'id',
             'titulo' => 'titulo',
             'data' => fn (Builder $query, string $direcao) => $query->ordenadoPorDataHistorica($direcao),
             'status' => OrdenacaoListagem::porValores('status', array_keys(ItemAcervo::STATUS)),
             'visibilidade' => OrdenacaoListagem::porValores('visibilidade', array_column(Visibilidade::cases(), 'value')),
-            ...($lixeira ? ['exclusao' => 'deleted_at'] : []),
+            ...($lixeira ? ['exclusao' => 'deleted_at'] : ['adicionada' => 'created_at']),
         ];
     }
 
@@ -45,9 +44,9 @@ class ConsultaFotografiasAdmin
         return OrdenacaoListagem::fromRequest(
             $request,
             self::ordenaveis($lixeira),
-            padrao: $lixeira ? 'exclusao' : 'recentes',
+            padrao: $lixeira ? 'exclusao' : 'adicionada',
             direcaoPadrao: 'desc',
-            comecamDecrescentes: ['recentes', 'data', 'exclusao'],
+            comecamDecrescentes: ['adicionada', 'data', 'exclusao'],
         );
     }
 

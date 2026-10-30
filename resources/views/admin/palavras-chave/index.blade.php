@@ -41,14 +41,14 @@
                             </thead>
                             <tbody class="divide-y divide-stone-200 bg-white">
                                 @foreach ($palavrasChave as $palavraChave)
-                                    <tr id="palavra-chave-{{ $palavraChave->id }}" class="hover:bg-stone-50">
+                                    <tr id="palavra-chave-{{ $palavraChave->id }}" class="relative hover:bg-stone-50">
                                         <td class="max-w-lg px-5 py-4">
-                                            <p class="truncate text-sm font-semibold text-stone-950">{{ $palavraChave->termo }}</p>
+                                            <p class="truncate text-sm font-semibold text-stone-950"><x-admin.link-linha :href="route('admin.palavras-chave.edit', $palavraChave)">{{ $palavraChave->termo }}</x-admin.link-linha></p>
                                             <p class="mt-1 text-xs text-stone-500">#{{ $palavraChave->id }}</p>
                                         </td>
                                         <td class="whitespace-nowrap px-5 py-4"><span class="inline-flex rounded-full bg-heritage-100 px-2.5 py-1 text-xs font-medium text-heritage-900">{{ $palavraChave->itens_acervo_count }}</span></td>
                                         <td class="px-5 py-4">
-                                            <div class="flex justify-end gap-2">
+                                            <div class="relative z-10 flex justify-end gap-2">
                                                 <a href="{{ route('admin.palavras-chave.edit', $palavraChave) }}" class="rounded-md border border-stone-300 px-3 py-2 text-sm font-medium text-stone-700 transition hover:bg-stone-100 focus:outline-none focus:ring-2 focus:ring-institutional focus:ring-offset-2">Editar</a>
                                                 <form
                                                     method="POST"
