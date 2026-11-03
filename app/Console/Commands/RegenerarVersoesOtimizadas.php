@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Auditing\AuditContext;
 use App\Auditing\Enums\AuditSource;
+use App\Enums\StatusDerivacoes;
 use App\Models\ItemAcervo;
 use App\Services\Arquivos\RegenerarVersoesOtimizadas as RegenerarVersoes;
 use App\Support\OptimizedImageVersions;
@@ -128,12 +129,15 @@ class RegenerarVersoesOtimizadas extends Command
     }
 
     /**
-     * Falta alguma versão esperada? As dispensadas (dimensões repetidas) não contam.
+     * Falta alguma versão esperada, ou o estado não está concluído? As dispensadas
+     * (dimensões repetidas) não contam. Originais sem estado registrado (anteriores ao
+     * controle) entram, e uma execução sem nada a gerar apenas registra o estado.
      */
     private function incompleta(ItemAcervo $fotografia, OptimizedImageVersions $versoes): bool
     {
         $original = $fotografia->arquivos->firstWhere('versao_arquivo', 'original');
 
-        return array_diff($versoes->expectedVersions($original), $fotografia->arquivos->pluck('versao_arquivo')->all()) !== [];
+        return $original->derivacoes_status !== StatusDerivacoes::Concluido
+            || array_diff($versoes->expectedVersions($original), $fotografia->arquivos->pluck('versao_arquivo')->all()) !== [];
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\StatusDerivacoes;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -19,6 +20,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
     'versao_arquivo',
     'width',
     'height',
+    'derivacoes_status',
+    'derivacoes_atualizadas_em',
 ])]
 class Arquivo extends Model
 {
@@ -63,6 +66,8 @@ class Arquivo extends Model
             'file_size' => 'integer',
             'width' => 'integer',
             'height' => 'integer',
+            'derivacoes_status' => StatusDerivacoes::class,
+            'derivacoes_atualizadas_em' => 'datetime',
         ];
     }
 }

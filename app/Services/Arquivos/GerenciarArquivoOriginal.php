@@ -6,6 +6,7 @@ use App\Auditing\ArquivoAuditSnapshot;
 use App\Auditing\AuditEventCollector;
 use App\Auditing\Enums\AuditAction;
 use App\Auditing\Enums\AuditEntity;
+use App\Enums\StatusDerivacoes;
 use App\Models\Arquivo;
 use App\Models\ItemAcervo;
 use App\Models\User;
@@ -52,6 +53,7 @@ final readonly class GerenciarArquivoOriginal
             $this->storeOriginalAttributes($item, $file, $sha256, $journal),
         );
         $derivations = $this->optimizedVersions->generate($item, $original, $journal);
+        $this->optimizedVersions->recordStatus($item, $original, $derivations);
 
         $audit->capture(
             action: AuditAction::Uploaded,
@@ -101,6 +103,7 @@ final readonly class GerenciarArquivoOriginal
         $original->update($this->storeOriginalAttributes($item, $file, $sha256, $journal));
         $original->refresh();
         $derivations = $this->optimizedVersions->generate($item, $original, $journal);
+        $this->optimizedVersions->recordStatus($item, $original, $derivations);
 
         $audit->capture(
             action: AuditAction::Replaced,
@@ -195,19 +198,25 @@ final readonly class GerenciarArquivoOriginal
             $journal->created(self::PROVIDER, $path);
         }
         [$width, $height] = $this->imageDimensions($file);
+        $mimeType = $file->getMimeType() ?: 'application/octet-stream';
 
         return [
             'nome_original' => $file->getClientOriginalName(),
             'provider' => self::PROVIDER,
             'external_file_id' => null,
             'storage_path' => $path,
-            'mime_type' => $file->getMimeType() ?: 'application/octet-stream',
+            'mime_type' => $mimeType,
             'file_size' => $file->getSize(),
             'tipo_arquivo' => $this->fileType($file),
             'sha256' => $sha256,
             'versao_arquivo' => 'original',
             'width' => $width,
             'height' => $height,
+            // A geração começa logo em seguida; o resultado é registrado depois dela.
+            'derivacoes_status' => str_starts_with($mimeType, 'image/')
+                ? StatusDerivacoes::Processando
+                : StatusDerivacoes::NaoAplicavel,
+            'derivacoes_atualizadas_em' => now(),
         ];
     }
 

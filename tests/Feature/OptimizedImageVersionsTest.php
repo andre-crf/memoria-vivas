@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Auditing\AuditContext;
 use App\Auditing\Enums\AuditAction;
 use App\Auditing\Enums\AuditSource;
+use App\Enums\StatusDerivacoes;
 use App\Enums\Visibilidade;
 use App\Models\Arquivo;
 use App\Models\AuditEvent;
@@ -398,7 +399,9 @@ class OptimizedImageVersionsTest extends TestCase
     public function test_missing_mode_ignores_dispensed_versions(): void
     {
         [$item, $original] = $this->itemWithOriginal($this->photo(800, 600, 'jpeg'), 'image/jpeg', 800, 600);
-        $this->generate($item, $original);
+        // Como no upload: o estado é registrado logo depois da geração.
+        $status = app(OptimizedImageVersions::class)->recordStatus($item, $original, $this->generate($item, $original));
+        $this->assertSame(StatusDerivacoes::Concluido, $status);
 
         $this->artisan('acervo:regenerar-versoes', ['--ausentes' => true])
             ->expectsOutputToContain('0 fotografia(s) processada(s)')

@@ -8,6 +8,7 @@ use App\Auditing\AuditEventCollector;
 use App\Auditing\AuditTransaction;
 use App\Auditing\Enums\AuditAction;
 use App\Auditing\Enums\AuditEntity;
+use App\Enums\StatusDerivacoes;
 use App\Models\Arquivo;
 use App\Models\ItemAcervo;
 use App\Models\User;
@@ -56,7 +57,7 @@ final readonly class RegenerarVersoesOtimizadas
         }
 
         if (! $original->isImagem()) {
-            return new OptimizedImageResult(applicable: false);
+            return $this->finish($item, $original, new OptimizedImageResult(applicable: false));
         }
 
         $versions = $this->optimizedVersions->versions();
@@ -67,9 +68,12 @@ final readonly class RegenerarVersoesOtimizadas
         }
 
         if ($versions === []) {
-            return new OptimizedImageResult(applicable: true);
+            return $this->finish($item, $original, new OptimizedImageResult(applicable: true));
         }
 
+        // Gravado fora da transação: se o processo morrer no meio, o original fica marcado.
+        $statusAnterior = $original->derivacoes_status;
+        $this->optimizedVersions->markStatus($original, StatusDerivacoes::Processando);
         $journal = $this->arquivos->journal();
 
         try {
@@ -82,7 +86,7 @@ final readonly class RegenerarVersoesOtimizadas
             $redundantes = $somenteAusentes ? [] : $dispensed;
 
             if ($files === [] && $failedVersions === [] && ! $item->arquivos()->whereIn('versao_arquivo', $redundantes)->exists()) {
-                return new OptimizedImageResult(applicable: true, dispensedVersions: $dispensed);
+                return $this->finish($item, $original, new OptimizedImageResult(applicable: true, dispensedVersions: $dispensed));
             }
 
             $generated = $this->auditTransaction->run(
@@ -92,6 +96,7 @@ final readonly class RegenerarVersoesOtimizadas
                     $original,
                     $files,
                     $failedVersions,
+                    $dispensed,
                     $redundantes,
                     $somenteAusentes,
                     $audit,
@@ -100,6 +105,8 @@ final readonly class RegenerarVersoesOtimizadas
             );
         } catch (Throwable $exception) {
             $journal->rollbackCreated();
+            // As versões anteriores foram mantidas; um original substituído no meio já tem o próprio estado.
+            $this->optimizedVersions->markStatus($original, $statusAnterior, onlyFrom: StatusDerivacoes::Processando);
 
             throw $exception;
         }
@@ -117,6 +124,7 @@ final readonly class RegenerarVersoesOtimizadas
     /**
      * @param  array<string, array<string, mixed>>  $files
      * @param  list<string>  $failedVersions
+     * @param  list<string>  $dispensed
      * @param  list<string>  $redundantes  versões dispensadas cujos registros antigos devem sair
      * @return list<Arquivo>
      */
@@ -125,6 +133,7 @@ final readonly class RegenerarVersoesOtimizadas
         Arquivo $original,
         array $files,
         array $failedVersions,
+        array $dispensed,
         array $redundantes,
         bool $somenteAusentes,
         AuditEventCollector $audit,
@@ -163,6 +172,12 @@ final readonly class RegenerarVersoesOtimizadas
             $redundante->delete();
         }
 
+        $this->optimizedVersions->recordStatus($item, $original, new OptimizedImageResult(
+            applicable: true,
+            failedVersions: $failedVersions,
+            dispensedVersions: $dispensed,
+        ));
+
         $audit->capture(
             action: AuditAction::Regenerated,
             subjectType: AuditEntity::Arquivo,
@@ -183,5 +198,15 @@ final readonly class RegenerarVersoesOtimizadas
         );
 
         return $generated;
+    }
+
+    /**
+     * Fim sem nada a trocar: registra o estado que as versões persistidas já representam.
+     */
+    private function finish(ItemAcervo $item, Arquivo $original, OptimizedImageResult $result): OptimizedImageResult
+    {
+        $this->optimizedVersions->recordStatus($item, $original, $result);
+
+        return $result;
     }
 }

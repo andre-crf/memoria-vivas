@@ -2,6 +2,7 @@
 
 namespace App\Support;
 
+use App\Enums\StatusDerivacoes;
 use App\Models\Arquivo;
 use App\Models\ItemAcervo;
 use App\Services\Arquivos\Contracts\ArquivoStorage;
@@ -125,6 +126,49 @@ class OptimizedImageVersions
         $produce = $this->plan($original->width, $original->height)['produce'];
 
         return array_values(array_filter($this->versions(), fn (string $version): bool => isset($produce[$version])));
+    }
+
+    /**
+     * Registra o estado que resulta de uma geração: conclui só quando nenhuma versão
+     * falhou e toda versão esperada (fora as dispensadas) tem registro no banco.
+     */
+    public function recordStatus(ItemAcervo $item, Arquivo $original, OptimizedImageResult $result): StatusDerivacoes
+    {
+        $missing = array_diff(
+            $this->expectedVersions($original),
+            $result->dispensedVersions,
+            $item->arquivos()->whereIn('versao_arquivo', $this->versions())->pluck('versao_arquivo')->all(),
+        );
+        $status = match (true) {
+            ! $result->applicable => StatusDerivacoes::NaoAplicavel,
+            $result->failedVersions !== [], $missing !== [] => StatusDerivacoes::Falhou,
+            default => StatusDerivacoes::Concluido,
+        };
+
+        $this->markStatus($original, $status);
+
+        return $status;
+    }
+
+    /**
+     * Grava o estado das versões no original, desde que ele ainda seja o mesmo arquivo
+     * (e, com $onlyFrom, que o estado atual seja esse): uma operação antiga não
+     * sobrescreve o estado de um original substituído no meio do caminho.
+     */
+    public function markStatus(Arquivo $original, ?StatusDerivacoes $status, ?StatusDerivacoes $onlyFrom = null): bool
+    {
+        $attributes = ['derivacoes_status' => $status?->value, 'derivacoes_atualizadas_em' => now()];
+        $updated = Arquivo::query()
+            ->whereKey($original->getKey())
+            ->where('sha256', $original->sha256)
+            ->when($onlyFrom !== null, fn ($query) => $query->where('derivacoes_status', $onlyFrom->value))
+            ->update($attributes) > 0;
+
+        if ($updated) {
+            $original->forceFill($attributes)->syncOriginalAttributes(array_keys($attributes));
+        }
+
+        return $updated;
     }
 
     /**
