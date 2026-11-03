@@ -21,7 +21,7 @@ class ConsultaFotografiasAdmin
     public const POR_PAGINA = 15;
 
     /** Colunas do item consultadas pela pesquisa, além do nome do autor e do ID. */
-    private const COLUNAS_PESQUISADAS = ['titulo', 'legenda', 'local_atual', 'local_epoca', 'evento', 'cedente', 'localizacao_fisica'];
+    private const COLUNAS_PESQUISADAS = ['titulo', 'codigo_referencia', 'legenda', 'local_atual', 'local_epoca', 'evento', 'cedente', 'localizacao_fisica'];
 
     /**
      * Colunas ordenáveis; a lixeira troca a data de adição pela de exclusão.

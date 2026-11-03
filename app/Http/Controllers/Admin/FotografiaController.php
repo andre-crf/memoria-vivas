@@ -28,11 +28,13 @@ use App\Support\OptimizedImageVersions;
 use App\Support\OrdenacaoListagem;
 use Closure;
 use Illuminate\Contracts\View\View;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Validation\ValidationException;
 
 class FotografiaController extends Controller
 {
@@ -74,7 +76,7 @@ class FotografiaController extends Controller
         AuditContextFactory $contexts,
         OptimizedImageVersions $optimizedVersions,
     ): RedirectResponse {
-        $fotografia = $service->execute(
+        $fotografia = $this->comCodigoDeReferenciaUnico(fn (): ItemAcervo => $service->execute(
             actor: $request->user(),
             data: [
                 ...$request->payload(),
@@ -82,7 +84,7 @@ class FotografiaController extends Controller
             ],
             context: $contexts->fromRequest($request),
             arquivoOriginal: $request->file('arquivo_original'),
-        );
+        ));
         [$tipo, $mensagem] = $request->hasFile('arquivo_original')
             ? $this->originalUploadFeedback($fotografia, $optimizedVersions, 'Fotografia cadastrada com sucesso.')
             : ['success', 'Fotografia cadastrada com sucesso.'];
@@ -143,7 +145,7 @@ class FotografiaController extends Controller
     ): RedirectResponse {
         $this->ensurePhotograph($fotografia);
 
-        $fotografia = $service->execute(
+        $fotografia = $this->comCodigoDeReferenciaUnico(fn (): ItemAcervo => $service->execute(
             actor: $request->user(),
             item: $fotografia,
             data: [
@@ -152,7 +154,7 @@ class FotografiaController extends Controller
             ],
             context: $contexts->fromRequest($request),
             arquivoOriginal: $request->file('arquivo_original'),
-        );
+        ));
         [$tipo, $mensagem] = $request->hasFile('arquivo_original')
             ? $this->originalUploadFeedback($fotografia, $optimizedVersions, 'Fotografia atualizada com sucesso.')
             : ['success', 'Fotografia atualizada com sucesso.'];
@@ -351,6 +353,28 @@ class FotografiaController extends Controller
             'visibilidades' => Visibilidade::cases(),
             'searchError' => $searchError,
         ], $searchError !== null ? 422 : 200);
+    }
+
+    /**
+     * A validação já recusa códigos em uso; se dois cadastros simultâneos passarem por ela com o
+     * mesmo código, o índice único recusa o segundo, que volta ao formulário como erro do campo.
+     * Os services já desfazem a transação e os arquivos novos antes de a exceção chegar aqui.
+     *
+     * @param  Closure(): ItemAcervo  $operacao
+     */
+    private function comCodigoDeReferenciaUnico(Closure $operacao): ItemAcervo
+    {
+        try {
+            return $operacao();
+        } catch (UniqueConstraintViolationException $exception) {
+            if (! str_contains($exception->getMessage(), 'codigo_referencia')) {
+                throw $exception;
+            }
+
+            throw ValidationException::withMessages([
+                'codigo_referencia' => 'Este código de referência acabou de ser usado em outra fotografia. Informe outro código.',
+            ]);
+        }
     }
 
     private function ensurePhotograph(ItemAcervo $fotografia): void

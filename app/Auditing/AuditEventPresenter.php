@@ -33,6 +33,7 @@ final class AuditEventPresenter
      * @var list<string>
      */
     private const FREE_TEXT_FIELDS = [
+        'codigo_referencia',
         'observacao',
         'descricao',
         'legenda',
@@ -56,6 +57,7 @@ final class AuditEventPresenter
         'cedente' => 'Cedente',
         'change_groups' => 'Grupos alterados',
         'changed_fields' => 'Campos alterados',
+        'codigo_referencia' => 'Código de referência',
         'colecao_capa_ids' => 'IDs das capas de coleção',
         'colecao_ids' => 'IDs das coleções',
         'conjunto_contextual_ids' => 'IDs dos conjuntos contextuais',

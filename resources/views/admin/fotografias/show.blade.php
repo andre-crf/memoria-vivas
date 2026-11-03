@@ -58,6 +58,7 @@
 
                     <dl class="mt-5 grid gap-3 md:grid-cols-2">
                         <x-admin.info-block label="Título">{{ $fotografia->titulo }}</x-admin.info-block>
+                        <x-admin.info-block label="Código de referência" :empty="! $fotografia->codigo_referencia">{{ $fotografia->codigo_referencia ?: 'Não informado' }}</x-admin.info-block>
                         <x-admin.info-block label="Data">{{ $fotografia->dataHistorica()->label() }}</x-admin.info-block>
                         <x-admin.info-block label="Local atual" :empty="! $fotografia->local_atual">{{ $fotografia->local_atual ?: 'Não informado' }}</x-admin.info-block>
                         <x-admin.info-block label="Local na época" :empty="! $fotografia->local_epoca">{{ $fotografia->local_epoca ?: 'Não informado' }}</x-admin.info-block>
