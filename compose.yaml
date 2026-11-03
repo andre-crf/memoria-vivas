@@ -15,6 +15,38 @@ services:
       mysql:
         condition: service_healthy
 
+  # Processa a fila "imagens" antes da "default". O --timeout precisa ficar abaixo do
+  # DB_QUEUE_RETRY_AFTER (360 s); a parada espera o job em andamento terminar.
+  worker:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+    container_name: memorias-vivas-worker
+    user: "${HOST_UID:-1000}:${HOST_GID:-1000}"
+    working_dir: /var/www
+    environment:
+      TZ: UTC
+    volumes:
+      - .:/var/www
+    command:
+      - php
+      - artisan
+      - queue:work
+      - database
+      - --queue=imagens,default
+      - --tries=3
+      - --backoff=60
+      - --timeout=300
+      - --memory=192
+      - --sleep=3
+      - --max-jobs=100
+      - --max-time=3600
+    restart: unless-stopped
+    stop_grace_period: 330s
+    depends_on:
+      mysql:
+        condition: service_healthy
+
 
   nginx:
     image: nginx:alpine

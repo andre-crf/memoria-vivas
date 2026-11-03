@@ -40,7 +40,9 @@ return [
             'connection' => env('DB_QUEUE_CONNECTION'),
             'table' => env('DB_QUEUE_TABLE', 'jobs'),
             'queue' => env('DB_QUEUE', 'default'),
-            'retry_after' => (int) env('DB_QUEUE_RETRY_AFTER', 90),
+            // Maior que o --timeout do worker (300 s, compose.yaml), com folga, para um job ainda em
+            // execução não ser entregue a outro worker.
+            'retry_after' => (int) env('DB_QUEUE_RETRY_AFTER', 360),
             'after_commit' => false,
         ],
 

@@ -151,7 +151,8 @@ Também utilizamos atualmente:
 ```env
 SESSION_DRIVER=file
 CACHE_STORE=file
-QUEUE_CONNECTION=sync
+QUEUE_CONNECTION=database
+DB_QUEUE_RETRY_AFTER=360
 ```
 
 ---
@@ -354,6 +355,67 @@ docker compose exec app php artisan route:list
 docker compose exec app php artisan optimize:clear
 docker compose exec app php artisan test
 ```
+
+---
+
+## Filas e worker
+
+A fila usa o driver `database` (tabelas `jobs` e `failed_jobs`), sem Redis. O serviço `worker` usa a mesma imagem PHP do `app`, com as mesmas extensões de imagem, o mesmo `.env`, o mesmo banco e o mesmo `storage/`. Ele atende a fila `imagens` primeiro e depois a `default`.
+
+Hoje nenhuma funcionalidade despacha jobs: upload, substituição e regeneração de versões continuam síncronos. A aplicação funciona normalmente com o worker parado. Nos testes, o `phpunit.xml` força `QUEUE_CONNECTION=sync`.
+
+Iniciar, ver o estado e acompanhar os logs:
+
+```bash
+docker compose up -d worker
+docker compose ps worker
+docker compose logs -f worker
+```
+
+O worker mantém o código e o `.env` carregados em memória. Depois de mudar código, configuração ou `.env`, reinicie-o:
+
+```bash
+docker compose exec app php artisan queue:restart   # termina o job atual e reinicia
+docker compose restart worker                       # alternativa pelo Docker
+```
+
+O `queue:restart` encerra o processo depois do job em andamento, e o `restart: unless-stopped` sobe o worker de novo. Depois de alterar o `Dockerfile`, reconstrua a imagem com `docker compose up -d --build worker`.
+
+Ver jobs pendentes e falhos:
+
+```bash
+docker compose exec app php artisan queue:monitor database:imagens,database:default
+docker compose exec app php artisan queue:failed
+docker compose exec app php artisan queue:retry <id>   # ou: queue:retry all
+docker compose exec app php artisan queue:forget <id>
+docker compose exec app php artisan queue:flush        # apaga todos os jobs falhos
+```
+
+Diagnóstico, quando o worker não processa:
+
+```bash
+docker compose logs --tail=50 worker
+docker compose exec worker php -m | grep -E "pcntl|imagick|gd|exif"
+docker compose exec worker php artisan config:show queue.connections.database
+docker compose exec worker php artisan migrate:status
+```
+
+- Sem `pcntl`, o worker não interrompe jobs que passam do `--timeout`.
+- `migrate:status` deve mostrar a migration `create_jobs_table` como executada.
+- `QUEUE_CONNECTION` precisa ser `database`. Com `sync`, os jobs rodariam na própria requisição.
+
+### Valores do worker
+
+| Opção | Valor | Motivo |
+| --- | --- | --- |
+| `--timeout` | 300 s | Uma imagem grande foi processada em 3 a 4,5 s, mas TIFFs muito grandes passam do limite de área do Imagick e usam cache em disco, o que os torna bem mais lentos. Acima desse tempo, o job é interrompido. |
+| `DB_QUEUE_RETRY_AFTER` | 360 s | Tempo até um job reservado voltar para a fila. Precisa ser **maior** que o `--timeout`; caso contrário, um job ainda em execução seria entregue a outra execução ao mesmo tempo. |
+| `--tries` / `--backoff` | 3 / 60 s | Padrão do worker. Cada job pode definir os próprios valores. |
+| `--memory` | 192 MB | Fica abaixo do `memory_limit` de 256M, para o worker reiniciar sozinho antes de estourar. A memória usada pelo Imagick fica fora dessa conta e é controlada pelos limites de recurso do Imagick em `app/Support/OptimizedImageVersions.php`. |
+| `--max-jobs` / `--max-time` | 100 / 3600 s | Renovam o processo periodicamente. |
+| `stop_grace_period` | 330 s | Na parada, o Docker espera o job em andamento terminar. Sem job em andamento, a parada é imediata. |
+
+Ao mudar o `--timeout` no `compose.yaml`, ajuste também o `DB_QUEUE_RETRY_AFTER` e o `stop_grace_period`.
 
 ---
 

@@ -18,6 +18,7 @@ RUN apt-get update \
     && docker-php-ext-install \
         exif \
         gd \
+        pcntl \
         pdo_mysql \
         pdo_sqlite \
         zip \
