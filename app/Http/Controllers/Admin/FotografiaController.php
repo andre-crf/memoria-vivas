@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Auditing\AuditContextFactory;
 use App\Auditing\Enums\AuditEntity;
+use App\Enums\StatusDerivacoes;
 use App\Enums\TipoData;
 use App\Enums\Visibilidade;
 use App\Http\Controllers\Admin\Concerns\ListagemPesquisavel;
@@ -205,6 +206,11 @@ class FotografiaController extends Controller
                 'warning',
                 'Arquivo original salvo. PDFs são preservados, mas não geram versões de imagem e não podem ser exibidos no catálogo público.',
             ];
+        }
+
+        // Modo assíncrono: as versões ainda serão geradas pelo worker.
+        if (in_array($original->derivacoes_status, [StatusDerivacoes::Pendente, StatusDerivacoes::Processando], true)) {
+            return ['success', "{$successMessage} As versões otimizadas serão geradas em segundo plano."];
         }
 
         $presentes = $fotografia->arquivos()

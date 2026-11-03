@@ -45,4 +45,10 @@ return [
             'max_dimension' => (int) env('ACERVO_LARGE_MAX_DIMENSION', 1920),
         ],
     ],
+    // Geração das versões otimizadas: na própria requisição (false) ou por um job na fila (true).
+    // O modo assíncrono exige o worker em execução (serviço worker do compose.yaml).
+    'optimized_processing' => [
+        'async' => (bool) env('ACERVO_DERIVADOS_ASSINCRONO', false),
+        'queue' => env('ACERVO_DERIVADOS_FILA', 'imagens'),
+    ],
 ];

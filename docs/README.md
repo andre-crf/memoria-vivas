@@ -362,7 +362,20 @@ docker compose exec app php artisan test
 
 A fila usa o driver `database` (tabelas `jobs` e `failed_jobs`), sem Redis. O serviço `worker` usa a mesma imagem PHP do `app`, com as mesmas extensões de imagem, o mesmo `.env`, o mesmo banco e o mesmo `storage/`. Ele atende a fila `imagens` primeiro e depois a `default`.
 
-Hoje nenhuma funcionalidade despacha jobs: upload, substituição e regeneração de versões continuam síncronos. A aplicação funciona normalmente com o worker parado. Nos testes, o `phpunit.xml` força `QUEUE_CONNECTION=sync`.
+A geração das versões otimizadas (miniatura, média e grande) pode rodar na própria requisição ou na fila:
+
+```env
+ACERVO_DERIVADOS_ASSINCRONO=false   # padrão: as versões são geradas no upload, como antes
+ACERVO_DERIVADOS_ASSINCRONO=true    # o upload grava o original e o job GerarVersoesOtimizadas gera as versões
+```
+
+- **Depois de mudar o valor:** rode `php artisan config:clear`, se a configuração estiver em cache, e reinicie o worker.
+- **Modo assíncrono:** exige o worker em execução. Enquanto o job não roda, a fotografia fica com as versões `pendente` e não aparece no catálogo público.
+- **Modo síncrono:** o worker não é necessário.
+- **Regeneração manual:** pelo painel ou pelo comando `acervo:regenerar-versoes`, continua síncrona nos dois modos.
+- **Recuperação:** `php artisan acervo:regenerar-versoes --ausentes` processa as fotografias que ficaram pendentes (por exemplo, se o despacho falhou ou o worker ficou parado) ou presas em processamento.
+
+Nos testes, o `phpunit.xml` força `QUEUE_CONNECTION=sync` e o modo síncrono.
 
 Iniciar, ver o estado e acompanhar os logs:
 

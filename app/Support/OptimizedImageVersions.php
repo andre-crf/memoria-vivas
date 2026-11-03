@@ -152,16 +152,19 @@ class OptimizedImageVersions
 
     /**
      * Grava o estado das versões no original, desde que ele ainda seja o mesmo arquivo
-     * (e, com $onlyFrom, que o estado atual seja esse): uma operação antiga não
+     * (e, com $onlyFrom, que o estado atual seja um desses): uma operação antiga não
      * sobrescreve o estado de um original substituído no meio do caminho.
+     *
+     * @param  StatusDerivacoes|list<StatusDerivacoes>|null  $onlyFrom
      */
-    public function markStatus(Arquivo $original, ?StatusDerivacoes $status, ?StatusDerivacoes $onlyFrom = null): bool
+    public function markStatus(Arquivo $original, ?StatusDerivacoes $status, StatusDerivacoes|array|null $onlyFrom = null): bool
     {
         $attributes = ['derivacoes_status' => $status?->value, 'derivacoes_atualizadas_em' => now()];
+        $from = array_map(fn (StatusDerivacoes $estado): string => $estado->value, $onlyFrom instanceof StatusDerivacoes ? [$onlyFrom] : ($onlyFrom ?? []));
         $updated = Arquivo::query()
             ->whereKey($original->getKey())
             ->where('sha256', $original->sha256)
-            ->when($onlyFrom !== null, fn ($query) => $query->where('derivacoes_status', $onlyFrom->value))
+            ->when($from !== [], fn ($query) => $query->whereIn('derivacoes_status', $from))
             ->update($attributes) > 0;
 
         if ($updated) {

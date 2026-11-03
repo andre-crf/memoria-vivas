@@ -32,6 +32,8 @@ use Throwable;
  */
 final readonly class RegenerarVersoesOtimizadas
 {
+    public const ORIGINAL_MUDOU = 'O arquivo original mudou durante a regeneração das versões.';
+
     public function __construct(
         private AuditTransaction $auditTransaction,
         private GerenciarArquivoOriginal $arquivos,
@@ -41,14 +43,20 @@ final readonly class RegenerarVersoesOtimizadas
     /**
      * @param  User|null  $actor  null quando a regeneração parte do console (sistema).
      * @param  bool  $somenteAusentes  gera apenas as versões que o item ainda não tem.
+     * @param  string|null  $sha256Esperado  original que o chamador espera processar (job da fila).
      */
     public function execute(
         ?User $actor,
         ItemAcervo $item,
         AuditContext $context,
         bool $somenteAusentes = false,
+        ?string $sha256Esperado = null,
     ): OptimizedImageResult {
         $original = $item->arquivos()->where('versao_arquivo', 'original')->firstOrFail();
+
+        if ($sha256Esperado !== null && $original->sha256 !== $sha256Esperado) {
+            throw new RuntimeException(self::ORIGINAL_MUDOU);
+        }
 
         if ($actor instanceof User) {
             $context->assertActor($actor);
@@ -139,7 +147,9 @@ final readonly class RegenerarVersoesOtimizadas
         AuditEventCollector $audit,
         StorageMutationJournal $journal,
     ): array {
-        ItemAcervo::query()->lockForUpdate()->findOrFail($item->getKey());
+        // Inclui a lixeira: o job da fila gera as versões de um item excluído logicamente,
+        // para que ele volte completo ao ser restaurado.
+        ItemAcervo::query()->withTrashed()->lockForUpdate()->findOrFail($item->getKey());
         $atual = Arquivo::query()->lockForUpdate()->find($original->getKey());
 
         // O original pode ter sido substituído enquanto as versões eram geradas.
@@ -148,7 +158,7 @@ final readonly class RegenerarVersoesOtimizadas
             || $atual->storage_path !== $original->storage_path
             || $atual->sha256 !== $original->sha256
         ) {
-            throw new RuntimeException('O arquivo original mudou durante a regeneração das versões.');
+            throw new RuntimeException(self::ORIGINAL_MUDOU);
         }
 
         $removed = [];

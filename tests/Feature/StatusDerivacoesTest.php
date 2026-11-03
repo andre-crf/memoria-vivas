@@ -250,7 +250,7 @@ class StatusDerivacoesTest extends TestCase
         $this->assertSame(0, AuditEvent::query()->where('action', AuditAction::Regenerated)->count());
     }
 
-    public function test_status_stays_out_of_the_audit_snapshots(): void
+    public function test_status_stays_out_of_the_audit_snapshots_but_is_summarized_in_the_metadata(): void
     {
         Storage::fake('local');
         $admin = $this->internalUser();
@@ -264,7 +264,7 @@ class StatusDerivacoesTest extends TestCase
         foreach ($eventos as $evento) {
             $this->assertArrayNotHasKey('derivacoes_status', $evento->after ?? []);
             $this->assertArrayNotHasKey('derivacoes_status', $evento->before ?? []);
-            $this->assertArrayNotHasKey('status', $evento->metadata['derivations']);
+            $this->assertSame('concluido', $evento->metadata['derivations']['status']);
         }
     }
 

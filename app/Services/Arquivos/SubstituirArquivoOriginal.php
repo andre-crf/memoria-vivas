@@ -45,6 +45,7 @@ final readonly class SubstituirArquivoOriginal
         }
 
         $journal->cleanupObsolete();
+        $this->arquivos->dispatchPendingDerivations($item, $context);
 
         return $original;
     }
