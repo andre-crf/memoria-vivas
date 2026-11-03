@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\StatusDerivacoes;
+use App\Jobs\GerarVersoesOtimizadas;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -43,6 +44,29 @@ class Arquivo extends Model
     public function isOriginal(): bool
     {
         return $this->versao_arquivo === 'original';
+    }
+
+    /**
+     * Geração das versões pendente ou em processamento, com atualização recente.
+     */
+    public function derivacoesEmAndamento(): bool
+    {
+        return $this->derivacoesAguardando()
+            && $this->derivacoes_atualizadas_em?->gt(now()->subSeconds(GerarVersoesOtimizadas::TIMEOUT));
+    }
+
+    /**
+     * Pendente ou em processamento sem atualização além do tempo limite do job: worker
+     * parado, job perdido ou processo encerrado no meio. Pode ser regenerado de novo.
+     */
+    public function derivacoesSemProgresso(): bool
+    {
+        return $this->derivacoesAguardando() && ! $this->derivacoesEmAndamento();
+    }
+
+    private function derivacoesAguardando(): bool
+    {
+        return in_array($this->derivacoes_status, [StatusDerivacoes::Pendente, StatusDerivacoes::Processando], true);
     }
 
     public static function rotuloVersao(string $versao): string

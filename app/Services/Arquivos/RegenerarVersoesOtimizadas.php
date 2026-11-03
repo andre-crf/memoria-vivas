@@ -9,11 +9,13 @@ use App\Auditing\AuditTransaction;
 use App\Auditing\Enums\AuditAction;
 use App\Auditing\Enums\AuditEntity;
 use App\Enums\StatusDerivacoes;
+use App\Jobs\GerarVersoesOtimizadas;
 use App\Models\Arquivo;
 use App\Models\ItemAcervo;
 use App\Models\User;
 use App\Support\OptimizedImageResult;
 use App\Support\OptimizedImageVersions;
+use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Gate;
 use RuntimeException;
 use Throwable;
@@ -59,9 +61,7 @@ final readonly class RegenerarVersoesOtimizadas
         }
 
         if ($actor instanceof User) {
-            $context->assertActor($actor);
-            Gate::forUser($actor)->authorize('update', $item);
-            Gate::forUser($actor)->authorize('replaceOriginal', $original);
+            $this->authorize($actor, $item, $original, $context);
         }
 
         if (! $original->isImagem()) {
@@ -127,6 +127,60 @@ final readonly class RegenerarVersoesOtimizadas
             failedVersions: $failedVersions,
             dispensedVersions: $dispensed,
         );
+    }
+
+    /**
+     * Pede a regeneração completa ao worker (modo assíncrono), a partir do original atual.
+     *
+     * A troca para "pendente" é condicional: com uma geração ainda em andamento, nada é
+     * despachado e o retorno é false; assim cliques repetidos não empilham jobs.
+     */
+    public function enqueue(User $actor, ItemAcervo $item, AuditContext $context): bool
+    {
+        $original = $item->arquivos()->where('versao_arquivo', 'original')->firstOrFail();
+        $this->authorize($actor, $item, $original, $context);
+        $statusAnterior = $original->derivacoes_status;
+        $limite = now()->subSeconds(GerarVersoesOtimizadas::TIMEOUT);
+        $agora = now();
+        $reservado = Arquivo::query()
+            ->whereKey($original->getKey())
+            ->where('sha256', $original->sha256)
+            ->where(fn ($query) => $query
+                ->whereNull('derivacoes_status')
+                ->orWhereIn('derivacoes_status', [StatusDerivacoes::Concluido->value, StatusDerivacoes::Falhou->value])
+                ->orWhere(fn ($semProgresso) => $semProgresso
+                    ->whereIn('derivacoes_status', [StatusDerivacoes::Pendente->value, StatusDerivacoes::Processando->value])
+                    ->where(fn ($antigo) => $antigo->whereNull('derivacoes_atualizadas_em')->orWhere('derivacoes_atualizadas_em', '<=', $limite))))
+            ->update(['derivacoes_status' => StatusDerivacoes::Pendente->value, 'derivacoes_atualizadas_em' => $agora]) > 0;
+
+        if (! $reservado) {
+            return false;
+        }
+
+        $original->forceFill(['derivacoes_status' => StatusDerivacoes::Pendente, 'derivacoes_atualizadas_em' => $agora]);
+
+        try {
+            Bus::dispatch(new GerarVersoesOtimizadas(
+                $original->id,
+                $original->sha256,
+                $context->correlationId,
+                todas: true,
+                solicitanteId: (int) $actor->getKey(),
+            ));
+        } catch (Throwable $exception) {
+            $this->optimizedVersions->markStatus($original, $statusAnterior, onlyFrom: StatusDerivacoes::Pendente);
+
+            throw $exception;
+        }
+
+        return true;
+    }
+
+    private function authorize(User $actor, ItemAcervo $item, Arquivo $original, AuditContext $context): void
+    {
+        $context->assertActor($actor);
+        Gate::forUser($actor)->authorize('update', $item);
+        Gate::forUser($actor)->authorize('replaceOriginal', $original);
     }
 
     /**

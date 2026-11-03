@@ -68,7 +68,7 @@
                         </thead>
                         <tbody class="divide-y divide-stone-200 bg-white">
                             @foreach ($fotografias as $fotografia)
-                                @php($thumbnail = $fotografia->thumbnailAdministrativa())
+                                @php $thumbnail = $fotografia->thumbnailAdministrativa(); @endphp
                                 <tr id="fotografia-{{ $fotografia->id }}" class="relative hover:bg-stone-50">
                                     <td class="px-5 py-4">
                                         @if ($thumbnail)
@@ -81,8 +81,17 @@
                                                 class="h-16 w-16 rounded-md bg-stone-100 object-cover"
                                             >
                                         @else
-                                            <div class="grid h-16 w-16 place-items-center rounded-md border border-dashed border-stone-300 bg-stone-50 text-xs font-semibold uppercase tracking-[0.12em] text-stone-400">
-                                                Sem imagem
+                                            @php
+                                                $originalDaLinha = $fotografia->arquivos->firstWhere('versao_arquivo', 'original');
+                                                [$semImagem, $semImagemCor, $semImagemDica] = match (true) {
+                                                    (bool) $originalDaLinha?->derivacoesEmAndamento() => ['Gerando', 'text-[0.625rem] tracking-[0.06em] text-institutional', 'As versões otimizadas estão sendo geradas em segundo plano.'],
+                                                    (bool) $originalDaLinha?->derivacoesSemProgresso(),
+                                                    $originalDaLinha?->derivacoes_status === \App\Enums\StatusDerivacoes::Falhou => ['Falhou', 'text-[0.625rem] tracking-[0.06em] text-danger', 'A geração das versões otimizadas falhou. Abra a fotografia para regenerar.'],
+                                                    default => ['Sem imagem', 'text-xs tracking-[0.12em] text-stone-400', null],
+                                                };
+                                            @endphp
+                                            <div @if ($semImagemDica) title="{{ $semImagemDica }}" @endif class="grid h-16 w-16 place-items-center rounded-md border border-dashed border-stone-300 bg-stone-50 font-semibold uppercase {{ $semImagemCor }}">
+                                                {{ $semImagem }}
                                             </div>
                                         @endif
                                     </td>

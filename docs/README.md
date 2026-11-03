@@ -370,10 +370,14 @@ ACERVO_DERIVADOS_ASSINCRONO=true    # o upload grava o original e o job GerarVer
 ```
 
 - **Depois de mudar o valor:** rode `php artisan config:clear`, se a configuração estiver em cache, e reinicie o worker.
-- **Modo assíncrono:** exige o worker em execução. Enquanto o job não roda, a fotografia fica com as versões `pendente` e não aparece no catálogo público.
-- **Modo síncrono:** o worker não é necessário.
-- **Regeneração manual:** pelo painel ou pelo comando `acervo:regenerar-versoes`, continua síncrona nos dois modos.
-- **Recuperação:** `php artisan acervo:regenerar-versoes --ausentes` processa as fotografias que ficaram pendentes (por exemplo, se o despacho falhou ou o worker ficou parado) ou presas em processamento.
+- **Modo assíncrono:**
+  - exige o worker em execução;
+  - enquanto o job não roda, a fotografia fica com as versões `pendente` e não aparece no catálogo público;
+  - o "Regenerar versões" do painel também passa pelo job.
+- **Modo síncrono:** as versões são geradas na requisição e o worker não é necessário.
+- **Comando `acervo:regenerar-versoes`:** roda na hora, nos dois modos.
+
+O estado das versões fica no original (`arquivos.derivacoes_status`): `pendente`, `processando`, `concluido`, `falhou` ou `nao_aplicavel`, este último para PDFs. Originais anteriores ao controle ficam sem estado até a próxima geração.
 
 Nos testes, o `phpunit.xml` força `QUEUE_CONNECTION=sync` e o modo síncrono.
 
@@ -417,6 +421,61 @@ docker compose exec worker php artisan migrate:status
 - `migrate:status` deve mostrar a migration `create_jobs_table` como executada.
 - `QUEUE_CONNECTION` precisa ser `database`. Com `sync`, os jobs rodariam na própria requisição.
 
+### Ativar o modo assíncrono
+
+A ordem importa: o modo assíncrono só deve ser ligado com o worker já funcionando. Caso contrário, as fotografias enviadas ficam pendentes.
+
+1. **Código e banco:** publique o código e rode `php artisan migrate`. A migration `add_derivacoes_status_to_arquivos_table` precisa estar aplicada.
+2. **Infraestrutura:** reconstrua a imagem (`docker compose build app worker`), que inclui o `pcntl`, e suba o worker com `docker compose up -d worker`.
+   - Fora do Docker, rode o mesmo comando do `compose.yaml` (`php artisan queue:work database --queue=imagens,default ...`) num supervisor (systemd ou supervisord), com reinício automático.
+3. **Verificações:**
+   - `docker compose exec worker php -m | grep -E "pcntl|imagick|gd"`;
+   - `php artisan queue:monitor database:imagens,database:default`;
+   - os logs do worker mostrando `Processing jobs from the [imagens,default] queues`.
+4. **Ativação:** coloque `ACERVO_DERIVADOS_ASSINCRONO=true` no `.env`, rode `php artisan config:clear` (ou `config:cache` em produção) e `php artisan queue:restart`.
+5. **Conferência:** envie uma fotografia de teste. A tela mostra "Pendente" e, depois de atualizar a página, "Concluído".
+
+**Armazenamento privado:**
+- O worker lê os originais em `storage/app/private/acervo/originais` e grava as versões em `storage/app/private/acervo/derivados`.
+- Ele precisa rodar com o mesmo usuário do PHP-FPM (no compose, `HOST_UID:HOST_GID`) e enxergar o mesmo `storage/`: o mesmo volume ou disco, nunca uma cópia.
+- Também precisa do mesmo `.env`, para usar o mesmo banco e a mesma configuração.
+
+### Voltar ao modo síncrono
+
+1. Coloque `ACERVO_DERIVADOS_ASSINCRONO=false` e rode `php artisan config:clear` (ou `config:cache`). Os novos uploads voltam a gerar as versões na própria requisição.
+2. Deixe o worker ligado até a fila esvaziar (`queue:monitor`). Se ele estiver parado, rode `php artisan acervo:regenerar-versoes --ausentes`, que processa na hora o que ficou pendente.
+3. **Não desfaça a migration de estado.** As colunas `derivacoes_status` e `derivacoes_atualizadas_em` também são usadas no modo síncrono.
+
+### Pendências, falhas e recuperação
+
+**Onde ver:**
+- **Listagem de fotografias:** no lugar da miniatura aparece "Gerando" ou "Falhou".
+- **Detalhe da fotografia:** o selo ao lado de "Versões disponíveis" mostra Pendente, Em processamento, Concluído, Falhou ou Sem progresso. Não há atualização automática; atualize a página.
+- **Consulta direta:**
+
+  ```bash
+  docker compose exec app php artisan tinker --execute="App\Models\Arquivo::where('versao_arquivo', 'original')->whereIn('derivacoes_status', ['pendente', 'processando', 'falhou'])->get(['item_acervo_id', 'derivacoes_status', 'derivacoes_atualizadas_em'])->each(fn (\$a) => print(\$a->item_acervo_id.' '.\$a->derivacoes_status->value.' '.\$a->derivacoes_atualizadas_em.PHP_EOL));"
+  ```
+
+**Como recuperar:**
+- **Pelo painel:** "Regenerar versões", no menu do cartão Arquivos. Fica bloqueado enquanto a geração está em andamento e volta a funcionar depois de 5 minutos sem progresso.
+- **Pelo comando:** `php artisan acervo:regenerar-versoes --ausentes` (ou com os IDs) processa na hora todas as fotografias que não estão `concluido`.
+- **Jobs que esgotaram as tentativas:**
+  - aparecem em `php artisan queue:failed`, com o estado da foto em `falhou`;
+  - depois de corrigir a causa (veja `docker compose logs worker` e `storage/logs`), use `php artisan queue:retry <id>`, a regeneração pelo painel ou o comando;
+  - `queue:forget <id>` só remove o registro da falha, sem mudar a fotografia.
+
+**Situações conhecidas:**
+- **Worker parado:**
+  - os jobs se acumulam na tabela `jobs` e as fotografias ficam pendentes, fora do catálogo;
+  - ao religar o worker, tudo é processado;
+  - depois de 5 minutos a tela mostra "Sem progresso".
+- **Worker encerrado no meio de um job** (falta de memória, por exemplo):
+  - o job volta para a fila depois de `DB_QUEUE_RETRY_AFTER` (360 s) e retoma o registro em `processando`;
+  - ao esgotar as tentativas, o estado vira `falhou`;
+  - os arquivos gravados pela tentativa interrompida ficam órfãos em `acervo/derivados`.
+- **Job apagado da fila** (`queue:clear`, por exemplo): a fotografia fica "Sem progresso" e é recuperada pelo painel ou pelo comando. Não existe estado `processando` sem saída: depois de 5 minutos, os dois caminhos voltam a aceitar a fotografia.
+
 ### Valores do worker
 
 | Opção | Valor | Motivo |
@@ -428,7 +487,9 @@ docker compose exec worker php artisan migrate:status
 | `--max-jobs` / `--max-time` | 100 / 3600 s | Renovam o processo periodicamente. |
 | `stop_grace_period` | 330 s | Na parada, o Docker espera o job em andamento terminar. Sem job em andamento, a parada é imediata. |
 
-Ao mudar o `--timeout` no `compose.yaml`, ajuste também o `DB_QUEUE_RETRY_AFTER` e o `stop_grace_period`.
+O job `GerarVersoesOtimizadas` define os próprios valores: 3 tentativas, intervalos de 30 s e 120 s, e tempo limite de 300 s (`GerarVersoesOtimizadas::TIMEOUT`). Esse tempo limite também é o prazo depois do qual uma geração é considerada sem progresso.
+
+Ao mudar o `--timeout` no `compose.yaml`, ajuste também o `DB_QUEUE_RETRY_AFTER`, o `stop_grace_period` e o `TIMEOUT` do job.
 
 ---
 

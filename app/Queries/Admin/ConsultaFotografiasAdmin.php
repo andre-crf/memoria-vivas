@@ -56,7 +56,8 @@ class ConsultaFotografiasAdmin
     public function ativas(FiltrosFotografiasAdmin $filtros, OrdenacaoListagem $ordenacao, int $porPagina = self::POR_PAGINA): LengthAwarePaginator
     {
         $query = ItemAcervo::query()
-            ->with(['arquivos' => fn ($query) => $query->where('versao_arquivo', 'thumbnail')]);
+            // O original traz o estado das versões, exibido quando ainda não há miniatura.
+            ->with(['arquivos' => fn ($query) => $query->whereIn('versao_arquivo', ['thumbnail', 'original'])]);
 
         return $this->paginar($query, $filtros, $ordenacao, $porPagina);
     }

@@ -207,6 +207,18 @@
                         $versoesDispensadas = $originalEhImagem && $arquivoOriginal->width && $arquivoOriginal->height
                             ? collect($geradorVersoes->plan($arquivoOriginal->width, $arquivoOriginal->height)['dispensed'])->except($versoesExistentes->all())
                             : collect();
+                        // Estado gravado no original (FILA-02/03). Pendente ou em processamento por mais que o
+                        // tempo limite do job conta como sem progresso: a regeneração volta a ficar disponível.
+                        $statusDerivacoes = $originalEhImagem ? $arquivoOriginal->derivacoes_status : null;
+                        $derivacoesEmAndamento = $originalEhImagem && $arquivoOriginal->derivacoesEmAndamento();
+                        $derivacoesSemProgresso = $originalEhImagem && $arquivoOriginal->derivacoesSemProgresso();
+                        $seloDerivacoes = match (true) {
+                            $derivacoesSemProgresso => ['Sem progresso', 'bg-error-soft text-danger'],
+                            $statusDerivacoes === \App\Enums\StatusDerivacoes::Falhou => [$statusDerivacoes->label(), 'bg-error-soft text-danger'],
+                            $derivacoesEmAndamento => [$statusDerivacoes->label(), 'bg-institutional-soft text-institutional'],
+                            $statusDerivacoes === \App\Enums\StatusDerivacoes::Concluido => [$statusDerivacoes->label(), 'bg-mist-150 text-ink-700'],
+                            default => null,
+                        };
                     @endphp
 
                     <div class="flex items-center justify-between gap-4">
@@ -249,7 +261,18 @@
                                         <x-lucide-image-up class="size-4 flex-none" aria-hidden="true" />
                                         Substituir imagem
                                     </button>
-                                    @if ($originalEhImagem)
+                                    @if ($derivacoesEmAndamento)
+                                        <button
+                                            type="button"
+                                            disabled
+                                            aria-disabled="true"
+                                            title="Aguarde a geração atual terminar e atualize a página."
+                                            class="flex min-h-10 w-full cursor-not-allowed items-center gap-2.5 rounded px-3 text-left text-[0.8125rem] font-semibold text-ink-500"
+                                        >
+                                            <x-lucide-loader-circle class="size-4 flex-none" aria-hidden="true" />
+                                            Geração em andamento
+                                        </button>
+                                    @elseif ($originalEhImagem)
                                         <form
                                             method="POST"
                                             action="{{ route('admin.fotografias.regenerate-versions', $fotografia) }}"
@@ -293,7 +316,9 @@
                                 <div>
                                     <p class="text-sm font-semibold text-stone-700">Prévia indisponível</p>
                                     <p class="mt-1 text-xs leading-5 text-stone-500">
-                                        @if ($originalEhImagem)
+                                        @if ($derivacoesEmAndamento)
+                                            As versões otimizadas estão sendo geradas em segundo plano. Atualize a página em alguns instantes.
+                                        @elseif ($originalEhImagem)
                                             As versões otimizadas não foram geradas. Use “Regenerar versões” no menu de ações do arquivo.
                                         @elseif ($arquivoOriginal)
                                             O arquivo original não é uma imagem, então não há versões otimizadas para exibir.
@@ -414,7 +439,12 @@
                             </div>
                         @endif
 
-                        <h3 class="mt-5 text-[0.8rem] font-medium text-ink-600">Versões disponíveis</h3>
+                        <div class="mt-5 flex flex-wrap items-center justify-between gap-2">
+                            <h3 class="text-[0.8rem] font-medium text-ink-600">Versões disponíveis</h3>
+                            @if ($seloDerivacoes)
+                                <span data-status-derivacoes="{{ $derivacoesSemProgresso ? 'sem_progresso' : $statusDerivacoes->value }}" class="inline-flex rounded-full px-2.5 py-1 text-xs font-semibold {{ $seloDerivacoes[1] }}">{{ $seloDerivacoes[0] }}</span>
+                            @endif
+                        </div>
                         <ul class="mt-1 divide-y divide-mist-200">
                             @foreach ($versoes as $arquivo)
                                 <li class="flex items-center gap-3 py-2.5">
@@ -433,15 +463,31 @@
                                 </li>
                             @endforeach
                             @foreach ($versoesAusentes as $versao)
-                                <li class="flex items-center gap-3 py-2.5" data-versao-ausente="{{ $versao }}">
-                                    <span class="grid size-8 flex-none place-items-center rounded-md bg-error-soft text-danger" aria-hidden="true">
-                                        <x-lucide-triangle-alert class="size-4" />
-                                    </span>
-                                    <span class="min-w-0 flex-1">
-                                        <span class="block text-[0.85rem] font-semibold text-ink-950">{{ \App\Models\Arquivo::rotuloVersao($versao) }}</span>
-                                        <span class="block text-[0.75rem] text-danger">Ausente: a geração falhou ou não foi concluída</span>
-                                    </span>
-                                </li>
+                                @if ($derivacoesEmAndamento)
+                                    <li class="flex items-center gap-3 py-2.5" data-versao-pendente="{{ $versao }}">
+                                        <span class="grid size-8 flex-none place-items-center rounded-md bg-institutional-soft text-institutional" aria-hidden="true">
+                                            @if ($statusDerivacoes === \App\Enums\StatusDerivacoes::Processando)
+                                                <x-lucide-loader-circle class="size-4" />
+                                            @else
+                                                <x-lucide-clock class="size-4" />
+                                            @endif
+                                        </span>
+                                        <span class="min-w-0 flex-1">
+                                            <span class="block text-[0.85rem] font-semibold text-ink-950">{{ \App\Models\Arquivo::rotuloVersao($versao) }}</span>
+                                            <span class="block text-[0.75rem] text-ink-500">{{ $statusDerivacoes === \App\Enums\StatusDerivacoes::Processando ? 'Em geração' : 'Aguardando processamento' }}</span>
+                                        </span>
+                                    </li>
+                                @else
+                                    <li class="flex items-center gap-3 py-2.5" data-versao-ausente="{{ $versao }}">
+                                        <span class="grid size-8 flex-none place-items-center rounded-md bg-error-soft text-danger" aria-hidden="true">
+                                            <x-lucide-triangle-alert class="size-4" />
+                                        </span>
+                                        <span class="min-w-0 flex-1">
+                                            <span class="block text-[0.85rem] font-semibold text-ink-950">{{ \App\Models\Arquivo::rotuloVersao($versao) }}</span>
+                                            <span class="block text-[0.75rem] text-danger">Ausente: a geração falhou ou não foi concluída</span>
+                                        </span>
+                                    </li>
+                                @endif
                             @endforeach
                             @foreach ($versoesDispensadas as $versao => $substituta)
                                 <li class="flex items-center gap-3 py-2.5" data-versao-dispensada="{{ $versao }}">
@@ -455,8 +501,24 @@
                                 </li>
                             @endforeach
                         </ul>
-                        @if ($versoesAusentes->isNotEmpty())
+                        @if ($derivacoesEmAndamento)
                             <p class="mt-2 text-[0.75rem] leading-normal text-ink-600" role="note">
+                                As versões estão sendo geradas em segundo plano. Atualize a página para ver o resultado.
+                            </p>
+                        @elseif ($derivacoesSemProgresso)
+                            <p class="mt-2 text-[0.75rem] leading-normal text-ink-600" role="note">
+                                O processamento não avançou nos últimos minutos.
+                                @if ($podeSubstituir)
+                                    Use “Regenerar versões” no menu de ações para tentar de novo.
+                                @else
+                                    Peça a regeneração das versões a um administrador.
+                                @endif
+                            </p>
+                        @elseif ($versoesAusentes->isNotEmpty() || $statusDerivacoes === \App\Enums\StatusDerivacoes::Falhou)
+                            <p class="mt-2 text-[0.75rem] leading-normal text-ink-600" role="note">
+                                @if ($statusDerivacoes === \App\Enums\StatusDerivacoes::Falhou && $versoesAusentes->isEmpty())
+                                    A última geração não foi concluída; as versões anteriores foram mantidas.
+                                @endif
                                 @if ($podeSubstituir)
                                     Use “Regenerar versões” no menu de ações para tentar de novo a partir do original.
                                 @else

@@ -7,6 +7,7 @@ use App\Auditing\Enums\AuditSource;
 use App\Enums\StatusDerivacoes;
 use App\Models\Arquivo;
 use App\Models\ItemAcervo;
+use App\Models\User;
 use App\Services\Arquivos\RegenerarVersoesOtimizadas;
 use App\Support\OptimizedImageVersions;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -35,13 +36,22 @@ class GerarVersoesOtimizadas implements ShouldQueue
     /** @var list<int> */
     public array $backoff = [30, 120];
 
-    // Igual ao --timeout do worker e abaixo do DB_QUEUE_RETRY_AFTER (360 s).
-    public int $timeout = 300;
+    // Igual ao --timeout do worker e abaixo do DB_QUEUE_RETRY_AFTER (360 s). Uma geração
+    // pendente ou em processamento há mais que isso é tratada como sem progresso.
+    public const TIMEOUT = 300;
 
+    public int $timeout = self::TIMEOUT;
+
+    /**
+     * @param  bool  $todas  regenera todas as versões (pedido manual); senão, só as ausentes.
+     * @param  int|null  $solicitanteId  quem pediu a regeneração, para a auditoria.
+     */
     public function __construct(
         public readonly int $arquivoId,
         public readonly string $sha256,
         public readonly string $correlationId,
+        public readonly bool $todas = false,
+        public readonly ?int $solicitanteId = null,
     ) {
         $this->onQueue(config('acervo.optimized_processing.queue', 'imagens'));
         $this->afterCommit();
@@ -67,8 +77,8 @@ class GerarVersoesOtimizadas implements ShouldQueue
             $resultado = $regenerar->execute(
                 actor: null,
                 item: $item,
-                context: AuditContext::forSystem(AuditSource::Job, (string) Str::uuid(), $this->correlationId),
-                somenteAusentes: true,
+                context: $this->auditContext(),
+                somenteAusentes: ! $this->todas,
                 sha256Esperado: $this->sha256,
             );
         } catch (Throwable $exception) {
@@ -130,8 +140,21 @@ class GerarVersoesOtimizadas implements ShouldQueue
     }
 
     /**
-     * Passa o original para "processando" se ele estiver pendente, ou preso em
-     * "processando" há mais que o tempo limite (worker encerrado no meio).
+     * As permissões foram conferidas na requisição; aqui o solicitante só identifica o evento.
+     */
+    private function auditContext(): AuditContext
+    {
+        $solicitante = $this->solicitanteId !== null ? User::query()->find($this->solicitanteId) : null;
+
+        return $solicitante instanceof User
+            ? AuditContext::forUser($solicitante, AuditSource::Job, (string) Str::uuid(), $this->correlationId)
+            : AuditContext::forSystem(AuditSource::Job, (string) Str::uuid(), $this->correlationId);
+    }
+
+    /**
+     * Passa o original para "processando" se ele estiver pendente ou com falha (um job
+     * esgotado reenviado por queue:retry), ou preso em "processando" há mais que o tempo
+     * limite (worker encerrado no meio).
      */
     private function reservar(Arquivo $original): bool
     {
@@ -140,7 +163,7 @@ class GerarVersoesOtimizadas implements ShouldQueue
             ->whereKey($original->getKey())
             ->where('sha256', $this->sha256)
             ->where(fn ($query) => $query
-                ->where('derivacoes_status', StatusDerivacoes::Pendente->value)
+                ->whereIn('derivacoes_status', [StatusDerivacoes::Pendente->value, StatusDerivacoes::Falhou->value])
                 ->orWhere(fn ($preso) => $preso
                     ->where('derivacoes_status', StatusDerivacoes::Processando->value)
                     ->where('derivacoes_atualizadas_em', '<', $agora->copy()->subSeconds($this->timeout))))

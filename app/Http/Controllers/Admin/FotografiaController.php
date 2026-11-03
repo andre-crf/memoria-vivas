@@ -245,6 +245,24 @@ class FotografiaController extends Controller
         AuditContextFactory $contexts,
     ): RedirectResponse {
         $this->ensurePhotograph($fotografia);
+        $original = $fotografia->arquivos()->where('versao_arquivo', 'original')->firstOrFail();
+        Gate::authorize('update', $fotografia);
+        Gate::authorize('replaceOriginal', $original);
+        $emAndamento = ['warning', 'As versões desta fotografia já estão sendo geradas. Atualize a página em alguns instantes.'];
+
+        // Evita acionamentos concorrentes nos dois modos; no assíncrono a troca de estado também é atômica.
+        if ($original->derivacoesEmAndamento()) {
+            return redirect()->route('admin.fotografias.show', $fotografia)->with(...$emAndamento);
+        }
+
+        if (config('acervo.optimized_processing.async') && $original->isImagem()) {
+            $enfileirado = $service->enqueue($request->user(), $fotografia, $contexts->fromRequest($request));
+            [$tipo, $mensagem] = $enfileirado
+                ? ['success', 'A regeneração das versões foi enfileirada. Atualize a página em alguns instantes para ver o resultado.']
+                : $emAndamento;
+
+            return redirect()->route('admin.fotografias.show', $fotografia)->with($tipo, $mensagem);
+        }
 
         $resultado = $service->execute(
             actor: $request->user(),
