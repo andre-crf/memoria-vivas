@@ -8,11 +8,16 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 #[Fillable([
     'item_acervo_id',
+    'arquivo_id',
     'motivo_download_id',
     'perfil_download_id',
     'pais_id',
     'estado_id',
     'municipio_id',
+    'nome',
+    'email',
+    'finalidade',
+    'termos_aceitos_em',
     'created_at',
 ])]
 class RegistroDownload extends Model
@@ -21,7 +26,12 @@ class RegistroDownload extends Model
 
     public function itemAcervo(): BelongsTo
     {
-        return $this->belongsTo(ItemAcervo::class);
+        return $this->belongsTo(ItemAcervo::class)->withTrashed();
+    }
+
+    public function arquivo(): BelongsTo
+    {
+        return $this->belongsTo(Arquivo::class);
     }
 
     public function motivoDownload(): BelongsTo
@@ -53,6 +63,7 @@ class RegistroDownload extends Model
     {
         return [
             'created_at' => 'datetime',
+            'termos_aceitos_em' => 'datetime',
         ];
     }
 }

@@ -16,6 +16,12 @@
             'active' => 'admin.contribuicoes.*',
         ],
         [
+            'label' => 'Downloads',
+            'route' => 'admin.downloads.index',
+            'active' => 'admin.downloads.*',
+            'adminOnly' => true,
+        ],
+        [
             'label' => 'Categorias',
             'route' => 'admin.categorias.index',
             'active' => 'admin.categorias.*',

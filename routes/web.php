@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\AutorController;
 use App\Http\Controllers\Admin\CategoriaController;
 use App\Http\Controllers\Admin\ContribuicaoController as AdminContribuicaoController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\DownloadController as AdminDownloadController;
 use App\Http\Controllers\Admin\FotografiaController;
 use App\Http\Controllers\Admin\PalavraChaveController;
 use App\Http\Controllers\Admin\PerfilController;
@@ -16,6 +17,7 @@ use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Publico\CatalogoController;
 use App\Http\Controllers\Publico\ContribuicaoController as PublicContribuicaoController;
 use App\Http\Controllers\Publico\FotografiaController as PublicFotografiaController;
+use App\Http\Controllers\Publico\DownloadFotografiaController;
 use App\Http\Controllers\Publico\HomeController as PublicHomeController;
 use App\Http\Controllers\Publico\ImagemPublicaController;
 use Illuminate\Support\Facades\Route;
@@ -39,6 +41,8 @@ Route::name('public.')->group(function (): void {
     Route::prefix('fotografias')
         ->name('fotografias.')
         ->group(function (): void {
+            Route::get('/{fotografia}/baixar', [DownloadFotografiaController::class, 'create'])->name('download.create');
+            Route::post('/{fotografia}/baixar', [DownloadFotografiaController::class, 'store'])->middleware('throttle:10,60')->name('download.store');
             Route::get('/{fotografia}', [PublicFotografiaController::class, 'show'])->name('show');
         });
 
@@ -78,6 +82,9 @@ Route::middleware(['auth', 'admin.access'])
                 Route::get('/{contribuicao}', [AdminContribuicaoController::class, 'show'])->name('show');
                 Route::get('/{contribuicao}/arquivos/{arquivo}', [AdminContribuicaoController::class, 'download'])->name('arquivos.download');
             });
+
+        Route::get('/downloads', AdminDownloadController::class)->name('downloads.index');
+        Route::get('/downloads/exportar', [AdminDownloadController::class, 'export'])->name('downloads.export');
 
         Route::prefix('perfil')
             ->name('perfil.')

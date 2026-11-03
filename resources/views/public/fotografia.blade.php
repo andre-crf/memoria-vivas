@@ -96,6 +96,7 @@
                         </button>
                     </div>
                     <figcaption class="mt-2 text-[0.8rem] text-ink-500">Clique na imagem para ampliar.</figcaption>
+                    <x-public.button :href="route('public.fotografias.download.create', $fotografia)" class="mt-6">Baixar fotografia <span aria-hidden="true">&darr;</span></x-public.button>
                 </figure>
 
                 <div class="grid gap-9 lg:sticky lg:top-8">
