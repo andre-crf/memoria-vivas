@@ -12,6 +12,7 @@ final class ItemAcervoAuditSnapshot
     public const FIELDS = [
         'tipo_item',
         'titulo',
+        'codigo_referencia',
         'legenda',
         'dia',
         'mes',

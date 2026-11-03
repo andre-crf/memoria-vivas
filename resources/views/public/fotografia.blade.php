@@ -9,7 +9,9 @@
         // Primeira frase da legenda, como subtítulo curto no hero.
         $primeiraLinha = trim(strtok((string) $fotografia->legenda, "\n") ?: '');
         $resumo = $primeiraLinha === '' ? null : Str::limit(preg_split('/(?<=[.!?])\s+/u', $primeiraLinha)[0], 160);
+        // A localização física do original é interna e nunca entra aqui.
         $metadados = array_filter([
+            'Código de referência' => $fotografia->codigo_referencia,
             'Data' => $data,
             'Precisão da data' => $fotografia->tipo_data->label(),
             'Local atual' => $fotografia->local_atual,

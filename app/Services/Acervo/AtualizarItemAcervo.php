@@ -93,6 +93,10 @@ final readonly class AtualizarItemAcervo
 
         $journal->cleanupObsolete();
 
+        if ($arquivoOriginal instanceof UploadedFile) {
+            $this->arquivos->dispatchPendingDerivations($item, $context);
+        }
+
         return $item;
     }
 

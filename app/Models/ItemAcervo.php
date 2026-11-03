@@ -19,6 +19,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 #[Fillable([
     'tipo_item',
     'titulo',
+    'codigo_referencia',
     'legenda',
     'dia',
     'mes',

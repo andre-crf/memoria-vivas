@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Auditing\AuditContextFactory;
 use App\Auditing\Enums\AuditEntity;
+use App\Enums\StatusDerivacoes;
 use App\Enums\TipoData;
 use App\Enums\Visibilidade;
 use App\Http\Controllers\Admin\Concerns\ListagemPesquisavel;
@@ -28,11 +29,13 @@ use App\Support\OptimizedImageVersions;
 use App\Support\OrdenacaoListagem;
 use Closure;
 use Illuminate\Contracts\View\View;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Validation\ValidationException;
 
 class FotografiaController extends Controller
 {
@@ -74,7 +77,7 @@ class FotografiaController extends Controller
         AuditContextFactory $contexts,
         OptimizedImageVersions $optimizedVersions,
     ): RedirectResponse {
-        $fotografia = $service->execute(
+        $fotografia = $this->comCodigoDeReferenciaUnico(fn (): ItemAcervo => $service->execute(
             actor: $request->user(),
             data: [
                 ...$request->payload(),
@@ -82,7 +85,7 @@ class FotografiaController extends Controller
             ],
             context: $contexts->fromRequest($request),
             arquivoOriginal: $request->file('arquivo_original'),
-        );
+        ));
         [$tipo, $mensagem] = $request->hasFile('arquivo_original')
             ? $this->originalUploadFeedback($fotografia, $optimizedVersions, 'Fotografia cadastrada com sucesso.')
             : ['success', 'Fotografia cadastrada com sucesso.'];
@@ -143,7 +146,7 @@ class FotografiaController extends Controller
     ): RedirectResponse {
         $this->ensurePhotograph($fotografia);
 
-        $fotografia = $service->execute(
+        $fotografia = $this->comCodigoDeReferenciaUnico(fn (): ItemAcervo => $service->execute(
             actor: $request->user(),
             item: $fotografia,
             data: [
@@ -152,7 +155,7 @@ class FotografiaController extends Controller
             ],
             context: $contexts->fromRequest($request),
             arquivoOriginal: $request->file('arquivo_original'),
-        );
+        ));
         [$tipo, $mensagem] = $request->hasFile('arquivo_original')
             ? $this->originalUploadFeedback($fotografia, $optimizedVersions, 'Fotografia atualizada com sucesso.')
             : ['success', 'Fotografia atualizada com sucesso.'];
@@ -205,6 +208,11 @@ class FotografiaController extends Controller
             ];
         }
 
+        // Modo assíncrono: as versões ainda serão geradas pelo worker.
+        if (in_array($original->derivacoes_status, [StatusDerivacoes::Pendente, StatusDerivacoes::Processando], true)) {
+            return ['success', "{$successMessage} As versões otimizadas serão geradas em segundo plano."];
+        }
+
         $presentes = $fotografia->arquivos()
             ->whereIn('versao_arquivo', $optimizedVersions->versions())
             ->pluck('versao_arquivo')
@@ -237,6 +245,24 @@ class FotografiaController extends Controller
         AuditContextFactory $contexts,
     ): RedirectResponse {
         $this->ensurePhotograph($fotografia);
+        $original = $fotografia->arquivos()->where('versao_arquivo', 'original')->firstOrFail();
+        Gate::authorize('update', $fotografia);
+        Gate::authorize('replaceOriginal', $original);
+        $emAndamento = ['warning', 'As versões desta fotografia já estão sendo geradas. Atualize a página em alguns instantes.'];
+
+        // Evita acionamentos concorrentes nos dois modos; no assíncrono a troca de estado também é atômica.
+        if ($original->derivacoesEmAndamento()) {
+            return redirect()->route('admin.fotografias.show', $fotografia)->with(...$emAndamento);
+        }
+
+        if (config('acervo.optimized_processing.async') && $original->isImagem()) {
+            $enfileirado = $service->enqueue($request->user(), $fotografia, $contexts->fromRequest($request));
+            [$tipo, $mensagem] = $enfileirado
+                ? ['success', 'A regeneração das versões foi enfileirada. Atualize a página em alguns instantes para ver o resultado.']
+                : $emAndamento;
+
+            return redirect()->route('admin.fotografias.show', $fotografia)->with($tipo, $mensagem);
+        }
 
         $resultado = $service->execute(
             actor: $request->user(),
@@ -351,6 +377,28 @@ class FotografiaController extends Controller
             'visibilidades' => Visibilidade::cases(),
             'searchError' => $searchError,
         ], $searchError !== null ? 422 : 200);
+    }
+
+    /**
+     * A validação já recusa códigos em uso; se dois cadastros simultâneos passarem por ela com o
+     * mesmo código, o índice único recusa o segundo, que volta ao formulário como erro do campo.
+     * Os services já desfazem a transação e os arquivos novos antes de a exceção chegar aqui.
+     *
+     * @param  Closure(): ItemAcervo  $operacao
+     */
+    private function comCodigoDeReferenciaUnico(Closure $operacao): ItemAcervo
+    {
+        try {
+            return $operacao();
+        } catch (UniqueConstraintViolationException $exception) {
+            if (! str_contains($exception->getMessage(), 'codigo_referencia')) {
+                throw $exception;
+            }
+
+            throw ValidationException::withMessages([
+                'codigo_referencia' => 'Este código de referência acabou de ser usado em outra fotografia. Informe outro código.',
+            ]);
+        }
     }
 
     private function ensurePhotograph(ItemAcervo $fotografia): void

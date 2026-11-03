@@ -8,11 +8,14 @@ use App\Auditing\AuditEventCollector;
 use App\Auditing\AuditTransaction;
 use App\Auditing\Enums\AuditAction;
 use App\Auditing\Enums\AuditEntity;
+use App\Enums\StatusDerivacoes;
+use App\Jobs\GerarVersoesOtimizadas;
 use App\Models\Arquivo;
 use App\Models\ItemAcervo;
 use App\Models\User;
 use App\Support\OptimizedImageResult;
 use App\Support\OptimizedImageVersions;
+use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Gate;
 use RuntimeException;
 use Throwable;
@@ -31,6 +34,8 @@ use Throwable;
  */
 final readonly class RegenerarVersoesOtimizadas
 {
+    public const ORIGINAL_MUDOU = 'O arquivo original mudou durante a regeneração das versões.';
+
     public function __construct(
         private AuditTransaction $auditTransaction,
         private GerenciarArquivoOriginal $arquivos,
@@ -40,23 +45,27 @@ final readonly class RegenerarVersoesOtimizadas
     /**
      * @param  User|null  $actor  null quando a regeneração parte do console (sistema).
      * @param  bool  $somenteAusentes  gera apenas as versões que o item ainda não tem.
+     * @param  string|null  $sha256Esperado  original que o chamador espera processar (job da fila).
      */
     public function execute(
         ?User $actor,
         ItemAcervo $item,
         AuditContext $context,
         bool $somenteAusentes = false,
+        ?string $sha256Esperado = null,
     ): OptimizedImageResult {
         $original = $item->arquivos()->where('versao_arquivo', 'original')->firstOrFail();
 
+        if ($sha256Esperado !== null && $original->sha256 !== $sha256Esperado) {
+            throw new RuntimeException(self::ORIGINAL_MUDOU);
+        }
+
         if ($actor instanceof User) {
-            $context->assertActor($actor);
-            Gate::forUser($actor)->authorize('update', $item);
-            Gate::forUser($actor)->authorize('replaceOriginal', $original);
+            $this->authorize($actor, $item, $original, $context);
         }
 
         if (! $original->isImagem()) {
-            return new OptimizedImageResult(applicable: false);
+            return $this->finish($item, $original, new OptimizedImageResult(applicable: false));
         }
 
         $versions = $this->optimizedVersions->versions();
@@ -67,9 +76,12 @@ final readonly class RegenerarVersoesOtimizadas
         }
 
         if ($versions === []) {
-            return new OptimizedImageResult(applicable: true);
+            return $this->finish($item, $original, new OptimizedImageResult(applicable: true));
         }
 
+        // Gravado fora da transação: se o processo morrer no meio, o original fica marcado.
+        $statusAnterior = $original->derivacoes_status;
+        $this->optimizedVersions->markStatus($original, StatusDerivacoes::Processando);
         $journal = $this->arquivos->journal();
 
         try {
@@ -82,7 +94,7 @@ final readonly class RegenerarVersoesOtimizadas
             $redundantes = $somenteAusentes ? [] : $dispensed;
 
             if ($files === [] && $failedVersions === [] && ! $item->arquivos()->whereIn('versao_arquivo', $redundantes)->exists()) {
-                return new OptimizedImageResult(applicable: true, dispensedVersions: $dispensed);
+                return $this->finish($item, $original, new OptimizedImageResult(applicable: true, dispensedVersions: $dispensed));
             }
 
             $generated = $this->auditTransaction->run(
@@ -92,6 +104,7 @@ final readonly class RegenerarVersoesOtimizadas
                     $original,
                     $files,
                     $failedVersions,
+                    $dispensed,
                     $redundantes,
                     $somenteAusentes,
                     $audit,
@@ -100,6 +113,8 @@ final readonly class RegenerarVersoesOtimizadas
             );
         } catch (Throwable $exception) {
             $journal->rollbackCreated();
+            // As versões anteriores foram mantidas; um original substituído no meio já tem o próprio estado.
+            $this->optimizedVersions->markStatus($original, $statusAnterior, onlyFrom: StatusDerivacoes::Processando);
 
             throw $exception;
         }
@@ -115,8 +130,63 @@ final readonly class RegenerarVersoesOtimizadas
     }
 
     /**
+     * Pede a regeneração completa ao worker (modo assíncrono), a partir do original atual.
+     *
+     * A troca para "pendente" é condicional: com uma geração ainda em andamento, nada é
+     * despachado e o retorno é false; assim cliques repetidos não empilham jobs.
+     */
+    public function enqueue(User $actor, ItemAcervo $item, AuditContext $context): bool
+    {
+        $original = $item->arquivos()->where('versao_arquivo', 'original')->firstOrFail();
+        $this->authorize($actor, $item, $original, $context);
+        $statusAnterior = $original->derivacoes_status;
+        $limite = now()->subSeconds(GerarVersoesOtimizadas::TIMEOUT);
+        $agora = now();
+        $reservado = Arquivo::query()
+            ->whereKey($original->getKey())
+            ->where('sha256', $original->sha256)
+            ->where(fn ($query) => $query
+                ->whereNull('derivacoes_status')
+                ->orWhereIn('derivacoes_status', [StatusDerivacoes::Concluido->value, StatusDerivacoes::Falhou->value])
+                ->orWhere(fn ($semProgresso) => $semProgresso
+                    ->whereIn('derivacoes_status', [StatusDerivacoes::Pendente->value, StatusDerivacoes::Processando->value])
+                    ->where(fn ($antigo) => $antigo->whereNull('derivacoes_atualizadas_em')->orWhere('derivacoes_atualizadas_em', '<=', $limite))))
+            ->update(['derivacoes_status' => StatusDerivacoes::Pendente->value, 'derivacoes_atualizadas_em' => $agora]) > 0;
+
+        if (! $reservado) {
+            return false;
+        }
+
+        $original->forceFill(['derivacoes_status' => StatusDerivacoes::Pendente, 'derivacoes_atualizadas_em' => $agora]);
+
+        try {
+            Bus::dispatch(new GerarVersoesOtimizadas(
+                $original->id,
+                $original->sha256,
+                $context->correlationId,
+                todas: true,
+                solicitanteId: (int) $actor->getKey(),
+            ));
+        } catch (Throwable $exception) {
+            $this->optimizedVersions->markStatus($original, $statusAnterior, onlyFrom: StatusDerivacoes::Pendente);
+
+            throw $exception;
+        }
+
+        return true;
+    }
+
+    private function authorize(User $actor, ItemAcervo $item, Arquivo $original, AuditContext $context): void
+    {
+        $context->assertActor($actor);
+        Gate::forUser($actor)->authorize('update', $item);
+        Gate::forUser($actor)->authorize('replaceOriginal', $original);
+    }
+
+    /**
      * @param  array<string, array<string, mixed>>  $files
      * @param  list<string>  $failedVersions
+     * @param  list<string>  $dispensed
      * @param  list<string>  $redundantes  versões dispensadas cujos registros antigos devem sair
      * @return list<Arquivo>
      */
@@ -125,12 +195,15 @@ final readonly class RegenerarVersoesOtimizadas
         Arquivo $original,
         array $files,
         array $failedVersions,
+        array $dispensed,
         array $redundantes,
         bool $somenteAusentes,
         AuditEventCollector $audit,
         StorageMutationJournal $journal,
     ): array {
-        ItemAcervo::query()->lockForUpdate()->findOrFail($item->getKey());
+        // Inclui a lixeira: o job da fila gera as versões de um item excluído logicamente,
+        // para que ele volte completo ao ser restaurado.
+        ItemAcervo::query()->withTrashed()->lockForUpdate()->findOrFail($item->getKey());
         $atual = Arquivo::query()->lockForUpdate()->find($original->getKey());
 
         // O original pode ter sido substituído enquanto as versões eram geradas.
@@ -139,7 +212,7 @@ final readonly class RegenerarVersoesOtimizadas
             || $atual->storage_path !== $original->storage_path
             || $atual->sha256 !== $original->sha256
         ) {
-            throw new RuntimeException('O arquivo original mudou durante a regeneração das versões.');
+            throw new RuntimeException(self::ORIGINAL_MUDOU);
         }
 
         $removed = [];
@@ -163,6 +236,12 @@ final readonly class RegenerarVersoesOtimizadas
             $redundante->delete();
         }
 
+        $this->optimizedVersions->recordStatus($item, $original, new OptimizedImageResult(
+            applicable: true,
+            failedVersions: $failedVersions,
+            dispensedVersions: $dispensed,
+        ));
+
         $audit->capture(
             action: AuditAction::Regenerated,
             subjectType: AuditEntity::Arquivo,
@@ -183,5 +262,15 @@ final readonly class RegenerarVersoesOtimizadas
         );
 
         return $generated;
+    }
+
+    /**
+     * Fim sem nada a trocar: registra o estado que as versões persistidas já representam.
+     */
+    private function finish(ItemAcervo $item, Arquivo $original, OptimizedImageResult $result): OptimizedImageResult
+    {
+        $this->optimizedVersions->recordStatus($item, $original, $result);
+
+        return $result;
     }
 }

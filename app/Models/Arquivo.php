@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Enums\StatusDerivacoes;
+use App\Jobs\GerarVersoesOtimizadas;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -19,6 +21,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
     'versao_arquivo',
     'width',
     'height',
+    'derivacoes_status',
+    'derivacoes_atualizadas_em',
 ])]
 class Arquivo extends Model
 {
@@ -42,6 +46,29 @@ class Arquivo extends Model
         return $this->versao_arquivo === 'original';
     }
 
+    /**
+     * Geração das versões pendente ou em processamento, com atualização recente.
+     */
+    public function derivacoesEmAndamento(): bool
+    {
+        return $this->derivacoesAguardando()
+            && $this->derivacoes_atualizadas_em?->gt(now()->subSeconds(GerarVersoesOtimizadas::TIMEOUT));
+    }
+
+    /**
+     * Pendente ou em processamento sem atualização além do tempo limite do job: worker
+     * parado, job perdido ou processo encerrado no meio. Pode ser regenerado de novo.
+     */
+    public function derivacoesSemProgresso(): bool
+    {
+        return $this->derivacoesAguardando() && ! $this->derivacoesEmAndamento();
+    }
+
+    private function derivacoesAguardando(): bool
+    {
+        return in_array($this->derivacoes_status, [StatusDerivacoes::Pendente, StatusDerivacoes::Processando], true);
+    }
+
     public static function rotuloVersao(string $versao): string
     {
         return [
@@ -63,6 +90,8 @@ class Arquivo extends Model
             'file_size' => 'integer',
             'width' => 'integer',
             'height' => 'integer',
+            'derivacoes_status' => StatusDerivacoes::class,
+            'derivacoes_atualizadas_em' => 'datetime',
         ];
     }
 }

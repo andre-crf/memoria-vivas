@@ -3,9 +3,12 @@
 namespace App\Services\Arquivos;
 
 use App\Auditing\ArquivoAuditSnapshot;
+use App\Auditing\AuditContext;
 use App\Auditing\AuditEventCollector;
 use App\Auditing\Enums\AuditAction;
 use App\Auditing\Enums\AuditEntity;
+use App\Enums\StatusDerivacoes;
+use App\Jobs\GerarVersoesOtimizadas;
 use App\Models\Arquivo;
 use App\Models\ItemAcervo;
 use App\Models\User;
@@ -13,9 +16,12 @@ use App\Services\Arquivos\Contracts\ArquivoStorage;
 use App\Support\OptimizedImageResult;
 use App\Support\OptimizedImageVersions;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use Throwable;
 
 final readonly class GerenciarArquivoOriginal
 {
@@ -51,7 +57,7 @@ final readonly class GerenciarArquivoOriginal
         $original = $item->arquivos()->create(
             $this->storeOriginalAttributes($item, $file, $sha256, $journal),
         );
-        $derivations = $this->optimizedVersions->generate($item, $original, $journal);
+        $derivations = $this->derivations($item, $original, $journal);
 
         $audit->capture(
             action: AuditAction::Uploaded,
@@ -63,10 +69,39 @@ final readonly class GerenciarArquivoOriginal
                 operation: 'arquivo_original_upload',
                 item: $item,
                 derivations: $derivations,
+                status: $original->derivacoes_status,
             ),
         );
 
         return $original;
+    }
+
+    /**
+     * Despacha a geração das versões de um original que ficou pendente (modo assíncrono).
+     * Chamado depois do commit; se o despacho falhar, o original continua pendente e o
+     * comando acervo:regenerar-versoes --ausentes o recupera.
+     */
+    public function dispatchPendingDerivations(ItemAcervo $item, AuditContext $context): void
+    {
+        $original = $item->arquivos()
+            ->where('versao_arquivo', 'original')
+            ->where('derivacoes_status', StatusDerivacoes::Pendente->value)
+            ->first();
+
+        if (! $original instanceof Arquivo) {
+            return;
+        }
+
+        try {
+            Bus::dispatch(new GerarVersoesOtimizadas($original->id, $original->sha256, $context->correlationId));
+        } catch (Throwable $exception) {
+            Log::error('Não foi possível enfileirar a geração das versões otimizadas.', [
+                'item_acervo_id' => $item->id,
+                'arquivo_id' => $original->id,
+                'erro' => $exception->getMessage(),
+                'exception' => $exception,
+            ]);
+        }
     }
 
     public function replace(
@@ -100,7 +135,7 @@ final readonly class GerenciarArquivoOriginal
         $removedDerivations->each->delete();
         $original->update($this->storeOriginalAttributes($item, $file, $sha256, $journal));
         $original->refresh();
-        $derivations = $this->optimizedVersions->generate($item, $original, $journal);
+        $derivations = $this->derivations($item, $original, $journal);
 
         $audit->capture(
             action: AuditAction::Replaced,
@@ -114,6 +149,7 @@ final readonly class GerenciarArquivoOriginal
                     operation: 'arquivo_original_replace',
                     item: $item,
                     derivations: $derivations,
+                    status: $original->derivacoes_status,
                 ),
                 'derivations_removed' => ArquivoAuditSnapshot::summaries($removedDerivations),
             ],
@@ -195,20 +231,49 @@ final readonly class GerenciarArquivoOriginal
             $journal->created(self::PROVIDER, $path);
         }
         [$width, $height] = $this->imageDimensions($file);
+        $mimeType = $file->getMimeType() ?: 'application/octet-stream';
 
         return [
             'nome_original' => $file->getClientOriginalName(),
             'provider' => self::PROVIDER,
             'external_file_id' => null,
             'storage_path' => $path,
-            'mime_type' => $file->getMimeType() ?: 'application/octet-stream',
+            'mime_type' => $mimeType,
             'file_size' => $file->getSize(),
             'tipo_arquivo' => $this->fileType($file),
             'sha256' => $sha256,
             'versao_arquivo' => 'original',
             'width' => $width,
             'height' => $height,
+            // No modo síncrono a geração começa logo em seguida e o resultado é registrado
+            // depois dela; no assíncrono o original fica pendente até o job da fila.
+            'derivacoes_status' => match (true) {
+                ! str_starts_with($mimeType, 'image/') => StatusDerivacoes::NaoAplicavel,
+                $this->async() => StatusDerivacoes::Pendente,
+                default => StatusDerivacoes::Processando,
+            },
+            'derivacoes_atualizadas_em' => now(),
         ];
+    }
+
+    /**
+     * Gera as versões na própria transação (modo síncrono) ou as deixa para o job da fila.
+     */
+    private function derivations(ItemAcervo $item, Arquivo $original, StorageMutationJournal $journal): OptimizedImageResult
+    {
+        if ($this->async() && $original->isImagem()) {
+            return new OptimizedImageResult(applicable: true);
+        }
+
+        $derivations = $this->optimizedVersions->generate($item, $original, $journal);
+        $this->optimizedVersions->recordStatus($item, $original, $derivations);
+
+        return $derivations;
+    }
+
+    private function async(): bool
+    {
+        return (bool) config('acervo.optimized_processing.async', false);
     }
 
     private function hash(UploadedFile $file): string
@@ -273,12 +338,14 @@ final readonly class GerenciarArquivoOriginal
         string $operation,
         ItemAcervo $item,
         OptimizedImageResult $derivations,
+        ?StatusDerivacoes $status,
     ): array {
         return [
             'operation' => $operation,
             'item_acervo' => $this->itemSummary($item),
             'derivations' => [
                 'applicable' => $derivations->applicable,
+                'status' => $status?->value,
                 'generated' => ArquivoAuditSnapshot::summaries($derivations->generated),
                 'failed_versions' => $derivations->failedVersions,
                 'dispensed_versions' => $derivations->dispensedVersions,

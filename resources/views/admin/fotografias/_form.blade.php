@@ -41,6 +41,12 @@
                 @error('titulo') <x-catalog.error>{{ $message }}</x-catalog.error> @enderror
             </x-catalog.label>
 
+            <x-catalog.label for="codigo_referencia" text="Código de referência" class="sm:col-span-full">
+                <x-catalog.control id="codigo_referencia" name="codigo_referencia" type="text" :value="$value('codigo_referencia')" maxlength="100" autocomplete="off" aria-describedby="codigo_referencia-dica" />
+                <span id="codigo_referencia-dica" class="text-[0.72rem] leading-relaxed text-ink-500">Identificação utilizada pela instituição. Não corresponde ao ID do sistema nem à localização física.</span>
+                @error('codigo_referencia') <x-catalog.error>{{ $message }}</x-catalog.error> @enderror
+            </x-catalog.label>
+
             <x-catalog.label for="legenda" text="Legenda/descrição" class="sm:col-span-full" x-data="characterCounter({{ $legendaLength }}, 5000)">
                 <x-catalog.control as="textarea" id="legenda" name="legenda" rows="3" maxlength="5000" x-on:input="update($event.target.value)">{{ $legenda }}</x-catalog.control>
                 <span

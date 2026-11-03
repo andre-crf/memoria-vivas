@@ -11,7 +11,7 @@
 <x-admin.busca-listagem
     :action="$action"
     :termo="$filtros->termo"
-    placeholder="Título, legenda, local, evento, cedente, autor ou #ID"
+    placeholder="Título, código, legenda, local, evento, cedente, autor ou #ID"
     :total="$total"
     singular="fotografia encontrada"
     plural="fotografias encontradas"
