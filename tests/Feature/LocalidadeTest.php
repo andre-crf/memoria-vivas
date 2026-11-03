@@ -89,7 +89,22 @@ class LocalidadeTest extends TestCase
         $this->assertNull($registro->municipio_id);
     }
 
-    public function test_pais_e_obrigatorio_no_registro(): void
+    public function test_registro_aceita_pais_nao_identificado(): void
+    {
+        [$item, $motivo] = $this->contexto();
+
+        $registro = RegistroDownload::create([
+            'item_acervo_id' => $item->id,
+            'motivo_download_id' => $motivo->id,
+            'created_at' => now(),
+        ]);
+
+        $this->assertNull($registro->fresh()->pais_id);
+        // A ausência de país não é representada por um país fictício.
+        $this->assertDatabaseCount('paises', 0);
+    }
+
+    public function test_pais_inexistente_e_recusado_no_registro(): void
     {
         [$item, $motivo] = $this->contexto();
 
@@ -98,6 +113,7 @@ class LocalidadeTest extends TestCase
         RegistroDownload::create([
             'item_acervo_id' => $item->id,
             'motivo_download_id' => $motivo->id,
+            'pais_id' => 99999,
             'created_at' => now(),
         ]);
     }

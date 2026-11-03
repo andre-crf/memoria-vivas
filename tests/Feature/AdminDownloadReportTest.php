@@ -4,7 +4,6 @@ namespace Tests\Feature;
 
 use App\Models\ItemAcervo;
 use App\Models\MotivoDownload;
-use App\Models\Pais;
 use App\Models\PerfilDownload;
 use App\Models\RegistroDownload;
 use App\Models\User;
@@ -131,7 +130,6 @@ class AdminDownloadReportTest extends TestCase
             'item_acervo_id' => $fotografia->id,
             'motivo_download_id' => MotivoDownload::query()->where('titulo', 'Pesquisa acadêmica')->value('id'),
             'perfil_download_id' => PerfilDownload::query()->where('titulo', 'Pesquisador(a)')->value('id'),
-            'pais_id' => Pais::query()->where('codigo', 'ZZ')->value('id'),
             'nome' => $nome,
             'email' => $email,
             'finalidade' => 'Pesquisa sobre a história local',

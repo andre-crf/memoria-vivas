@@ -5,12 +5,12 @@ namespace App\Http\Controllers\Publico;
 use App\Http\Controllers\Controller;
 use App\Models\Arquivo;
 use App\Models\MotivoDownload;
-use App\Models\Pais;
 use App\Models\PerfilDownload;
 use App\Models\RegistroDownload;
 use App\Queries\Publico\ConsultaFotografiasPublicas;
 use App\Services\Arquivos\Contracts\ArquivoStorage;
 use Illuminate\Contracts\View\View;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Validation\Rule;
@@ -63,10 +63,12 @@ class DownloadFotografiaController extends Controller
 
         RegistroDownload::create([
             'item_acervo_id' => $item->id,
+            'titulo_item' => $item->titulo,
+            'codigo_referencia_item' => $item->codigo_referencia,
             'arquivo_id' => $imagem->id,
+            'versao_arquivo' => $imagem->versao_arquivo,
             'motivo_download_id' => $dados['motivo_download_id'],
             'perfil_download_id' => $dados['perfil_download_id'],
-            'pais_id' => Pais::query()->where('codigo', 'ZZ')->firstOrFail()->id,
             'nome' => $dados['nome'],
             'email' => $dados['email'],
             'finalidade' => $dados['finalidade'],
@@ -91,7 +93,7 @@ class DownloadFotografiaController extends Controller
         return $response;
     }
 
-    /** @param \Illuminate\Database\Eloquent\Collection<int, Arquivo> $arquivos */
+    /** @param Collection<int, Arquivo> $arquivos */
     private function imagemParaDownload($arquivos): Arquivo
     {
         $imagem = $arquivos->firstWhere('versao_arquivo', 'large')

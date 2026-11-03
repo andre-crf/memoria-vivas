@@ -493,6 +493,46 @@ Ao mudar o `--timeout` no `compose.yaml`, ajuste também o `DB_QUEUE_RETRY_AFTER
 
 ---
 
+## Downloads públicos
+
+### Como funciona
+
+- A página pública da fotografia leva ao formulário de download, em `/fotografias/{id}/baixar`.
+- O formulário pede nome, e-mail, perfil, motivo, finalidade e o aceite das condições de uso. O envio é limitado a 10 por hora por IP.
+- **O que pode ser baixado:** só fotografias publicadas e públicas que já tenham versões otimizadas, porque o download usa a mesma consulta do catálogo público.
+- **O que é entregue:** a versão Grande; se não existir, a Média; se não existir, a Miniatura. O original nunca é entregue.
+- **Durante o processamento:** enquanto uma fotografia está pendente no modo assíncrono, ela não pode ser baixada, assim como não aparece no catálogo.
+- Cada download fica registrado em `registro_downloads`. O formulário não pede localização, então `pais_id`, `estado_id` e `municipio_id` ficam vazios (`null`). Não se cria país fictício na tabela sincronizada com o IBGE.
+
+### Relatório
+
+- Fica em **Downloads** no painel, só para administradores.
+- Tem filtros por texto e período, gráficos, percentuais e exportação CSV com os registros filtrados.
+
+### Histórico preservado
+
+No momento do download, o registro guarda:
+- a versão entregue (`versao_arquivo`);
+- o título da fotografia (`titulo_item`);
+- o código de referência (`codigo_referencia_item`).
+
+Com isso, o histórico não muda quando os arquivos ou a fotografia mudam:
+
+- **Regeneração das versões ou substituição do original** (no modo síncrono ou pelo worker): as versões antigas são apagadas e a ligação com o arquivo (`arquivo_id`) fica vazia. O relatório continua mostrando a versão entregue a partir do que foi guardado.
+- **Exclusão definitiva da fotografia:** os registros de download são mantidos, com a ligação com a fotografia (`item_acervo_id`) vazia.
+  - O relatório mostra o título guardado e a indicação "Excluída definitivamente", sem link.
+  - Na lista "Mais baixadas", essas fotografias aparecem agrupadas como "Fotografias excluídas".
+  - O CSV traz as colunas "Código de referência" e "Situação" (No acervo, Na lixeira ou Excluída definitivamente).
+  - A auditoria da exclusão informa quantos downloads a fotografia tinha (`registro_downloads_count`).
+- **Arquivos:** nenhum arquivo é guardado para manter o histórico. Os arquivos da fotografia excluída são apagados normalmente.
+
+### Dados pessoais
+
+- O histórico guarda só os dados do formulário e a identificação da fotografia. Nada novo é coletado de quem baixa.
+- Nome, e-mail e finalidade continuam visíveis apenas para administradores, no relatório e no CSV.
+
+---
+
 ## Composer
 
 Execute o Composer dentro do container PHP:

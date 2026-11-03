@@ -83,7 +83,7 @@ class DownloadController extends Controller
 
         return view('admin.downloads.index', [
             'registros' => (clone $query)
-                ->with(['itemAcervo:id,titulo,deleted_at', 'arquivo:id,versao_arquivo', 'perfilDownload:id,titulo', 'motivoDownload:id,titulo'])
+                ->with(['itemAcervo:id,titulo,codigo_referencia,deleted_at', 'arquivo:id,versao_arquivo', 'perfilDownload:id,titulo', 'motivoDownload:id,titulo'])
                 ->orderByDesc('created_at')
                 ->orderByDesc('id')
                 ->paginate(20)
@@ -111,22 +111,28 @@ class DownloadController extends Controller
         return response()->streamDownload(function () use ($query): void {
             $saida = fopen('php://output', 'wb');
             fwrite($saida, "\xEF\xBB\xBF");
-            fputcsv($saida, ['Data (Umuarama)', 'Fotografia', 'Registro', 'Solicitante', 'E-mail', 'Perfil', 'Motivo', 'Finalidade', 'Versão'], ';', '"', '');
+            fputcsv($saida, ['Data (Umuarama)', 'Fotografia', 'Registro', 'Código de referência', 'Situação', 'Solicitante', 'E-mail', 'Perfil', 'Motivo', 'Finalidade', 'Versão'], ';', '"', '');
 
             (clone $query)
-                ->with(['itemAcervo:id,titulo,deleted_at', 'arquivo:id,versao_arquivo', 'perfilDownload:id,titulo', 'motivoDownload:id,titulo'])
+                ->with(['itemAcervo:id,titulo,codigo_referencia,deleted_at', 'arquivo:id,versao_arquivo', 'perfilDownload:id,titulo', 'motivoDownload:id,titulo'])
                 ->chunkById(500, function ($registros) use ($saida): void {
                     foreach ($registros as $registro) {
                         fputcsv($saida, [
                             $registro->created_at?->copy()->timezone(self::FUSO_ACERVO)->format('d/m/Y H:i') ?? '',
-                            $this->csvSeguro($registro->itemAcervo?->titulo ?? 'Fotografia removida'),
-                            $registro->item_acervo_id,
+                            $this->csvSeguro($registro->tituloFotografia()),
+                            $registro->item_acervo_id ?? '',
+                            $this->csvSeguro($registro->itemAcervo?->codigo_referencia ?? $registro->codigo_referencia_item),
+                            match (true) {
+                                $registro->fotografiaExcluida() => 'Excluída definitivamente',
+                                $registro->itemAcervo?->trashed() => 'Na lixeira',
+                                default => 'No acervo',
+                            },
                             $this->csvSeguro($registro->nome),
                             $this->csvSeguro($registro->email),
                             $this->csvSeguro($registro->perfilDownload?->titulo),
                             $this->csvSeguro($registro->motivoDownload?->titulo),
                             $this->csvSeguro($registro->finalidade),
-                            $registro->arquivo ? \App\Models\Arquivo::rotuloVersao($registro->arquivo->versao_arquivo) : '',
+                            $registro->rotuloVersaoEntregue() ?? '',
                         ], ';', '"', '');
                     }
                 });
@@ -159,7 +165,9 @@ class DownloadController extends Controller
                 $registros
                     ->where('nome', 'like', $termo)
                     ->orWhere('email', 'like', $termo)
-                    ->orWhereHas('itemAcervo', fn (Builder $itens) => $itens->where('titulo', 'like', $termo));
+                    ->orWhereHas('itemAcervo', fn (Builder $itens) => $itens->where('titulo', 'like', $termo))
+                    // Fotografias excluídas definitivamente só têm o título gravado no download.
+                    ->orWhere(fn (Builder $excluidas) => $excluidas->whereNull('item_acervo_id')->where('titulo_item', 'like', $termo));
 
                 if (preg_match('/^#?(\d+)$/', $busca, $matches) === 1) {
                     $registros->orWhere('item_acervo_id', (int) $matches[1]);

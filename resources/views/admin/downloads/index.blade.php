@@ -138,7 +138,7 @@
                                         @if ($item && ! $item->trashed())
                                             <a href="{{ route('admin.fotografias.show', $item) }}" class="min-w-0 font-medium text-institutional underline decoration-stone-300 underline-offset-2 hover:decoration-institutional">{{ $item->titulo }}</a>
                                         @else
-                                            <span class="min-w-0 font-medium text-stone-700">{{ $item?->titulo ?? 'Fotografia removida' }}</span>
+                                            <span class="min-w-0 font-medium text-stone-700">{{ $foto->item_acervo_id === null ? 'Fotografias excluídas' : ($item?->titulo ?? 'Fotografia removida') }}</span>
                                         @endif
                                     </div>
                                     <span class="flex-none whitespace-nowrap font-bold tabular-nums text-institutional">{{ number_format($percentual, 1, ',', '.') }}% <span class="font-normal text-stone-500">({{ $foto->total }})</span></span>
@@ -185,9 +185,15 @@
                                     @if ($registro->itemAcervo && ! $registro->itemAcervo->trashed())
                                         <a href="{{ route('admin.fotografias.show', $registro->itemAcervo) }}" class="font-semibold text-institutional underline underline-offset-2">{{ $registro->itemAcervo->titulo }}</a>
                                     @else
-                                        <span class="font-semibold text-stone-800">{{ $registro->itemAcervo?->titulo ?? 'Fotografia removida' }}</span>
+                                        <span class="font-semibold text-stone-800">{{ $registro->tituloFotografia() }}</span>
                                     @endif
-                                    <span class="mt-1 block text-xs text-stone-500">#{{ $registro->item_acervo_id }}</span>
+                                    @php($codigoReferencia = $registro->itemAcervo?->codigo_referencia ?? $registro->codigo_referencia_item)
+                                    @if ($codigoReferencia)<span class="mt-1 block text-xs text-stone-600">{{ $codigoReferencia }}</span>@endif
+                                    @if ($registro->fotografiaExcluida())
+                                        <span class="mt-1 block text-xs text-stone-500">Excluída definitivamente</span>
+                                    @else
+                                        <span class="mt-1 block text-xs text-stone-500">#{{ $registro->item_acervo_id }}</span>
+                                    @endif
                                 </td>
                                 <td class="max-w-52 px-5 py-4 text-stone-700">
                                     <span class="block font-semibold text-stone-900">{{ $registro->nome ?: 'Não informado' }}</span>
@@ -198,7 +204,7 @@
                                     <span class="mt-1 block text-xs text-stone-500">{{ $registro->motivoDownload?->titulo ?? 'Motivo não informado' }}</span>
                                 </td>
                                 <td class="min-w-56 max-w-80 px-5 py-4 whitespace-pre-wrap break-words text-stone-700">{{ $registro->finalidade ?: 'Não informada' }}</td>
-                                <td class="whitespace-nowrap px-5 py-4 text-stone-700">{{ $registro->arquivo ? \App\Models\Arquivo::rotuloVersao($registro->arquivo->versao_arquivo) : 'Não informado' }}</td>
+                                <td class="whitespace-nowrap px-5 py-4 text-stone-700">{{ $registro->rotuloVersaoEntregue() ?? 'Não informado' }}</td>
                             </tr>
                         @endforeach
                     </tbody>

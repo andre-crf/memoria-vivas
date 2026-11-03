@@ -18,8 +18,6 @@ return new class extends Migration
         });
 
         $agora = now();
-        // O formulário não solicita localização: preservar o FK existente sem presumir um país.
-        DB::table('paises')->insertOrIgnore(['codigo' => 'ZZ', 'nome' => 'Não informado', 'ativo' => true, 'created_at' => $agora, 'updated_at' => $agora]);
         foreach (['Pesquisa acadêmica', 'Atividade educativa', 'Uso pessoal', 'Divulgação cultural', 'Outro'] as $titulo) {
             DB::table('motivos_download')->insertOrIgnore(['titulo' => $titulo, 'ativo' => true, 'created_at' => $agora, 'updated_at' => $agora]);
         }
