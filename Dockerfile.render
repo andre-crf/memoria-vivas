@@ -1,0 +1,61 @@
+# Compila o frontend (Vite/Tailwind)
+FROM node:24-alpine AS frontend
+
+WORKDIR /var/www
+
+COPY package*.json ./
+RUN npm ci
+
+COPY . .
+RUN npm run build
+
+
+# Configura PHP e Laravel
+FROM php:8.4.27-fpm
+
+WORKDIR /var/www
+
+RUN apt-get update \
+    && apt-get install -y \
+        git \
+        curl \
+        icc-profiles-free \
+        unzip \
+        libjpeg62-turbo-dev \
+        libpng-dev \
+        libmagickwand-dev \
+        libsqlite3-dev \
+        libwebp-dev \
+        libzip-dev \
+    && docker-php-ext-configure gd --with-jpeg --with-webp \
+    && docker-php-ext-install \
+        exif gd pcntl pdo_mysql pdo_sqlite zip \
+    && pecl install imagick-3.8.1 \
+    && docker-php-ext-enable imagick \
+    && test -r /usr/share/color/icc/sRGB.icc \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+
+COPY . .
+
+COPY --from=frontend /var/www/public/build ./public/build
+
+COPY docker/php/uploads.ini /usr/local/etc/php/conf.d/uploads.ini
+
+RUN composer install \
+    --no-dev \
+    --prefer-dist \
+    --optimize-autoloader \
+    --no-interaction
+
+RUN mkdir -p \
+    storage/framework/cache \
+    storage/framework/sessions \
+    storage/framework/views \
+    bootstrap/cache \
+    && chmod -R 775 storage bootstrap/cache
+
+EXPOSE 10000
+
+CMD ["sh", "-c", "php artisan migrate --force && php artisan storage:link; exec php artisan serve --host=0.0.0.0 --port=${PORT:-10000}"]
