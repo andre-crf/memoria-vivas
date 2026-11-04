@@ -1,0 +1,22 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::table('audit_events', function (Blueprint $table): void {
+            $table->index(['occurred_at', 'id'], 'audit_occurred_id_idx');
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::table('audit_events', function (Blueprint $table): void {
+            $table->dropIndex('audit_occurred_id_idx');
+        });
+    }
+};

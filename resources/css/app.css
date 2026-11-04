@@ -1,9 +1,118 @@
 @import 'tailwindcss';
+/* Fontes hospedadas no projeto (sem requisição a terceiros). O Newsreader usa o eixo de tamanho óptico. */
+@import '@fontsource-variable/instrument-sans';
+@import '@fontsource-variable/newsreader/opsz.css';
 
-@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
 
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+    --font-sans: 'Instrument Sans Variable', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-serif: 'Newsreader Variable', Georgia, 'Times New Roman', serif;
+
+    /* Azul institucional */
+    --color-institutional: #173e63;
+    --color-institutional-strong: #102d48;
+    --color-institutional-soft: #eaf3f4;
+    --color-institutional-muted: #cbdde5;
+    --color-institutional-light: #2364a6;
+
+    /* Dourado da identidade visual */
+    --color-heritage-100: #e8e2c9;
+    --color-heritage-300: #d6c17a;
+    --color-heritage-700: #6b5e2e;
+    --color-heritage-900: #4a3f18;
+
+    /* Textos */
+    --color-ink-950: #172638;
+    --color-ink-900: #263746;
+    --color-ink-850: #213e57;
+    --color-ink-800: #34495a;
+    --color-ink-700: #425668;
+    --color-ink-600: #536575;
+    --color-ink-500: #657381;
+    --color-ink-450: #748490;
+    --color-ink-400: #7c8791;
+
+    /* Fundos e bordas */
+    --color-paper: #f8f7f2;
+    --color-mist-25: #f7f8f5;
+    --color-mist-50: #f8faf9;
+    --color-mist-75: #f1f6f6;
+    --color-mist-100: #f5f8fa;
+    --color-mist-120: #e8eeef;
+    --color-mist-150: #edf0f2;
+    --color-mist-200: #dce4e9;
+    --color-mist-250: #dce8e8;
+    --color-mist-300: #cbd5dc;
+    --color-mist-350: #cbd8df;
+    --color-mist-400: #b8cbd4;
+    --color-mist-500: #9fb9c5;
+    --color-mist-600: #8aa9b8;
+
+    /* Visualizador de imagem em tela cheia */
+    --color-night-950: #111816;
+    --color-night-700: #39443f;
+    --color-night-500: #65766b;
+
+    /* Mensagens de erro e alerta */
+    --color-error: #a24739;
+    --color-error-strong: #a32132;
+    --color-error-soft: #fff7f5;
+    --color-error-ink: #6e332b;
+    --color-danger: #b42318;
+    --color-warning: #9a6700;
+}
+
+/* Gradiente de várias camadas do fundo do admin: ilegível como classe arbitrária. */
+@utility bg-admin-shell {
+    background:
+        radial-gradient(circle at top left, rgb(232 226 201 / 0.42), transparent 28rem),
+        linear-gradient(180deg, var(--color-paper) 0%, #f5f5f4 42%, var(--color-mist-50) 100%);
+}
+
+@layer components {
+    /*
+     * Ajustes do conteúdo de todas as páginas do admin (quebra de palavras, mídia e tabelas).
+     * Ficam aqui porque valem para os elementos de 30+ views; repetir em cada uma seria frágil.
+     */
+    .admin-main :where(h1, h2, h3, p, dd, dt, td, th, label, a, button, span) {
+        overflow-wrap: anywhere;
+    }
+
+    .admin-main :where(img, video, canvas) {
+        max-width: 100%;
+    }
+
+    .admin-main :where(button, a) {
+        white-space: normal;
+        text-align: center;
+    }
+
+    .admin-main :where(.truncate) {
+        overflow-wrap: normal;
+    }
+
+    .admin-main :where(table) {
+        table-layout: auto;
+    }
+
+    .admin-main :where(th, td) {
+        vertical-align: top;
+    }
+
+    .admin-main :where(.overflow-x-auto) {
+        scrollbar-width: thin;
+    }
+
+    /* Foco por teclado de todos os links, botões e campos da área pública. */
+    .public-shell :where(a, button, summary, input):focus-visible {
+        outline: 3px solid var(--color-institutional);
+        outline-offset: 3px;
+    }
+
+    /* Esconde elementos do Alpine até a inicialização. */
+    [x-cloak] {
+        display: none !important;
+    }
 }

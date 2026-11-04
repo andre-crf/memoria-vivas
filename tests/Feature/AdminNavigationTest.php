@@ -1,0 +1,83 @@
+<?php
+
+namespace Tests\Feature;
+
+use App\Models\Assunto;
+use App\Models\Categoria;
+use App\Models\PalavraChave;
+use App\Models\Pessoa;
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
+
+class AdminNavigationTest extends TestCase
+{
+    use RefreshDatabase;
+
+    public function test_catalog_links_are_displayed_in_every_admin_header(): void
+    {
+        $usuario = User::factory()->create([
+            'role' => 'admin',
+            'status' => 'ativo',
+        ]);
+        $categoria = Categoria::create(['titulo' => 'Arquitetura']);
+        $assunto = Assunto::create(['titulo' => 'Patrimônio histórico']);
+        $palavraChave = PalavraChave::create(['termo' => 'centro']);
+        $pessoa = Pessoa::create(['nome' => 'Maria Souza']);
+
+        $routes = [
+            route('admin.dashboard'),
+            route('admin.fotografias.index'),
+            route('admin.fotografias.create'),
+            route('admin.categorias.index'),
+            route('admin.categorias.create'),
+            route('admin.categorias.edit', $categoria),
+            route('admin.assuntos.index'),
+            route('admin.assuntos.create'),
+            route('admin.assuntos.edit', $assunto),
+            route('admin.palavras-chave.index'),
+            route('admin.palavras-chave.create'),
+            route('admin.palavras-chave.edit', $palavraChave),
+            route('admin.pessoas.index'),
+            route('admin.pessoas.create'),
+            route('admin.pessoas.edit', $pessoa),
+        ];
+
+        foreach ($routes as $route) {
+            $this->actingAs($usuario)
+                ->get($route)
+                ->assertOk()
+                ->assertSee(route('admin.categorias.index'))
+                ->assertSee('Categorias')
+                ->assertSee(route('admin.assuntos.index'))
+                ->assertSee('Assuntos')
+                ->assertSee(route('admin.palavras-chave.index'))
+                ->assertSee('Palavras-chave')
+                ->assertSee(route('admin.pessoas.index'))
+                ->assertSee('Pessoas')
+                ->assertSee('aria-label="Navegação administrativa"', false)
+                ->assertSee('aria-label="Navegação administrativa mobile"', false)
+                ->assertSee(route('admin.dashboard'))
+                ->assertSee(route('admin.fotografias.index'));
+        }
+    }
+
+    public function test_navigation_highlights_the_current_section_and_hides_restricted_links_from_operators(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin', 'status' => 'ativo']);
+        $operator = User::factory()->create(['role' => 'operador', 'status' => 'ativo']);
+
+        $this->actingAs($admin)
+            ->get(route('admin.categorias.index'))
+            ->assertOk()
+            ->assertSee('aria-current="page"', false)
+            ->assertSee(route('admin.usuarios.index'))
+            ->assertSee(route('admin.auditoria.index'));
+
+        $this->actingAs($operator)
+            ->get(route('admin.categorias.index'))
+            ->assertOk()
+            ->assertDontSee(route('admin.usuarios.index'))
+            ->assertDontSee(route('admin.auditoria.index'));
+    }
+}

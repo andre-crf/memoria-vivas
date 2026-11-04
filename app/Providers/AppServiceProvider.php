@@ -2,6 +2,25 @@
 
 namespace App\Providers;
 
+use App\Models\Arquivo;
+use App\Models\Assunto;
+use App\Models\Autor;
+use App\Models\Categoria;
+use App\Models\Colecao;
+use App\Models\ConjuntoContextual;
+use App\Models\ItemAcervo;
+use App\Models\PalavraChave;
+use App\Models\Pessoa;
+use App\Models\User;
+use App\Policies\ArquivoPolicy;
+use App\Policies\ItemAcervoPolicy;
+use App\Policies\SupportCatalogPolicy;
+use App\Policies\UserPolicy;
+use App\Services\Arquivos\Contracts\ArquivoStorage;
+use App\Services\Arquivos\LaravelArquivoStorage;
+use App\Support\DataExibicao;
+use App\Support\FusoDoUsuario;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -11,7 +30,22 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->bind(ArquivoStorage::class, LaravelArquivoStorage::class);
+
+        $this->app->singleton(
+            FusoDoUsuario::class,
+            fn (): FusoDoUsuario => new FusoDoUsuario(new DataExibicao(config('datas.fuso_exibicao'))),
+        );
+
+        // Sempre derivado da requisição corrente, nunca memorizado: componente,
+        // presenter e controllers enxergam o mesmo fuso, e uma requisição não
+        // herda o fuso da anterior.
+        $this->app->bind(
+            DataExibicao::class,
+            fn ($app): DataExibicao => $app->make(FusoDoUsuario::class)->para(
+                $app->bound('request') ? $app->make('request') : null,
+            ),
+        );
     }
 
     /**
@@ -19,6 +53,16 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        Gate::policy(ItemAcervo::class, ItemAcervoPolicy::class);
+        Gate::policy(Arquivo::class, ArquivoPolicy::class);
+        Gate::policy(User::class, UserPolicy::class);
+
+        Gate::policy(Categoria::class, SupportCatalogPolicy::class);
+        Gate::policy(Assunto::class, SupportCatalogPolicy::class);
+        Gate::policy(PalavraChave::class, SupportCatalogPolicy::class);
+        Gate::policy(Pessoa::class, SupportCatalogPolicy::class);
+        Gate::policy(Autor::class, SupportCatalogPolicy::class);
+        Gate::policy(Colecao::class, SupportCatalogPolicy::class);
+        Gate::policy(ConjuntoContextual::class, SupportCatalogPolicy::class);
     }
 }

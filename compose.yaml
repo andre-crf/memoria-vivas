@@ -7,8 +7,42 @@ services:
     container_name: memorias-vivas-app
     user: "${HOST_UID:-1000}:${HOST_GID:-1000}"
     working_dir: /var/www
+    environment:
+      TZ: UTC
     volumes:
       - .:/var/www
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+  # Processa a fila "imagens" antes da "default". O --timeout precisa ficar abaixo do
+  # DB_QUEUE_RETRY_AFTER (360 s); a parada espera o job em andamento terminar.
+  worker:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+    container_name: memorias-vivas-worker
+    user: "${HOST_UID:-1000}:${HOST_GID:-1000}"
+    working_dir: /var/www
+    environment:
+      TZ: UTC
+    volumes:
+      - .:/var/www
+    command:
+      - php
+      - artisan
+      - queue:work
+      - database
+      - --queue=imagens,default
+      - --tries=3
+      - --backoff=60
+      - --timeout=300
+      - --memory=192
+      - --sleep=3
+      - --max-jobs=100
+      - --max-time=3600
+    restart: unless-stopped
+    stop_grace_period: 330s
     depends_on:
       mysql:
         condition: service_healthy
@@ -17,6 +51,8 @@ services:
   nginx:
     image: nginx:alpine
     container_name: memorias-vivas-nginx
+    environment:
+      TZ: UTC
     ports:
       - "8080:80"
     volumes:
@@ -30,16 +66,20 @@ services:
     container_name: memorias-vivas-node
     user: "${HOST_UID:-1000}:${HOST_GID:-1000}"
     working_dir: /var/www
+    environment:
+      TZ: UTC
     volumes:
       - .:/var/www
     ports:
-      - "5173:5173"
+      - "5174:5174"
     command: tail -f /dev/null
 
   mysql:
     image: mysql:8.4
     container_name: memorias-vivas-mysql
+    command: --default-time-zone=+00:00
     environment:
+      TZ: UTC
       MYSQL_DATABASE: memorias_vivas
       MYSQL_ROOT_PASSWORD: root
       MYSQL_USER: laravel

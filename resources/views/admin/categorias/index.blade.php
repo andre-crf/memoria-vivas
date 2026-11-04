@@ -1,0 +1,144 @@
+<x-layouts.admin title="Categorias | Memórias Vivas">
+    <div class="mx-auto max-w-7xl px-6 py-8">
+            <section class="mb-6 flex flex-col justify-between gap-4 md:flex-row md:items-end">
+                <div>
+                    <p class="text-sm font-medium text-heritage-700">
+                        Catalogação
+                    </p>
+
+                    <h2 class="mt-1 text-2xl font-semibold text-stone-950">
+                        Categorias
+                    </h2>
+
+                    <p class="mt-2 max-w-2xl text-sm leading-6 text-stone-600">
+                        Categorias utilizadas para organizar e classificar os itens do acervo.
+                    </p>
+                </div>
+
+                <a
+                    href="{{ route('admin.categorias.create') }}"
+                    class="inline-flex items-center justify-center rounded-md bg-institutional px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-institutional-strong focus:outline-none focus:ring-2 focus:ring-institutional focus:ring-offset-2"
+                >
+                    Nova categoria
+                </a>
+            </section>
+
+            <x-admin.busca-listagem
+                :action="route('admin.categorias.index')"
+                :termo="$termo"
+                placeholder="Título ou descrição"
+                :total="$categorias->total()"
+                singular="categoria encontrada"
+                plural="categorias encontradas"
+                :search-error="$searchError"
+                :ordenacao="$ordenacao"
+            />
+
+            <section class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm">
+                @if ($categorias->isEmpty() && $termo !== '')
+                    <x-admin.busca-sem-resultados :action="route('admin.categorias.index')" mensagem="Nenhuma categoria encontrada para a pesquisa" />
+                @elseif ($categorias->isEmpty())
+                    <div class="px-6 py-16 text-center">
+                        <h3 class="text-base font-semibold text-stone-950">
+                            Nenhuma categoria cadastrada
+                        </h3>
+
+                        <p class="mx-auto mt-2 max-w-md text-sm leading-6 text-stone-600">
+                            Quando houver categorias cadastradas, elas aparecerão nesta listagem.
+                        </p>
+                    </div>
+                @else
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-stone-200">
+                            <thead class="bg-stone-100">
+                                <tr>
+                                    <x-admin.coluna-ordenavel rotulo="Título" chave="titulo" :ordenacao="$ordenacao" :action="route('admin.categorias.index')" :parametros="$parametros" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-[0.12em] text-stone-600" />
+
+                                    <th
+                                        scope="col"
+                                        class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-[0.12em] text-stone-600"
+                                    >
+                                        Descrição
+                                    </th>
+
+                                    <x-admin.coluna-ordenavel rotulo="Itens associados" chave="itens" :ordenacao="$ordenacao" :action="route('admin.categorias.index')" :parametros="$parametros" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-[0.12em] text-stone-600" />
+
+                                    <th
+                                        scope="col"
+                                        class="px-5 py-3 text-right text-xs font-semibold uppercase tracking-[0.12em] text-stone-600"
+                                    >
+                                        Ações
+                                    </th>
+                                </tr>
+                            </thead>
+
+                            <tbody class="divide-y divide-stone-200 bg-white">
+                                @foreach ($categorias as $categoria)
+                                    <tr
+                                        id="categoria-{{ $categoria->id }}"
+                                        class="relative hover:bg-stone-50"
+                                    >
+                                        <td class="max-w-sm px-5 py-4">
+                                            <p class="truncate text-sm font-semibold text-stone-950">
+                                                <x-admin.link-linha :href="route('admin.categorias.edit', $categoria)">{{ $categoria->titulo }}</x-admin.link-linha>
+                                            </p>
+
+                                            <p class="mt-1 text-xs text-stone-500">
+                                                #{{ $categoria->id }}
+                                            </p>
+                                        </td>
+
+                                        <td class="max-w-lg px-5 py-4">
+                                            <p class="text-sm text-stone-700">
+                                                {{ $categoria->descricao ?: 'Sem descrição' }}
+                                            </p>
+                                        </td>
+
+                                        <td class="whitespace-nowrap px-5 py-4">
+                                            <span class="inline-flex rounded-full bg-heritage-100 px-2.5 py-1 text-xs font-medium text-heritage-900">
+                                                {{ $categoria->itens_acervo_count }}
+                                            </span>
+                                        </td>
+
+                                        <td class="px-5 py-4">
+                                            <div class="relative z-10 flex justify-end gap-2">
+                                                <a
+                                                    href="{{ route('admin.categorias.edit', $categoria) }}"
+                                                    class="rounded-md border border-stone-300 px-3 py-2 text-sm font-medium text-stone-700 transition hover:bg-stone-100 focus:outline-none focus:ring-2 focus:ring-institutional focus:ring-offset-2"
+                                                >
+                                                    Editar
+                                                </a>
+
+                                                <form 
+                                                    method="POST" 
+                                                    action="{{ route('admin.categorias.destroy', $categoria) }}"
+                                                    data-confirm-title="Confirmar exclusão"
+                                                    data-confirm-message="Tem certeza que deseja excluir esta categoria? As associações com os itens do acervo serão removidas."
+                                                    data-confirm-label="Excluir categoria"
+                                                >
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button
+                                                        type="submit"
+                                                        class="rounded-md border border-red-200 px-3 py-2 text-xs font-medium text-red-700 hover:bg-red-50"
+                                                    >
+                                                        Excluir
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+
+                    @if ($categorias->hasPages())
+                        <div class="border-t border-stone-200 px-5 py-4">
+                            {{ $categorias->links() }}
+                        </div>
+                    @endif
+                @endif
+            </section>
+    </div>
+</x-layouts.admin>

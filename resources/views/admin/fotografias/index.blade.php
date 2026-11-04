@@ -1,0 +1,158 @@
+<x-layouts.admin title="Fotografias | Memórias Vivas">
+    <div class="mx-auto max-w-7xl px-6 py-8">
+        <section class="mb-6 flex flex-col justify-between gap-4 md:flex-row md:items-end">
+            <div>
+                <p class="text-sm font-medium text-heritage-700">Acervo</p>
+                <h1 class="mt-2 text-3xl font-semibold text-stone-950">Fotografias cadastradas</h1>
+                <p class="mt-2 max-w-2xl text-sm leading-6 text-stone-600">
+                    Lista administrativa das fotografias ativas cadastradas no acervo.
+                </p>
+            </div>
+
+            <div class="flex flex-wrap gap-2">
+                @can('restore', new \App\Models\ItemAcervo)
+                    <a
+                        href="{{ route('admin.fotografias.trashed') }}"
+                        class="inline-flex items-center justify-center rounded-md border border-stone-300 px-4 py-2 text-sm font-semibold text-stone-700 transition hover:bg-stone-100 focus:outline-none focus:ring-2 focus:ring-institutional focus:ring-offset-2"
+                    >
+                        Lixeira
+                    </a>
+                @endcan
+                <a
+                    href="{{ route('admin.fotografias.create') }}"
+                    class="inline-flex items-center justify-center rounded-md bg-institutional px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-institutional-strong focus:outline-none focus:ring-2 focus:ring-institutional focus:ring-offset-2"
+                >
+                    Nova fotografia
+                </a>
+            </div>
+        </section>
+
+        <x-admin.filtros-fotografias
+            :action="route('admin.fotografias.index')"
+            :filtros="$filtros"
+            :status-options="$statusOptions"
+            :visibilidades="$visibilidades"
+            :total="$fotografias->total()"
+            :search-error="$searchError"
+            :ordenacao="$ordenacao"
+        />
+
+        <section class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm">
+            @if ($fotografias->isEmpty() && $filtros->possuiCriterios())
+                <x-admin.busca-sem-resultados
+                    :action="route('admin.fotografias.index')"
+                    mensagem="Nenhuma fotografia encontrada para os filtros aplicados"
+                    dica="Revise o texto pesquisado ou remova algum filtro."
+                    limpar="Limpar filtros"
+                />
+            @elseif ($fotografias->isEmpty())
+                <div class="px-6 py-16 text-center">
+                    <h2 class="text-xl font-semibold text-stone-950">Nenhuma fotografia cadastrada</h2>
+                    <p class="mx-auto mt-2 max-w-md text-sm leading-6 text-stone-600">
+                        Quando houver fotografias ativas no acervo, elas aparecerão nesta listagem.
+                    </p>
+                </div>
+            @else
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-stone-200">
+                        <thead class="bg-stone-100">
+                            <tr>
+                                <th scope="col" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-[0.12em] text-stone-600">Imagem</th>
+                                <x-admin.coluna-ordenavel rotulo="Título" chave="titulo" :ordenacao="$ordenacao" :action="route('admin.fotografias.index')" :parametros="$filtros->parametros()" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-[0.12em] text-stone-600" />
+                                <x-admin.coluna-ordenavel rotulo="Data" chave="data" :ordenacao="$ordenacao" :action="route('admin.fotografias.index')" :parametros="$filtros->parametros()" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-[0.12em] text-stone-600" />
+                                <x-admin.coluna-ordenavel rotulo="Status" chave="status" :ordenacao="$ordenacao" :action="route('admin.fotografias.index')" :parametros="$filtros->parametros()" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-[0.12em] text-stone-600" />
+                                <x-admin.coluna-ordenavel rotulo="Visibilidade" chave="visibilidade" :ordenacao="$ordenacao" :action="route('admin.fotografias.index')" :parametros="$filtros->parametros()" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-[0.12em] text-stone-600" />
+                                <x-admin.coluna-ordenavel rotulo="Adicionada em" chave="adicionada" :ordenacao="$ordenacao" :action="route('admin.fotografias.index')" :parametros="$filtros->parametros()" class="px-5 py-3 text-left text-xs font-semibold whitespace-nowrap uppercase tracking-[0.12em] text-stone-600" />
+                                <th scope="col" class="px-5 py-3 text-right text-xs font-semibold uppercase tracking-[0.12em] text-stone-600">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-stone-200 bg-white">
+                            @foreach ($fotografias as $fotografia)
+                                @php $thumbnail = $fotografia->thumbnailAdministrativa(); @endphp
+                                <tr id="fotografia-{{ $fotografia->id }}" class="relative hover:bg-stone-50">
+                                    <td class="px-5 py-4">
+                                        @if ($thumbnail)
+                                            <img
+                                                src="{{ route('admin.arquivos.show', $thumbnail) }}"
+                                                alt="Miniatura de {{ $fotografia->titulo }}"
+                                                width="{{ $thumbnail->width ?: 64 }}"
+                                                height="{{ $thumbnail->height ?: 64 }}"
+                                                loading="lazy"
+                                                class="h-16 w-16 rounded-md bg-stone-100 object-cover"
+                                            >
+                                        @else
+                                            @php
+                                                $originalDaLinha = $fotografia->arquivos->firstWhere('versao_arquivo', 'original');
+                                                [$semImagem, $semImagemCor, $semImagemDica] = match (true) {
+                                                    (bool) $originalDaLinha?->derivacoesEmAndamento() => ['Gerando', 'text-[0.625rem] tracking-[0.06em] text-institutional', 'As versões otimizadas estão sendo geradas em segundo plano.'],
+                                                    (bool) $originalDaLinha?->derivacoesSemProgresso(),
+                                                    $originalDaLinha?->derivacoes_status === \App\Enums\StatusDerivacoes::Falhou => ['Falhou', 'text-[0.625rem] tracking-[0.06em] text-danger', 'A geração das versões otimizadas falhou. Abra a fotografia para regenerar.'],
+                                                    default => ['Sem imagem', 'text-xs tracking-[0.12em] text-stone-400', null],
+                                                };
+                                            @endphp
+                                            <div @if ($semImagemDica) title="{{ $semImagemDica }}" @endif class="grid h-16 w-16 place-items-center rounded-md border border-dashed border-stone-300 bg-stone-50 font-semibold uppercase {{ $semImagemCor }}">
+                                                {{ $semImagem }}
+                                            </div>
+                                        @endif
+                                    </td>
+                                    <td class="max-w-md px-5 py-4">
+                                        <p class="truncate text-sm font-semibold text-stone-950" title="{{ $fotografia->titulo }}"><x-admin.link-linha :href="route('admin.fotografias.show', $fotografia)">{{ $fotografia->titulo }}</x-admin.link-linha></p>
+                                        <p class="mt-1 text-xs text-stone-500">#{{ $fotografia->id }}</p>
+                                    </td>
+                                    <td class="whitespace-nowrap px-5 py-4 text-sm text-stone-700">
+                                        {{ $fotografia->dataHistorica()->label() }}
+                                    </td>
+                                    <td class="whitespace-nowrap px-5 py-4">
+                                        <span class="inline-flex rounded-full bg-stone-100 px-2.5 py-1 text-xs font-medium text-stone-700">
+                                            {{ $fotografia->statusLabel() }}
+                                        </span>
+                                    </td>
+                                    <td class="whitespace-nowrap px-5 py-4">
+                                        <span class="inline-flex rounded-full bg-heritage-100 px-2.5 py-1 text-xs font-medium text-heritage-900">
+                                            {{ $fotografia->visibilidade->label() }}
+                                        </span>
+                                    </td>
+                                    <td class="whitespace-nowrap px-5 py-4 text-sm text-stone-600">
+                                        <x-data-hora :valor="$fotografia->created_at" formato="curto" vazio="Não registrada" />
+                                    </td>
+                                    <td class="px-5 py-4">
+                                        <div class="relative z-10 flex justify-end gap-2">
+                                            <a
+                                                href="{{ route('admin.fotografias.edit', $fotografia) }}"
+                                                class="rounded-md border border-stone-300 px-3 py-2 text-sm font-medium text-stone-700 transition hover:bg-stone-100 focus:outline-none focus:ring-2 focus:ring-institutional focus:ring-offset-2"
+                                            >
+                                                Editar
+                                            </a>
+                                            @can('delete', $fotografia)
+                                                <form
+                                                    method="POST"
+                                                    action="{{ route('admin.fotografias.destroy', $fotografia) }}"
+                                                    data-confirm-title="Confirmar exclusão"
+                                                    data-confirm-message="Excluir esta fotografia?"
+                                                    data-confirm-label="Excluir fotografia"
+                                                >
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button
+                                                        type="submit"
+                                                        class="rounded-md border border-red-200 px-3 py-2 text-sm font-medium text-red-700 transition hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-700 focus:ring-offset-2"
+                                                    >
+                                                        Excluir
+                                                    </button>
+                                                </form>
+                                            @endcan
+                                        </div>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="border-t border-stone-200 px-5 py-4">
+                    {{ $fotografias->links() }}
+                </div>
+            @endif
+        </section>
+    </div>
+</x-layouts.admin>

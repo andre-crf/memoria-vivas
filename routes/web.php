@@ -1,7 +1,178 @@
 <?php
 
+use App\Http\Controllers\Admin\ArquivoController;
+use App\Http\Controllers\Admin\AssuntoController;
+use App\Http\Controllers\Admin\AuditoriaController;
+use App\Http\Controllers\Admin\AutorController;
+use App\Http\Controllers\Admin\CategoriaController;
+use App\Http\Controllers\Admin\ContribuicaoController as AdminContribuicaoController;
+use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\DownloadController as AdminDownloadController;
+use App\Http\Controllers\Admin\FotografiaController;
+use App\Http\Controllers\Admin\PalavraChaveController;
+use App\Http\Controllers\Admin\PerfilController;
+use App\Http\Controllers\Admin\PessoaController;
+use App\Http\Controllers\Admin\UsuarioController;
+use App\Http\Controllers\Auth\AuthenticatedSessionController;
+use App\Http\Controllers\Publico\CatalogoController;
+use App\Http\Controllers\Publico\ContribuicaoController as PublicContribuicaoController;
+use App\Http\Controllers\Publico\FotografiaController as PublicFotografiaController;
+use App\Http\Controllers\Publico\DownloadFotografiaController;
+use App\Http\Controllers\Publico\HomeController as PublicHomeController;
+use App\Http\Controllers\Publico\ImagemPublicaController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return view('welcome');
+// Site público: fica na raiz; o prefixo de URL é reservado ao admin.
+Route::name('public.')->group(function (): void {
+    Route::get('/', PublicHomeController::class)->name('home');
+    Route::view('/sobre', 'public.sobre')->name('sobre');
+    Route::view('/contato', 'public.institucional', [
+        'page' => config('institucional.pages.contato'),
+    ])->name('contato');
+    Route::get('/catalogo', CatalogoController::class)->name('catalogo');
+
+    Route::prefix('colaborar')->group(function (): void {
+        Route::view('/', 'public.colaborar')->name('colaborar');
+        Route::post('/', [PublicContribuicaoController::class, 'store'])
+            ->middleware('throttle:5,60')
+            ->name('colaborar.store');
+    });
+
+    Route::prefix('fotografias')
+        ->name('fotografias.')
+        ->group(function (): void {
+            Route::get('/{fotografia}/baixar', [DownloadFotografiaController::class, 'create'])->name('download.create');
+            Route::post('/{fotografia}/baixar', [DownloadFotografiaController::class, 'store'])->middleware('throttle:10,60')->name('download.store');
+            Route::get('/{fotografia}', [PublicFotografiaController::class, 'show'])->name('show');
+        });
+
+    Route::get('/acervo/imagens/{arquivo}', ImagemPublicaController::class)->name('imagens.show');
 });
+
+Route::prefix('login')
+    ->middleware('guest')
+    ->group(function (): void {
+        Route::get('/', [AuthenticatedSessionController::class, 'create'])->name('login');
+        Route::post('/', [AuthenticatedSessionController::class, 'store'])->name('login.store');
+    });
+
+Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])
+    ->middleware('auth')
+    ->name('logout');
+
+Route::middleware(['auth', 'admin.access'])
+    ->prefix('admin')
+    ->name('admin.')
+    ->group(function (): void {
+
+        Route::get('/', DashboardController::class)->name('dashboard');
+        Route::get('/arquivos/{arquivo}', [ArquivoController::class, 'show'])->name('arquivos.show');
+
+        Route::prefix('auditoria')
+            ->name('auditoria.')
+            ->group(function (): void {
+                Route::get('/', [AuditoriaController::class, 'index'])->name('index');
+                Route::get('/{evento}', [AuditoriaController::class, 'show'])->name('show');
+            });
+
+        Route::prefix('contribuicoes')
+            ->name('contribuicoes.')
+            ->group(function (): void {
+                Route::get('/', [AdminContribuicaoController::class, 'index'])->name('index');
+                Route::get('/{contribuicao}', [AdminContribuicaoController::class, 'show'])->name('show');
+                Route::get('/{contribuicao}/arquivos/{arquivo}', [AdminContribuicaoController::class, 'download'])->name('arquivos.download');
+            });
+
+        Route::get('/downloads', AdminDownloadController::class)->name('downloads.index');
+        Route::get('/downloads/exportar', [AdminDownloadController::class, 'export'])->name('downloads.export');
+
+        Route::prefix('perfil')
+            ->name('perfil.')
+            ->group(function (): void {
+                Route::get('/', [PerfilController::class, 'edit'])->name('edit');
+                Route::put('/', [PerfilController::class, 'update'])->name('update');
+                Route::put('/senha', [PerfilController::class, 'updatePassword'])->name('password.update');
+            });
+
+        Route::prefix('fotografias')
+            ->name('fotografias.')
+            ->group(function (): void {
+                Route::get('/create', [FotografiaController::class, 'create'])->name('create');
+                Route::post('/', [FotografiaController::class, 'store'])->name('store');
+                Route::get('/', [FotografiaController::class, 'index'])->name('index');
+                Route::get('/lixeira', [FotografiaController::class, 'trashed'])->name('trashed');
+                Route::get('/{fotografia}/edit', [FotografiaController::class, 'edit'])->name('edit');
+                Route::put('/{fotografia}', [FotografiaController::class, 'update'])->name('update');
+                Route::put('/{fotografia}/arquivo-original', [FotografiaController::class, 'replaceOriginal'])->name('replace-original');
+                Route::post('/{fotografia}/versoes-otimizadas', [FotografiaController::class, 'regenerateVersions'])->name('regenerate-versions');
+                Route::patch('/{fotografia}/restore', [FotografiaController::class, 'restore'])->name('restore');
+                Route::delete('/{fotografia}/force', [FotografiaController::class, 'forceDestroy'])->name('force-destroy');
+                Route::get('/{fotografia}', [FotografiaController::class, 'show'])->name('show');
+                Route::delete('/{fotografia}', [FotografiaController::class, 'destroy'])->name('destroy');
+            });
+
+        Route::prefix('categorias')
+            ->name('categorias.')
+            ->group(function (): void {
+                Route::get('/', [CategoriaController::class, 'index'])->name('index');
+                Route::get('/create', [CategoriaController::class, 'create'])->name('create');
+                Route::post('/', [CategoriaController::class, 'store'])->name('store');
+                Route::get('/{categoria}/edit', [CategoriaController::class, 'edit'])->name('edit');
+                Route::put('/{categoria}', [CategoriaController::class, 'update'])->name('update');
+                Route::delete('/{categoria}', [CategoriaController::class, 'destroy'])->name('destroy');
+            });
+
+        Route::prefix('assuntos')
+            ->name('assuntos.')
+            ->group(function (): void {
+                Route::get('/', [AssuntoController::class, 'index'])->name('index');
+                Route::get('/create', [AssuntoController::class, 'create'])->name('create');
+                Route::post('/', [AssuntoController::class, 'store'])->name('store');
+                Route::get('/{assunto}/edit', [AssuntoController::class, 'edit'])->name('edit');
+                Route::put('/{assunto}', [AssuntoController::class, 'update'])->name('update');
+                Route::delete('/{assunto}', [AssuntoController::class, 'destroy'])->name('destroy');
+            });
+
+        Route::prefix('palavras-chave')
+            ->name('palavras-chave.')
+            ->group(function (): void {
+                Route::get('/', [PalavraChaveController::class, 'index'])->name('index');
+                Route::get('/create', [PalavraChaveController::class, 'create'])->name('create');
+                Route::post('/', [PalavraChaveController::class, 'store'])->name('store');
+                Route::get('/{palavraChave}/edit', [PalavraChaveController::class, 'edit'])->name('edit');
+                Route::put('/{palavraChave}', [PalavraChaveController::class, 'update'])->name('update');
+                Route::delete('/{palavraChave}', [PalavraChaveController::class, 'destroy'])->name('destroy');
+            });
+
+        Route::prefix('autores')
+            ->name('autores.')
+            ->group(function (): void {
+                Route::get('/', [AutorController::class, 'index'])->name('index');
+                Route::get('/create', [AutorController::class, 'create'])->name('create');
+                Route::post('/', [AutorController::class, 'store'])->name('store');
+                Route::get('/{autor}/edit', [AutorController::class, 'edit'])->name('edit');
+                Route::put('/{autor}', [AutorController::class, 'update'])->name('update');
+                Route::delete('/{autor}', [AutorController::class, 'destroy'])->name('destroy');
+            });
+
+        Route::prefix('pessoas')
+            ->name('pessoas.')
+            ->group(function (): void {
+                Route::get('/', [PessoaController::class, 'index'])->name('index');
+                Route::get('/create', [PessoaController::class, 'create'])->name('create');
+                Route::post('/', [PessoaController::class, 'store'])->name('store');
+                Route::get('/{pessoa}/edit', [PessoaController::class, 'edit'])->name('edit');
+                Route::put('/{pessoa}', [PessoaController::class, 'update'])->name('update');
+                Route::delete('/{pessoa}', [PessoaController::class, 'destroy'])->name('destroy');
+            });
+
+        Route::prefix('usuarios')
+            ->name('usuarios.')
+            ->group(function (): void {
+                Route::get('/', [UsuarioController::class, 'index'])->name('index');
+                Route::get('/create', [UsuarioController::class, 'create'])->name('create');
+                Route::post('/', [UsuarioController::class, 'store'])->name('store');
+                Route::get('/{usuario}/edit', [UsuarioController::class, 'edit'])->name('edit');
+                Route::put('/{usuario}', [UsuarioController::class, 'update'])->name('update');
+            });
+    });

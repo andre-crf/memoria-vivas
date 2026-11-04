@@ -1,0 +1,435 @@
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Auditing\AuditContextFactory;
+use App\Auditing\Enums\AuditEntity;
+use App\Enums\StatusDerivacoes;
+use App\Enums\TipoData;
+use App\Enums\Visibilidade;
+use App\Http\Controllers\Admin\Concerns\ListagemPesquisavel;
+use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\ReplaceArquivoOriginalRequest;
+use App\Http\Requests\Admin\StoreFotografiaRequest;
+use App\Http\Requests\Admin\UpdateFotografiaRequest;
+use App\Models\Arquivo;
+use App\Models\AuditEvent;
+use App\Models\ItemAcervo;
+use App\Models\User;
+use App\Queries\Admin\ConsultaFotografiasAdmin;
+use App\Queries\Admin\FiltrosFotografiasAdmin;
+use App\Services\Acervo\AtualizarItemAcervo;
+use App\Services\Acervo\CriarItemAcervo;
+use App\Services\Acervo\ExcluirItemAcervo;
+use App\Services\Acervo\ExcluirItemAcervoDefinitivamente;
+use App\Services\Acervo\RestaurarItemAcervo;
+use App\Services\Arquivos\RegenerarVersoesOtimizadas;
+use App\Services\Arquivos\SubstituirArquivoOriginal;
+use App\Support\OptimizedImageVersions;
+use App\Support\OrdenacaoListagem;
+use Closure;
+use Illuminate\Contracts\View\View;
+use Illuminate\Database\UniqueConstraintViolationException;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Http\Response;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Validation\ValidationException;
+
+class FotografiaController extends Controller
+{
+    use ListagemPesquisavel;
+
+    public function index(Request $request, ConsultaFotografiasAdmin $consulta): Response
+    {
+        Gate::authorize('viewAny', ItemAcervo::class);
+
+        $ordenacao = ConsultaFotografiasAdmin::ordenacao($request);
+
+        return $this->listagem('admin.fotografias.index', $request, $ordenacao, fn (FiltrosFotografiasAdmin $filtros) => $consulta->ativas($filtros, $ordenacao));
+    }
+
+    public function trashed(Request $request, ConsultaFotografiasAdmin $consulta): Response
+    {
+        Gate::authorize('restore', new ItemAcervo);
+
+        $ordenacao = ConsultaFotografiasAdmin::ordenacao($request, lixeira: true);
+
+        return $this->listagem('admin.fotografias.trashed', $request, $ordenacao, fn (FiltrosFotografiasAdmin $filtros) => $consulta->excluidas($filtros, $ordenacao));
+    }
+
+    public function create(): View
+    {
+        Gate::authorize('create', ItemAcervo::class);
+
+        return view('admin.fotografias.create', [
+            'tipoDataOptions' => TipoData::cases(),
+            'estadoConservacaoOptions' => ItemAcervo::ESTADOS_CONSERVACAO,
+            'statusOptions' => ItemAcervo::STATUS,
+            'visibilidadeOptions' => Visibilidade::cases(),
+        ]);
+    }
+
+    public function store(
+        StoreFotografiaRequest $request,
+        CriarItemAcervo $service,
+        AuditContextFactory $contexts,
+        OptimizedImageVersions $optimizedVersions,
+    ): RedirectResponse {
+        $fotografia = $this->comCodigoDeReferenciaUnico(fn (): ItemAcervo => $service->execute(
+            actor: $request->user(),
+            data: [
+                ...$request->payload(),
+                ...$request->classificationPayload(),
+            ],
+            context: $contexts->fromRequest($request),
+            arquivoOriginal: $request->file('arquivo_original'),
+        ));
+        [$tipo, $mensagem] = $request->hasFile('arquivo_original')
+            ? $this->originalUploadFeedback($fotografia, $optimizedVersions, 'Fotografia cadastrada com sucesso.')
+            : ['success', 'Fotografia cadastrada com sucesso.'];
+
+        return redirect()
+            ->route('admin.fotografias.index')
+            ->with($tipo, $mensagem);
+    }
+
+    public function show(ItemAcervo $fotografia): View
+    {
+        $this->ensurePhotograph($fotografia);
+        Gate::authorize('view', $fotografia);
+
+        $fotografia->load([
+            'arquivos',
+            'assuntos',
+            'autor',
+            'categorias',
+            'colecoes',
+            'conjuntosContextuais',
+            'criadoPor',
+            'atualizadoPor',
+            'palavrasChave',
+            'pessoas',
+        ]);
+
+        return view('admin.fotografias.show', [
+            'fotografia' => $fotografia,
+            'historicoAuditoria' => Gate::allows('viewAudit', User::class)
+                ? $this->auditHistory($fotografia)
+                : null,
+        ]);
+    }
+
+    public function edit(ItemAcervo $fotografia): View
+    {
+        $this->ensurePhotograph($fotografia);
+        Gate::authorize('update', $fotografia);
+
+        $fotografia->load(['arquivos', 'categorias', 'assuntos', 'palavrasChave', 'pessoas']);
+
+        return view('admin.fotografias.edit', [
+            'fotografia' => $fotografia,
+            'tipoDataOptions' => TipoData::cases(),
+            'estadoConservacaoOptions' => ItemAcervo::ESTADOS_CONSERVACAO,
+            'statusOptions' => ItemAcervo::STATUS,
+            'visibilidadeOptions' => Visibilidade::cases(),
+        ]);
+    }
+
+    public function update(
+        UpdateFotografiaRequest $request,
+        ItemAcervo $fotografia,
+        AtualizarItemAcervo $service,
+        AuditContextFactory $contexts,
+        OptimizedImageVersions $optimizedVersions,
+    ): RedirectResponse {
+        $this->ensurePhotograph($fotografia);
+
+        $fotografia = $this->comCodigoDeReferenciaUnico(fn (): ItemAcervo => $service->execute(
+            actor: $request->user(),
+            item: $fotografia,
+            data: [
+                ...$request->payload(),
+                ...$request->classificationPayload(),
+            ],
+            context: $contexts->fromRequest($request),
+            arquivoOriginal: $request->file('arquivo_original'),
+        ));
+        [$tipo, $mensagem] = $request->hasFile('arquivo_original')
+            ? $this->originalUploadFeedback($fotografia, $optimizedVersions, 'Fotografia atualizada com sucesso.')
+            : ['success', 'Fotografia atualizada com sucesso.'];
+
+        return redirect()
+            ->route('admin.fotografias.show', $fotografia)
+            ->with($tipo, $mensagem);
+    }
+
+    public function replaceOriginal(
+        ReplaceArquivoOriginalRequest $request,
+        ItemAcervo $fotografia,
+        SubstituirArquivoOriginal $service,
+        AuditContextFactory $contexts,
+        OptimizedImageVersions $optimizedVersions,
+    ): RedirectResponse {
+        $this->ensurePhotograph($fotografia);
+
+        $service->execute(
+            actor: $request->user(),
+            item: $fotografia,
+            file: $request->file('arquivo_original'),
+            context: $contexts->fromRequest($request),
+        );
+        [$tipo, $mensagem] = $this->originalUploadFeedback(
+            $fotografia->refresh(),
+            $optimizedVersions,
+            'Arquivo original substituído com sucesso.',
+        );
+
+        return redirect()
+            ->route('admin.fotografias.show', $fotografia)
+            ->with($tipo, $mensagem);
+    }
+
+    /**
+     * @return array{0: string, 1: string}
+     */
+    private function originalUploadFeedback(
+        ItemAcervo $fotografia,
+        OptimizedImageVersions $optimizedVersions,
+        string $successMessage,
+    ): array {
+        $original = $fotografia->arquivos()->where('versao_arquivo', 'original')->firstOrFail();
+
+        if (! $original->isImagem()) {
+            return [
+                'warning',
+                'Arquivo original salvo. PDFs são preservados, mas não geram versões de imagem e não podem ser exibidos no catálogo público.',
+            ];
+        }
+
+        // Modo assíncrono: as versões ainda serão geradas pelo worker.
+        if (in_array($original->derivacoes_status, [StatusDerivacoes::Pendente, StatusDerivacoes::Processando], true)) {
+            return ['success', "{$successMessage} As versões otimizadas serão geradas em segundo plano."];
+        }
+
+        $presentes = $fotografia->arquivos()
+            ->whereIn('versao_arquivo', $optimizedVersions->versions())
+            ->pluck('versao_arquivo')
+            ->all();
+        $ausentes = array_values(array_diff($optimizedVersions->expectedVersions($original), $presentes));
+
+        if ($ausentes === []) {
+            return ['success', $successMessage];
+        }
+
+        $rotulos = collect($ausentes)->map(Arquivo::rotuloVersao(...))->join(', ', ' e ');
+
+        if (count($presentes) === 0) {
+            return [
+                'warning',
+                "O arquivo original foi preservado, mas não foi possível gerar nenhuma versão de imagem ({$rotulos}). Ele não poderá ser exibido no catálogo público até a regeneração. Consulte os logs ou tente regenerar as versões.",
+            ];
+        }
+
+        return [
+            'warning',
+            "O arquivo original foi preservado, mas algumas versões não foram geradas ({$rotulos}). As versões disponíveis continuam acessíveis; tente regenerar as versões ausentes.",
+        ];
+    }
+
+    public function regenerateVersions(
+        Request $request,
+        ItemAcervo $fotografia,
+        RegenerarVersoesOtimizadas $service,
+        AuditContextFactory $contexts,
+    ): RedirectResponse {
+        $this->ensurePhotograph($fotografia);
+        $original = $fotografia->arquivos()->where('versao_arquivo', 'original')->firstOrFail();
+        Gate::authorize('update', $fotografia);
+        Gate::authorize('replaceOriginal', $original);
+        $emAndamento = ['warning', 'As versões desta fotografia já estão sendo geradas. Atualize a página em alguns instantes.'];
+
+        // Evita acionamentos concorrentes nos dois modos; no assíncrono a troca de estado também é atômica.
+        if ($original->derivacoesEmAndamento()) {
+            return redirect()->route('admin.fotografias.show', $fotografia)->with(...$emAndamento);
+        }
+
+        if (config('acervo.optimized_processing.async') && $original->isImagem()) {
+            $enfileirado = $service->enqueue($request->user(), $fotografia, $contexts->fromRequest($request));
+            [$tipo, $mensagem] = $enfileirado
+                ? ['success', 'A regeneração das versões foi enfileirada. Atualize a página em alguns instantes para ver o resultado.']
+                : $emAndamento;
+
+            return redirect()->route('admin.fotografias.show', $fotografia)->with($tipo, $mensagem);
+        }
+
+        $resultado = $service->execute(
+            actor: $request->user(),
+            item: $fotografia,
+            context: $contexts->fromRequest($request),
+        );
+
+        $falhas = collect($resultado->failedVersions)->map(Arquivo::rotuloVersao(...))->join(', ', ' e ');
+        [$tipo, $mensagem] = match (true) {
+            ! $resultado->applicable => ['warning', 'O arquivo original não é uma imagem; versões otimizadas não se aplicam.'],
+            $falhas === '' => ['success', 'Versões otimizadas regeneradas com sucesso.'],
+            $resultado->generated === [] => ['error', "Não foi possível regenerar as versões ({$falhas}). As versões anteriores foram mantidas."],
+            default => ['warning', "Versões regeneradas, exceto {$falhas}. As versões anteriores dessas foram mantidas."],
+        };
+
+        return redirect()
+            ->route('admin.fotografias.show', $fotografia)
+            ->with($tipo, $mensagem);
+    }
+
+    public function destroy(
+        Request $request,
+        ItemAcervo $fotografia,
+        ExcluirItemAcervo $service,
+        AuditContextFactory $contexts,
+    ): RedirectResponse {
+        $this->ensurePhotograph($fotografia);
+
+        $service->execute(
+            actor: $request->user(),
+            item: $fotografia,
+            context: $contexts->fromRequest($request),
+        );
+
+        return redirect()
+            ->route('admin.fotografias.index')
+            ->with('success', 'Fotografia excluída com sucesso.');
+    }
+
+    public function restore(
+        Request $request,
+        string $fotografia,
+        RestaurarItemAcervo $service,
+        AuditContextFactory $contexts,
+    ): RedirectResponse {
+        $fotografia = $this->trashedPhotograph($fotografia);
+
+        $service->execute(
+            actor: $request->user(),
+            item: $fotografia,
+            context: $contexts->fromRequest($request),
+        );
+
+        return redirect()
+            ->route('admin.fotografias.trashed')
+            ->with('success', 'Fotografia restaurada com sucesso.');
+    }
+
+    public function forceDestroy(
+        Request $request,
+        string $fotografia,
+        ExcluirItemAcervoDefinitivamente $service,
+        AuditContextFactory $contexts,
+    ): RedirectResponse {
+        $fotografia = $this->trashedPhotograph($fotografia);
+
+        $service->execute(
+            actor: $request->user(),
+            item: $fotografia,
+            context: $contexts->fromRequest($request),
+        );
+
+        return redirect()
+            ->route('admin.fotografias.trashed')
+            ->with('success', 'Fotografia excluída permanentemente.');
+    }
+
+    private function trashedPhotograph(string $fotografia): ItemAcervo
+    {
+        $fotografia = ItemAcervo::query()
+            ->onlyTrashed()
+            ->whereKey($fotografia)
+            ->firstOrFail();
+
+        $this->ensurePhotograph($fotografia);
+
+        return $fotografia;
+    }
+
+    /**
+     * Pesquisa inválida responde 422 e é ignorada; status e visibilidade fora das opções são ignorados,
+     * como no catálogo público.
+     *
+     * @param  Closure(FiltrosFotografiasAdmin): LengthAwarePaginator<ItemAcervo>  $consultar
+     */
+    private function listagem(string $view, Request $request, OrdenacaoListagem $ordenacao, Closure $consultar): Response
+    {
+        [$termo, $searchError] = $this->pesquisa($request);
+        $status = $request->query('status');
+        $visibilidade = $request->query('visibilidade');
+        $filtros = new FiltrosFotografiasAdmin(
+            termo: $termo,
+            status: is_string($status) && array_key_exists($status, ItemAcervo::STATUS) ? $status : null,
+            visibilidade: is_string($visibilidade) && Visibilidade::tryFrom($visibilidade) !== null ? $visibilidade : null,
+        );
+
+        return response()->view($view, [
+            'fotografias' => $consultar($filtros),
+            'filtros' => $filtros,
+            'ordenacao' => $ordenacao,
+            'statusOptions' => ItemAcervo::STATUS,
+            'visibilidades' => Visibilidade::cases(),
+            'searchError' => $searchError,
+        ], $searchError !== null ? 422 : 200);
+    }
+
+    /**
+     * A validação já recusa códigos em uso; se dois cadastros simultâneos passarem por ela com o
+     * mesmo código, o índice único recusa o segundo, que volta ao formulário como erro do campo.
+     * Os services já desfazem a transação e os arquivos novos antes de a exceção chegar aqui.
+     *
+     * @param  Closure(): ItemAcervo  $operacao
+     */
+    private function comCodigoDeReferenciaUnico(Closure $operacao): ItemAcervo
+    {
+        try {
+            return $operacao();
+        } catch (UniqueConstraintViolationException $exception) {
+            if (! str_contains($exception->getMessage(), 'codigo_referencia')) {
+                throw $exception;
+            }
+
+            throw ValidationException::withMessages([
+                'codigo_referencia' => 'Este código de referência acabou de ser usado em outra fotografia. Informe outro código.',
+            ]);
+        }
+    }
+
+    private function ensurePhotograph(ItemAcervo $fotografia): void
+    {
+        abort_unless($fotografia->tipo_item === 'fotografia', Response::HTTP_NOT_FOUND);
+    }
+
+    private function auditHistory(ItemAcervo $fotografia): LengthAwarePaginator
+    {
+        return AuditEvent::query()
+            ->where(function ($query) use ($fotografia): void {
+                $query
+                    ->where(function ($itemQuery) use ($fotografia): void {
+                        $itemQuery
+                            ->where('subject_type', AuditEntity::ItemAcervo->value)
+                            ->where('subject_id', (string) $fotografia->id);
+                    })
+                    ->orWhere(function ($fileQuery) use ($fotografia): void {
+                        $fileQuery
+                            ->where('subject_type', AuditEntity::Arquivo->value)
+                            ->where(function ($itemReference) use ($fotografia): void {
+                                $itemReference
+                                    ->where('metadata->item_acervo->id', $fotografia->id)
+                                    ->orWhere('old_values->item_acervo_id', $fotografia->id)
+                                    ->orWhere('new_values->item_acervo_id', $fotografia->id);
+                            });
+                    });
+            })
+            ->orderByDesc('occurred_at')
+            ->orderByDesc('id')
+            ->paginate(10, ['*'], 'historico_auditoria')
+            ->withQueryString();
+    }
+}

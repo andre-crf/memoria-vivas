@@ -1,0 +1,320 @@
+<?php
+
+namespace Tests\Feature;
+
+use App\Enums\Visibilidade;
+use App\Models\Arquivo;
+use App\Models\Assunto;
+use App\Models\Autor;
+use App\Models\Categoria;
+use App\Models\Colecao;
+use App\Models\ConjuntoContextual;
+use App\Models\ItemAcervo;
+use App\Models\PalavraChave;
+use App\Models\Pessoa;
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
+
+class AdminFotografiaDetailsTest extends TestCase
+{
+    use RefreshDatabase;
+
+    private function usuarioInterno(string $role = 'admin'): User
+    {
+        return User::factory()->create([
+            'role' => $role,
+            'status' => 'ativo',
+        ]);
+    }
+
+    /**
+     * @param  array<string, mixed>  $dados
+     */
+    private function fotografia(array $dados = []): ItemAcervo
+    {
+        return ItemAcervo::create($dados + [
+            'titulo' => 'Praça central em obras',
+            'tipo_item' => 'fotografia',
+            'legenda' => 'Registro da reforma da praça central.',
+            'tipo_data' => 'data_exata',
+            'dia' => 15,
+            'mes' => 3,
+            'ano' => 1980,
+            'local_atual' => 'Praça Santos Dumont',
+            'local_epoca' => 'Praça Central',
+            'localizacao_fisica' => 'Reserva técnica, estante 4',
+            'evento' => 'Reforma urbana',
+            'cedente' => 'Família Silva',
+            'estado_conservacao' => 'bom',
+            'status' => 'publicado',
+            'visibilidade' => Visibilidade::Publico,
+        ]);
+    }
+
+    public function test_guest_is_redirected_from_photograph_details(): void
+    {
+        $fotografia = $this->fotografia();
+
+        $this
+            ->get(route('admin.fotografias.show', $fotografia))
+            ->assertRedirect('/login');
+    }
+
+    public function test_internal_user_can_view_photograph_details(): void
+    {
+        $this
+            ->actingAs($this->usuarioInterno('operador'))
+            ->get(route('admin.fotografias.show', $this->fotografia()))
+            ->assertOk()
+            ->assertSee('Dados de catalogação')
+            ->assertSee('Praça central em obras')
+            ->assertSee('15/03/1980')
+            ->assertSee('Publicado')
+            ->assertSee('Público')
+            ->assertSee('Editar')
+            ->assertSee('Excluir');
+    }
+
+    public function test_details_show_basic_catalog_information_and_audit_users(): void
+    {
+        $creator = $this->usuarioInterno();
+        $updater = $this->usuarioInterno();
+
+        $this->actingAs($creator);
+        $fotografia = $this->fotografia();
+
+        $this->actingAs($updater);
+        $fotografia->update(['evento' => 'Reforma da praça']);
+
+        $this
+            ->actingAs($this->usuarioInterno())
+            ->get(route('admin.fotografias.show', $fotografia))
+            ->assertOk()
+            ->assertSee('Praça central em obras')
+            ->assertSee('Registro da reforma da praça central.')
+            ->assertSee('15/03/1980')
+            ->assertSee('Data exata')
+            ->assertSee('Praça Santos Dumont')
+            ->assertSee('Praça Central')
+            ->assertSee('Localização física do original')
+            ->assertSee('Reserva técnica, estante 4')
+            ->assertSee('Reforma da praça')
+            ->assertSee('Família Silva')
+            ->assertSee('Bom')
+            ->assertSee('Criado em')
+            ->assertSee('Última alteração')
+            ->assertSee($creator->nome)
+            ->assertSee($updater->nome);
+    }
+
+    public function test_details_keep_long_titles_and_legends_inside_breakable_containers(): void
+    {
+        $titulo = str_repeat('Fotografia com título muito extenso ', 8);
+        $legenda = str_repeat('Descrição detalhada da fotografia sem perder a leitura. ', 20);
+        $fotografia = $this->fotografia([
+            'titulo' => $titulo,
+            'legenda' => $legenda,
+        ]);
+
+        $this
+            ->actingAs($this->usuarioInterno())
+            ->get(route('admin.fotografias.show', $fotografia))
+            ->assertOk()
+            ->assertSee($titulo)
+            ->assertSee($legenda)
+            ->assertSee('break-words', false)
+            ->assertSee('whitespace-pre-line', false);
+    }
+
+    public function test_details_are_ready_to_show_classifications_people_author_and_files(): void
+    {
+        $autor = Autor::create(['nome' => 'Fundação Cultural', 'tipo' => 'instituicao']);
+        $categoria = Categoria::create(['titulo' => 'Fotografia urbana']);
+        $assunto = Assunto::create(['titulo' => 'Espaço público']);
+        $palavraChave = PalavraChave::create(['termo' => 'centro']);
+        $pessoa = Pessoa::create(['nome' => 'Maria Souza']);
+        $colecao = Colecao::create(['titulo' => 'Umuarama antiga']);
+        $conjunto = ConjuntoContextual::create(['titulo' => 'Centro histórico']);
+
+        $fotografia = $this->fotografia(['autor_id' => $autor->id]);
+        $fotografia->categorias()->attach($categoria);
+        $fotografia->assuntos()->attach($assunto);
+        $fotografia->palavrasChave()->attach($palavraChave);
+        $fotografia->pessoas()->attach($pessoa);
+        $fotografia->colecoes()->attach($colecao);
+        $fotografia->conjuntosContextuais()->attach($conjunto, ['ordem' => 2]);
+
+        Arquivo::create([
+            'item_acervo_id' => $fotografia->id,
+            'nome_original' => 'praca-central.jpg',
+            'provider' => 'local',
+            'storage_path' => 'acervo/praca-central.jpg',
+            'mime_type' => 'image/jpeg',
+            'file_size' => 2048,
+            'tipo_arquivo' => 'imagem',
+            'versao_arquivo' => 'original',
+        ]);
+
+        $this
+            ->actingAs($this->usuarioInterno())
+            ->get(route('admin.fotografias.show', $fotografia))
+            ->assertOk()
+            ->assertSee('Classificações')
+            ->assertSee('Fotografia urbana')
+            ->assertSee('Espaço público')
+            ->assertSee('centro')
+            ->assertSee('Pessoas e autoria')
+            ->assertSee('Fundação Cultural')
+            ->assertSee('Maria Souza')
+            ->assertSee('Umuarama antiga')
+            ->assertSee('Centro histórico')
+            ->assertSee('Ordem 2')
+            ->assertSee('Arquivos')
+            ->assertSee('praca-central.jpg')
+            ->assertSee('2,0 KB');
+    }
+
+    public function test_details_use_large_preview_version_instead_of_original(): void
+    {
+        $fotografia = $this->fotografia(['titulo' => 'Fotografia com prévia']);
+        $original = $fotografia->arquivos()->create([
+            'nome_original' => 'original.jpg',
+            'provider' => 'local',
+            'storage_path' => 'acervo/originais/original.jpg',
+            'mime_type' => 'image/jpeg',
+            'file_size' => 4096,
+            'tipo_arquivo' => 'imagem',
+            'versao_arquivo' => 'original',
+            'width' => 1600,
+            'height' => 1200,
+        ]);
+        $medium = $fotografia->arquivos()->create([
+            'nome_original' => null,
+            'provider' => 'local',
+            'storage_path' => 'acervo/derivados/medium.jpg',
+            'mime_type' => 'image/jpeg',
+            'file_size' => 2048,
+            'tipo_arquivo' => 'imagem',
+            'versao_arquivo' => 'medium',
+            'width' => 1024,
+            'height' => 768,
+        ]);
+        $large = $fotografia->arquivos()->create([
+            'nome_original' => null,
+            'provider' => 'local',
+            'storage_path' => 'acervo/derivados/large.jpg',
+            'mime_type' => 'image/jpeg',
+            'file_size' => 3072,
+            'tipo_arquivo' => 'imagem',
+            'versao_arquivo' => 'large',
+            'width' => 1400,
+            'height' => 1050,
+        ]);
+
+        $this
+            ->actingAs($this->usuarioInterno())
+            ->get(route('admin.fotografias.show', $fotografia))
+            ->assertOk()
+            ->assertSee(route('admin.arquivos.show', $large), false)
+            ->assertDontSee(route('admin.arquivos.show', $medium), false)
+            ->assertDontSee(route('admin.arquivos.show', $original), false)
+            ->assertSee('Prévia administrativa: versão large.');
+    }
+
+    public function test_files_card_lists_existing_versions_flags_missing_ones_and_hides_technical_details(): void
+    {
+        $fotografia = $this->fotografia(['titulo' => 'Fotografia com versões']);
+        $fotografia->arquivos()->create([
+            'nome_original' => 'original.jpg',
+            'provider' => 'local',
+            'storage_path' => 'acervo/originais/original.jpg',
+            'mime_type' => 'image/jpeg',
+            'file_size' => 2 * 1024 * 1024,
+            'tipo_arquivo' => 'imagem',
+            'versao_arquivo' => 'original',
+            'width' => 1600,
+            'height' => 1200,
+        ]);
+        $fotografia->arquivos()->create([
+            'nome_original' => null,
+            'provider' => 'local',
+            'storage_path' => 'acervo/derivados/large.webp',
+            'mime_type' => 'image/webp',
+            'file_size' => 3072,
+            'tipo_arquivo' => 'imagem',
+            'versao_arquivo' => 'large',
+            'width' => 1400,
+            'height' => 1050,
+        ]);
+
+        $html = $this
+            ->actingAs($this->usuarioInterno())
+            ->get(route('admin.fotografias.show', $fotografia))
+            ->assertOk()
+            ->assertSeeInOrder(['original.jpg', 'JPEG · 2,0 MB · 1600 × 1200 px', 'Versões disponíveis', 'Original', 'Grande', 'WebP · 1400 × 1050 px', '3,0 KB'])
+            ->assertSeeInOrder(['data-versao-ausente="thumbnail"', 'Miniatura', 'Ausente: a geração falhou', 'data-versao-ausente="medium"', 'Média'], false)
+            ->assertDontSee('data-versao-ausente="large"', false)
+            ->assertDontSee('uppercase tracking-[0.12em]', false)
+            ->getContent();
+
+        $this->assertMatchesRegularExpression('/<details[^>]*>\s*<summary[^>]*>.*Detalhes técnicos.*acervo\/derivados\/large\.webp.*<\/details>/s', $html);
+        $this->assertStringNotContainsString('<details open', $html);
+    }
+
+    public function test_details_use_preview_fallback_when_only_original_exists(): void
+    {
+        $fotografia = $this->fotografia(['titulo' => 'Fotografia sem derivada']);
+        $original = $fotografia->arquivos()->create([
+            'nome_original' => 'original.jpg',
+            'provider' => 'local',
+            'storage_path' => 'acervo/originais/original.jpg',
+            'mime_type' => 'image/jpeg',
+            'file_size' => 4096,
+            'tipo_arquivo' => 'imagem',
+            'versao_arquivo' => 'original',
+            'width' => 1600,
+            'height' => 1200,
+        ]);
+
+        $this
+            ->actingAs($this->usuarioInterno())
+            ->get(route('admin.fotografias.show', $fotografia))
+            ->assertOk()
+            ->assertSee('Prévia indisponível')
+            ->assertDontSee(route('admin.arquivos.show', $original), false);
+    }
+
+    public function test_details_do_not_open_non_photograph_items(): void
+    {
+        $documento = $this->fotografia([
+            'titulo' => 'Documento administrativo',
+            'tipo_item' => 'documento',
+        ]);
+
+        $this
+            ->actingAs($this->usuarioInterno())
+            ->get(route('admin.fotografias.show', $documento))
+            ->assertNotFound();
+    }
+
+    public function test_delete_action_soft_deletes_photograph(): void
+    {
+        $user = $this->usuarioInterno();
+        $fotografia = $this->fotografia(['titulo' => 'Fotografia para exclusão']);
+
+        $this
+            ->actingAs($user)
+            ->delete(route('admin.fotografias.destroy', $fotografia))
+            ->assertRedirect(route('admin.fotografias.index'));
+
+        $this->assertSoftDeleted('item_acervos', [
+            'id' => $fotografia->id,
+        ]);
+
+        $this->assertDatabaseHas('item_acervos', [
+            'id' => $fotografia->id,
+            'deleted_by_user_id' => $user->id,
+        ]);
+    }
+}

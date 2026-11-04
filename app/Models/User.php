@@ -7,15 +7,61 @@ use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-#[Fillable(['name', 'email', 'password'])]
+#[Fillable(['nome', 'email', 'password', 'role', 'status'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
+
+    public function isAdmin(): bool
+    {
+        return $this->role === 'admin';
+    }
+
+    public function isOperador(): bool
+    {
+        return $this->role === 'operador';
+    }
+
+    public function isPerfilInterno(): bool
+    {
+        return $this->isAdmin() || $this->isOperador();
+    }
+
+    public function ativo(): bool
+    {
+        return $this->status === 'ativo';
+    }
+
+    public function canAccessAdminArea(): bool
+    {
+        return $this->ativo() && $this->isPerfilInterno();
+    }
+
+    public function itensCriados(): HasMany
+    {
+        return $this->hasMany(ItemAcervo::class, 'created_by_user_id');
+    }
+
+    public function itensAtualizados(): HasMany
+    {
+        return $this->hasMany(ItemAcervo::class, 'updated_by_user_id');
+    }
+
+    public function itensExcluidos(): HasMany
+    {
+        return $this->hasMany(ItemAcervo::class, 'deleted_by_user_id');
+    }
+
+    public function eventosAuditoria(): HasMany
+    {
+        return $this->hasMany(AuditEvent::class, 'actor_user_id');
+    }
 
     /**
      * Get the attributes that should be cast.
@@ -25,7 +71,6 @@ class User extends Authenticatable
     protected function casts(): array
     {
         return [
-            'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
     }
