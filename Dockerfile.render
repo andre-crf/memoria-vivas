@@ -30,7 +30,6 @@ COPY . .
 COPY docker/php/uploads.ini /usr/local/etc/php/conf.d/uploads.ini
 
 RUN composer install \
-    --no-dev \
     --prefer-dist \
     --optimize-autoloader \
     --no-interaction
