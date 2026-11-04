@@ -10,8 +10,8 @@ use Illuminate\Http\Request;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
-        web: __DIR__.'/../routes/web.php',
-        commands: __DIR__.'/../routes/console.php',
+        web: __DIR__ . '/../routes/web.php',
+        commands: __DIR__ . '/../routes/console.php',
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
@@ -26,10 +26,18 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->encryptCookies(except: [FusoDoUsuario::COOKIE]);
 
         // A raiz é a home pública: quem já está logado e abre o login vai direto para o painel.
-        $middleware->redirectUsersTo(fn (): string => route('admin.dashboard'));
+        $middleware->redirectUsersTo(fn(): string => route('admin.dashboard'));
+
+        // Reconhece o HTTPS original das requisições encaminhadas pelo proxy do Render.
+        if (env('APP_ENV') === 'production') {
+            $middleware->trustProxies(
+                at: '*',
+                headers: \Illuminate\Http\Request::HEADER_X_FORWARDED_PROTO
+            );
+        }
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(
-            fn (Request $request) => $request->is('api/*') || $request->expectsJson(),
+            fn(Request $request) => $request->is('api/*') || $request->expectsJson(),
         );
     })->create();
