@@ -1,25 +1,17 @@
 <x-layouts.admin title="Lixeira de fotografias | Memórias Vivas">
-    <div class="mx-auto max-w-7xl px-6 py-8">
-        <section class="mb-6 flex flex-col justify-between gap-4 md:flex-row md:items-end">
-            <div>
-                <a
-                    href="{{ route('admin.fotografias.index') }}"
-                    class="text-sm font-semibold text-institutional hover:text-institutional-strong"
-                >
-                    Voltar para fotografias
-                </a>
-                <p class="mt-4 text-sm font-medium text-heritage-700">Acervo</p>
-                <h1 class="mt-2 text-3xl font-semibold text-stone-950">Lixeira de fotografias</h1>
-                <p class="mt-2 max-w-2xl text-sm leading-6 text-stone-600">
-                    Fotografias excluídas logicamente e disponíveis para restauração administrativa.
-                </p>
-            </div>
-        </section>
+    <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        <x-admin.page-header
+            class="mb-6"
+            eyebrow="Acervo"
+            title="Lixeira de fotografias"
+            description="Fotografias excluídas logicamente e disponíveis para restauração administrativa."
+            :back-href="route('admin.fotografias.index')"
+            back-label="Voltar para fotografias"
+        />
 
-        <div class="mb-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm leading-6 text-red-800">
-            <strong class="font-semibold">Atenção:</strong>
-            a exclusão permanente remove o registro e seus vínculos definitivamente. Essa operação é irreversível.
-        </div>
+        <x-ui.alert tone="warning" title="Atenção:" class="mb-6">
+            <p>A exclusão permanente remove o registro e seus vínculos definitivamente. Essa operação é irreversível.</p>
+        </x-ui.alert>
 
         <x-admin.filtros-fotografias
             :action="route('admin.fotografias.trashed')"
@@ -31,128 +23,98 @@
             :ordenacao="$ordenacao"
         />
 
-        <section class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm">
-            @if ($fotografias->isEmpty() && $filtros->possuiCriterios())
-                <x-admin.busca-sem-resultados
-                    :action="route('admin.fotografias.trashed')"
-                    mensagem="Nenhuma fotografia encontrada para os filtros aplicados"
-                    dica="Revise o texto pesquisado ou remova algum filtro."
-                    limpar="Limpar filtros"
-                />
-            @elseif ($fotografias->isEmpty())
-                <div class="px-6 py-16 text-center">
-                    <h2 class="text-xl font-semibold text-stone-950">Nenhuma fotografia na lixeira</h2>
-                    <p class="mx-auto mt-2 max-w-md text-sm leading-6 text-stone-600">
-                        Quando uma fotografia for excluída logicamente, ela aparecerá aqui para possível restauração.
-                    </p>
-                </div>
-            @else
-                <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-stone-200">
-                        <thead class="bg-stone-100">
-                            <tr>
-                                <th scope="col" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-[0.12em] text-stone-600">Imagem</th>
-                                <x-admin.coluna-ordenavel rotulo="Título" chave="titulo" :ordenacao="$ordenacao" :action="route('admin.fotografias.trashed')" :parametros="$filtros->parametros()" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-[0.12em] text-stone-600" />
-                                <x-admin.coluna-ordenavel rotulo="Data" chave="data" :ordenacao="$ordenacao" :action="route('admin.fotografias.trashed')" :parametros="$filtros->parametros()" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-[0.12em] text-stone-600" />
-                                <x-admin.coluna-ordenavel rotulo="Status" chave="status" :ordenacao="$ordenacao" :action="route('admin.fotografias.trashed')" :parametros="$filtros->parametros()" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-[0.12em] text-stone-600" />
-                                <x-admin.coluna-ordenavel rotulo="Visibilidade" chave="visibilidade" :ordenacao="$ordenacao" :action="route('admin.fotografias.trashed')" :parametros="$filtros->parametros()" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-[0.12em] text-stone-600" />
-                                <x-admin.coluna-ordenavel rotulo="Exclusão" chave="exclusao" :ordenacao="$ordenacao" :action="route('admin.fotografias.trashed')" :parametros="$filtros->parametros()" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-[0.12em] text-stone-600" />
-                                <th scope="col" class="px-5 py-3 text-right text-xs font-semibold uppercase tracking-[0.12em] text-stone-600">Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-stone-200 bg-white">
-                            @foreach ($fotografias as $fotografia)
-                                @php($imagem = $fotografia->imagemAdministrativa(['thumbnail', 'medium', 'large', 'original']))
-                                <tr id="fotografia-excluida-{{ $fotografia->id }}" class="hover:bg-stone-50">
-                                    <td class="px-5 py-4">
-                                        @if ($imagem)
-                                            <img
-                                                src="{{ route('admin.arquivos.show', $imagem) }}"
-                                                alt="Miniatura de {{ $fotografia->titulo }}"
-                                                width="64"
-                                                height="64"
-                                                loading="lazy"
-                                                class="h-16 w-16 rounded-md bg-stone-100 object-cover"
-                                            >
-                                        @else
-                                            <div class="grid h-16 w-16 place-items-center rounded-md border border-dashed border-stone-300 bg-stone-50 px-1 text-center text-[10px] font-semibold uppercase tracking-[0.08em] text-stone-400">
-                                                Sem imagem disponível
-                                            </div>
-                                        @endif
-                                    </td>
-                                    <td class="max-w-md px-5 py-4">
-                                        <p class="truncate text-sm font-semibold text-stone-950" title="{{ $fotografia->titulo }}">{{ $fotografia->titulo }}</p>
-                                        <p class="mt-1 text-xs text-stone-500">#{{ $fotografia->id }}</p>
-                                    </td>
-                                    <td class="whitespace-nowrap px-5 py-4 text-sm text-stone-700">
-                                        {{ $fotografia->dataHistorica()->label() }}
-                                    </td>
-                                    <td class="whitespace-nowrap px-5 py-4">
-                                        <span class="inline-flex rounded-full bg-stone-100 px-2.5 py-1 text-xs font-medium text-stone-700">
-                                            {{ $fotografia->statusLabel() }}
-                                        </span>
-                                    </td>
-                                    <td class="whitespace-nowrap px-5 py-4">
-                                        <span class="inline-flex rounded-full bg-heritage-100 px-2.5 py-1 text-xs font-medium text-heritage-900">
-                                            {{ $fotografia->visibilidade->label() }}
-                                        </span>
-                                    </td>
-                                    <td class="whitespace-nowrap px-5 py-4 text-sm text-stone-700">
-                                        <p><x-data-hora :valor="$fotografia->deleted_at" formato="curto" vazio="Não registrada" /></p>
-                                        <p class="mt-1 text-xs text-stone-500">{{ $fotografia->excluidoPor?->nome ?: 'Usuário não registrado' }}</p>
-                                    </td>
-                                    <td class="px-5 py-4">
-                                        <div class="flex justify-end gap-2">
-                                            @can('restore', $fotografia)
-                                                <form
-                                                    method="POST"
-                                                    action="{{ route('admin.fotografias.restore', $fotografia->id) }}"
-                                                    data-confirm-title="Confirmar restauração"
-                                                    data-confirm-message="Restaurar esta fotografia?"
-                                                    data-confirm-label="Restaurar fotografia"
-                                                    data-confirm-variant="primary"
-                                                >
-                                                    @csrf
-                                                    @method('PATCH')
-                                                    <button
-                                                        type="submit"
-                                                        class="rounded-md border border-institutional/30 px-3 py-2 text-sm font-medium text-institutional transition hover:bg-institutional-soft focus:outline-none focus:ring-2 focus:ring-institutional focus:ring-offset-2"
-                                                    >
-                                                        Restaurar
-                                                    </button>
-                                                </form>
-                                            @endcan
+        <x-admin.table :paginator="$fotografias" :vazia="$fotografias->isEmpty()">
+            <x-slot:vazio>
+                @if ($filtros->possuiCriterios())
+                    <x-admin.busca-sem-resultados
+                        :action="route('admin.fotografias.trashed')"
+                        mensagem="Nenhuma fotografia encontrada para os filtros aplicados"
+                        dica="Revise o texto pesquisado ou remova algum filtro."
+                        limpar="Limpar filtros"
+                    />
+                @else
+                    <x-ui.empty-state icon="trash-2" title="Nenhuma fotografia na lixeira" description="Quando uma fotografia for excluída logicamente, ela aparecerá aqui para possível restauração." />
+                @endif
+            </x-slot:vazio>
 
-                                            @can('forceDelete', $fotografia)
-                                                <form
-                                                    method="POST"
-                                                    action="{{ route('admin.fotografias.force-destroy', $fotografia->id) }}"
-                                                    data-confirm-title="Confirmar exclusão permanente"
-                                                    data-confirm-message="Excluir permanentemente esta fotografia? Esta operação é irreversível."
-                                                    data-confirm-label="Excluir permanentemente"
-                                                >
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button
-                                                        type="submit"
-                                                        class="rounded-md border border-red-200 px-3 py-2 text-sm font-medium text-red-700 transition hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-700 focus:ring-offset-2"
-                                                    >
-                                                        Excluir permanentemente
-                                                    </button>
-                                                </form>
-                                            @endcan
-                                        </div>
-                                    </td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
+            <thead>
+                <tr>
+                    <th scope="col">Imagem</th>
+                    <x-admin.coluna-ordenavel rotulo="Título" chave="titulo" :ordenacao="$ordenacao" :action="route('admin.fotografias.trashed')" :parametros="$filtros->parametros()" />
+                    <x-admin.coluna-ordenavel rotulo="Data" chave="data" :ordenacao="$ordenacao" :action="route('admin.fotografias.trashed')" :parametros="$filtros->parametros()" />
+                    <x-admin.coluna-ordenavel rotulo="Status" chave="status" :ordenacao="$ordenacao" :action="route('admin.fotografias.trashed')" :parametros="$filtros->parametros()" />
+                    <x-admin.coluna-ordenavel rotulo="Visibilidade" chave="visibilidade" :ordenacao="$ordenacao" :action="route('admin.fotografias.trashed')" :parametros="$filtros->parametros()" />
+                    <x-admin.coluna-ordenavel rotulo="Exclusão" chave="exclusao" :ordenacao="$ordenacao" :action="route('admin.fotografias.trashed')" :parametros="$filtros->parametros()" />
+                    <th scope="col" class="text-right">Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach ($fotografias as $fotografia)
+                    @php($imagem = $fotografia->imagemAdministrativa(['thumbnail', 'medium', 'large', 'original']))
+                    {{-- Sem link na linha: fotografias excluídas não têm página de detalhes. --}}
+                    <tr id="fotografia-excluida-{{ $fotografia->id }}">
+                        <td>
+                            @if ($imagem)
+                                <img
+                                    src="{{ route('admin.arquivos.show', $imagem) }}"
+                                    alt="Miniatura de {{ $fotografia->titulo }}"
+                                    width="64"
+                                    height="64"
+                                    loading="lazy"
+                                    class="h-16 w-16 rounded-md bg-mist-100 object-cover"
+                                >
+                            @else
+                                <div class="grid h-16 w-16 place-items-center rounded-md border border-dashed border-mist-300 bg-surface-muted px-1 text-center text-[10px] font-semibold tracking-[0.08em] text-ink-400 uppercase">
+                                    Sem imagem disponível
+                                </div>
+                            @endif
+                        </td>
+                        <td class="max-w-md">
+                            <p class="truncate font-semibold text-fg" title="{{ $fotografia->titulo }}">{{ $fotografia->titulo }}</p>
+                            <p class="mt-1 text-xs text-fg-subtle">#{{ $fotografia->id }}</p>
+                        </td>
+                        <td class="whitespace-nowrap text-ink-700">{{ $fotografia->dataHistorica()->label() }}</td>
+                        <td class="whitespace-nowrap"><x-admin.status-fotografia :fotografia="$fotografia" /></td>
+                        <td class="whitespace-nowrap"><x-ui.badge :tone="$fotografia->visibilidade->isPublico() ? 'heritage' : 'neutral'">{{ $fotografia->visibilidade->label() }}</x-ui.badge></td>
+                        <td class="whitespace-nowrap text-ink-700">
+                            <p><x-data-hora :valor="$fotografia->deleted_at" formato="curto" vazio="Não registrada" /></p>
+                            <p class="mt-1 text-xs text-fg-subtle">{{ $fotografia->excluidoPor?->nome ?: 'Usuário não registrado' }}</p>
+                        </td>
+                        <td>
+                            <div class="flex justify-end gap-2">
+                                @can('restore', $fotografia)
+                                    <form
+                                        method="POST"
+                                        action="{{ route('admin.fotografias.restore', $fotografia->id) }}"
+                                        data-confirm-title="Confirmar restauração"
+                                        data-confirm-message="Restaurar esta fotografia?"
+                                        data-confirm-label="Restaurar fotografia"
+                                        data-confirm-variant="primary"
+                                    >
+                                        @csrf
+                                        @method('PATCH')
+                                        <x-catalog.button type="submit" variant="outline" size="sm" icon="rotate-ccw">Restaurar</x-catalog.button>
+                                    </form>
+                                @endcan
 
-                <div class="border-t border-stone-200 px-5 py-4">
-                    {{ $fotografias->links() }}
-                </div>
-            @endif
-        </section>
+                                @can('forceDelete', $fotografia)
+                                    <form
+                                        method="POST"
+                                        action="{{ route('admin.fotografias.force-destroy', $fotografia->id) }}"
+                                        data-confirm-title="Confirmar exclusão permanente"
+                                        data-confirm-message="Excluir permanentemente esta fotografia? Esta operação é irreversível."
+                                        data-confirm-label="Excluir permanentemente"
+                                    >
+                                        @csrf
+                                        @method('DELETE')
+                                        <x-catalog.button type="submit" variant="danger" size="sm">Excluir permanentemente</x-catalog.button>
+                                    </form>
+                                @endcan
+                            </div>
+                        </td>
+                    </tr>
+                @endforeach
+            </tbody>
+        </x-admin.table>
     </div>
 </x-layouts.admin>

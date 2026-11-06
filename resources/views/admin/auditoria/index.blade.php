@@ -1,12 +1,11 @@
 <x-layouts.admin title="Auditoria | Memórias Vivas">
-    <div class="mx-auto max-w-7xl px-6 py-8">
-        <section class="mb-6">
-            <p class="text-sm font-medium text-heritage-700">Administração</p>
-            <h1 class="mt-2 text-3xl font-semibold text-stone-950">Auditoria do sistema</h1>
-            <p class="mt-2 max-w-3xl text-sm leading-6 text-stone-600">
-                Consulte o histórico imutável das operações realizadas no sistema.
-            </p>
-        </section>
+    <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        <x-admin.page-header
+            class="mb-6"
+            eyebrow="Administração"
+            title="Auditoria do sistema"
+            description="Consulte o histórico imutável das operações realizadas no sistema."
+        />
 
         <livewire:admin.audit-event-list />
     </div>

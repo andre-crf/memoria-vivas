@@ -1,21 +1,15 @@
 <x-layouts.admin title="Pessoas | Memórias Vivas">
-    <div class="mx-auto max-w-7xl px-6 py-8">
-        <section class="mb-6 flex flex-col justify-between gap-4 md:flex-row md:items-end">
-            <div>
-                <p class="text-sm font-medium text-heritage-700">Catalogação</p>
-                <h2 class="mt-1 text-2xl font-semibold text-stone-950">Pessoas identificadas</h2>
-                <p class="mt-2 max-w-2xl text-sm leading-6 text-stone-600">
-                    Pessoas identificadas nos itens do acervo e suas observações complementares.
-                </p>
-            </div>
-
-            <a
-                href="{{ route('admin.pessoas.create') }}"
-                class="inline-flex items-center justify-center rounded-md bg-institutional px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-institutional-strong focus:outline-none focus:ring-2 focus:ring-institutional focus:ring-offset-2"
-            >
-                Nova pessoa
-            </a>
-        </section>
+    <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        <x-admin.page-header
+            class="mb-6"
+            eyebrow="Catalogação"
+            title="Pessoas identificadas"
+            description="Pessoas identificadas nos itens do acervo e suas observações complementares."
+        >
+            <x-slot:actions>
+                <x-catalog.button icon="plus" :href="route('admin.pessoas.create')">Nova pessoa</x-catalog.button>
+            </x-slot:actions>
+        </x-admin.page-header>
 
         <x-admin.busca-listagem
             :action="route('admin.pessoas.index')"
@@ -28,92 +22,57 @@
             :ordenacao="$ordenacao"
         />
 
-        <section class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm">
-            @if ($pessoas->isEmpty() && $termo !== '')
-                <x-admin.busca-sem-resultados :action="route('admin.pessoas.index')" mensagem="Nenhuma pessoa encontrada para a pesquisa" />
-            @elseif ($pessoas->isEmpty())
-                <div class="px-6 py-16 text-center">
-                    <h3 class="text-base font-semibold text-stone-950">Nenhuma pessoa cadastrada</h3>
-                    <p class="mx-auto mt-2 max-w-md text-sm leading-6 text-stone-600">
-                        Quando houver pessoas identificadas, elas aparecerão nesta listagem.
-                    </p>
-                </div>
-            @else
-                <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-stone-200">
-                        <thead class="bg-stone-100">
-                            <tr>
-                                <x-admin.coluna-ordenavel rotulo="Nome" chave="nome" :ordenacao="$ordenacao" :action="route('admin.pessoas.index')" :parametros="$parametros" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-[0.12em] text-stone-600" />
-                                <th scope="col" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-[0.12em] text-stone-600">Observação</th>
-                                <x-admin.coluna-ordenavel rotulo="Itens associados" chave="itens" :ordenacao="$ordenacao" :action="route('admin.pessoas.index')" :parametros="$parametros" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-[0.12em] text-stone-600" />
-                                <th scope="col" class="px-5 py-3 text-right text-xs font-semibold uppercase tracking-[0.12em] text-stone-600">Ações</th>
-                            </tr>
-                        </thead>
-
-                        <tbody class="divide-y divide-stone-200 bg-white">
-                            @foreach ($pessoas as $pessoa)
-                                <tr id="pessoa-{{ $pessoa->id }}" class="relative hover:bg-stone-50">
-                                    <td class="max-w-sm px-5 py-4">
-                                        <p class="truncate text-sm font-semibold text-stone-950"><x-admin.link-linha :href="route('admin.pessoas.edit', $pessoa)">{{ $pessoa->nome }}</x-admin.link-linha></p>
-                                        <p class="mt-1 text-xs text-stone-500">#{{ $pessoa->id }}</p>
-                                    </td>
-
-                                    <td class="max-w-lg px-5 py-4">
-                                        <p class="text-sm text-stone-700">{{ $pessoa->observacao ?: 'Sem observação' }}</p>
-                                    </td>
-
-                                    <td class="whitespace-nowrap px-5 py-4">
-                                        <span class="inline-flex rounded-full bg-heritage-100 px-2.5 py-1 text-xs font-medium text-heritage-900">
-                                            {{ $pessoa->itens_acervo_count }}
-                                        </span>
-                                    </td>
-
-                                    <td class="px-5 py-4">
-                                        <div class="relative z-10 flex justify-end gap-2">
-                                            <a
-                                                href="{{ route('admin.pessoas.edit', $pessoa) }}"
-                                                class="rounded-md border border-stone-300 px-3 py-2 text-sm font-medium text-stone-700 transition hover:bg-stone-100 focus:outline-none focus:ring-2 focus:ring-institutional focus:ring-offset-2"
-                                            >
-                                                Editar
-                                            </a>
-
-                                            <form
-                                                method="POST"
-                                                action="{{ route('admin.pessoas.destroy', $pessoa) }}"
-                                                data-confirm-title="Confirmar exclusão"
-                                                data-confirm-message="{{ $pessoa->itens_acervo_count > 0
-                                                    ? sprintf(
-                                                        'Esta pessoa está associada a %d %s do acervo. Ao excluí-la, essas associações serão removidas, mas os itens serão mantidos. Deseja continuar?',
-                                                        $pessoa->itens_acervo_count,
-                                                        $pessoa->itens_acervo_count === 1 ? 'item' : 'itens',
-                                                    )
-                                                    : 'Esta pessoa não possui itens associados. Deseja realmente excluí-la?' }}"
-                                                data-confirm-label="Excluir pessoa"
-                                            >
-                                                @csrf
-                                                @method('DELETE')
-
-                                                <button
-                                                    type="submit"
-                                                    class="rounded-md border border-red-200 px-3 py-2 text-sm font-medium text-red-700 transition hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-700 focus:ring-offset-2"
-                                                >
-                                                    Excluir
-                                                </button>
-                                            </form>
-                                        </div>
-                                    </td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
-
-                @if ($pessoas->hasPages())
-                    <div class="border-t border-stone-200 px-5 py-4">
-                        {{ $pessoas->links() }}
-                    </div>
+        <x-admin.table :paginator="$pessoas" :vazia="$pessoas->isEmpty()">
+            <x-slot:vazio>
+                @if ($termo !== '')
+                    <x-admin.busca-sem-resultados :action="route('admin.pessoas.index')" mensagem="Nenhuma pessoa encontrada para a pesquisa" />
+                @else
+                    <x-ui.empty-state icon="users" title="Nenhuma pessoa cadastrada" description="Quando houver pessoas identificadas, elas aparecerão nesta listagem." />
                 @endif
-            @endif
-        </section>
+            </x-slot:vazio>
+
+            <thead>
+                <tr>
+                    <x-admin.coluna-ordenavel rotulo="Nome" chave="nome" :ordenacao="$ordenacao" :action="route('admin.pessoas.index')" :parametros="$parametros" />
+                    <th scope="col">Observação</th>
+                    <x-admin.coluna-ordenavel rotulo="Itens associados" chave="itens" :ordenacao="$ordenacao" :action="route('admin.pessoas.index')" :parametros="$parametros" />
+                    <th scope="col" class="text-right">Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach ($pessoas as $pessoa)
+                    <tr id="pessoa-{{ $pessoa->id }}" class="relative">
+                        <td class="max-w-sm">
+                            <p class="truncate font-semibold text-fg"><x-admin.link-linha :href="route('admin.pessoas.edit', $pessoa)">{{ $pessoa->nome }}</x-admin.link-linha></p>
+                            <p class="mt-1 text-xs text-fg-subtle">#{{ $pessoa->id }}</p>
+                        </td>
+                        <td class="max-w-lg text-ink-700">{{ $pessoa->observacao ?: 'Sem observação' }}</td>
+                        <td class="whitespace-nowrap"><x-ui.badge tone="heritage">{{ $pessoa->itens_acervo_count }}</x-ui.badge></td>
+                        <td>
+                            <div class="relative z-10 flex justify-end gap-2">
+                                <x-catalog.button variant="secondary" size="sm" :href="route('admin.pessoas.edit', $pessoa)">Editar</x-catalog.button>
+                                <form
+                                    method="POST"
+                                    action="{{ route('admin.pessoas.destroy', $pessoa) }}"
+                                    data-confirm-title="Confirmar exclusão"
+                                    data-confirm-message="{{ $pessoa->itens_acervo_count > 0
+                                        ? sprintf(
+                                            'Esta pessoa está associada a %d %s do acervo. Ao excluí-la, essas associações serão removidas, mas os itens serão mantidos. Deseja continuar?',
+                                            $pessoa->itens_acervo_count,
+                                            $pessoa->itens_acervo_count === 1 ? 'item' : 'itens',
+                                        )
+                                        : 'Esta pessoa não possui itens associados. Deseja realmente excluí-la?' }}"
+                                    data-confirm-label="Excluir pessoa"
+                                >
+                                    @csrf
+                                    @method('DELETE')
+                                    <x-catalog.button type="submit" variant="danger" size="sm">Excluir</x-catalog.button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                @endforeach
+            </tbody>
+        </x-admin.table>
     </div>
 </x-layouts.admin>
