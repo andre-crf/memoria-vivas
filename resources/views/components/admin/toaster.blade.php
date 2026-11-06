@@ -6,7 +6,7 @@
         ->map(fn (string $type, string $key) => ['type' => $type, 'message' => session($key)])
         ->filter(fn (array $item) => filled($item['message']))
         ->values();
-    $toast = 'pointer-events-auto flex w-full max-w-sm items-start gap-3 rounded-lg border bg-white p-4 text-ink-950 shadow-[0_16px_30px_rgb(24_42_63/0.18)]';
+    $toast = 'pointer-events-auto flex w-full max-w-sm items-start gap-3 rounded-lg border bg-white p-4 text-ink-950 shadow-popover';
     $variants = [
         'success' => ['border' => 'border-mist-200', 'icon' => 'text-institutional'],
         'warning' => ['border' => 'border-warning/40', 'icon' => 'text-warning'],

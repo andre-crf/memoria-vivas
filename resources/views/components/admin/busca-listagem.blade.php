@@ -19,7 +19,7 @@
 @endphp
 
 {{-- Pesquisa das listagens administrativas; o envio é um GET comum, então a URL guarda os critérios. --}}
-<section {{ $attributes->class('mb-6 rounded-lg border border-mist-200 bg-white p-4 shadow-sm sm:p-5') }} aria-label="{{ $titulo }}">
+<section {{ $attributes->class('mb-6 rounded-lg border border-line bg-white p-4 shadow-card sm:p-5') }} aria-label="{{ $titulo }}">
     <form method="GET" action="{{ $action }}" role="search" class="flex flex-col gap-3 md:flex-row md:items-end">
         <x-catalog.label text="Pesquisar" class="md:flex-1">
             <x-catalog.control
