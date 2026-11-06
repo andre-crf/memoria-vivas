@@ -14,10 +14,11 @@ use App\Http\Controllers\Admin\PerfilController;
 use App\Http\Controllers\Admin\PessoaController;
 use App\Http\Controllers\Admin\UsuarioController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
+use App\Http\Controllers\Dev\StyleGuideController;
 use App\Http\Controllers\Publico\CatalogoController;
 use App\Http\Controllers\Publico\ContribuicaoController as PublicContribuicaoController;
-use App\Http\Controllers\Publico\FotografiaController as PublicFotografiaController;
 use App\Http\Controllers\Publico\DownloadFotografiaController;
+use App\Http\Controllers\Publico\FotografiaController as PublicFotografiaController;
 use App\Http\Controllers\Publico\HomeController as PublicHomeController;
 use App\Http\Controllers\Publico\ImagemPublicaController;
 use Illuminate\Support\Facades\Route;
@@ -66,6 +67,17 @@ Route::middleware(['auth', 'admin.access'])
     ->group(function (): void {
 
         Route::get('/', DashboardController::class)->name('dashboard');
+
+        // Style Guide interno: registrado só fora de produção, então não entra no cache de rotas de produção.
+        if (StyleGuideController::disponivel()) {
+            Route::prefix('_style-guide')
+                ->name('style-guide.')
+                ->group(function (): void {
+                    Route::get('/', [StyleGuideController::class, 'admin'])->name('admin');
+                    Route::get('/publico', [StyleGuideController::class, 'publico'])->name('publico');
+                });
+        }
+
         Route::get('/arquivos/{arquivo}', [ArquivoController::class, 'show'])->name('arquivos.show');
 
         Route::prefix('auditoria')
