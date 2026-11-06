@@ -5,5 +5,6 @@
 @if ($attributes->has('href'))
     <a {{ $attributes->class($classes) }}>{{ $slot }}</a>
 @else
-    <button {{ $attributes->merge(['type' => 'button'])->class([$classes, 'cursor-pointer']) }}>{{ $slot }}</button>
+    {{-- Desabilitado durante um envio (ex.: colaboração): aria-busy indica a espera. --}}
+    <button {{ $attributes->merge(['type' => 'button'])->class([$classes, 'cursor-pointer disabled:cursor-not-allowed disabled:opacity-65 aria-busy:cursor-wait']) }}>{{ $slot }}</button>
 @endif

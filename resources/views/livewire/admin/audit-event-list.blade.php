@@ -1,130 +1,116 @@
 <div>
     @if ($errors->any())
-        <div class="mb-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800" role="alert">
-            <p class="font-semibold">Não foi possível aplicar os filtros.</p>
-            <ul class="mt-2 list-disc space-y-1 pl-5">
+        <x-ui.alert tone="danger" title="Não foi possível aplicar os filtros." class="mb-6">
+            <ul>
                 @foreach ($errors->all() as $error)
                     <li>{{ $error }}</li>
                 @endforeach
             </ul>
-        </div>
+        </x-ui.alert>
     @endif
 
-    <section class="mb-6 rounded-lg border border-stone-200 bg-white p-5 shadow-sm" aria-labelledby="audit-filter-title">
+    <section class="mb-6 rounded-lg border border-line bg-white p-5 shadow-card" aria-labelledby="audit-filter-title">
         <div class="mb-4">
-            <h2 id="audit-filter-title" class="text-base font-semibold text-stone-950">Filtros</h2>
-            <p class="mt-1 text-sm text-stone-600">Combine os campos para localizar eventos específicos.</p>
+            <h2 id="audit-filter-title" class="text-base font-semibold text-fg">Filtros</h2>
+            <p class="mt-1 text-sm text-fg-muted">Combine os campos para localizar eventos específicos.</p>
         </div>
 
         <form wire:submit="applyFilters" class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             <input type="hidden" wire:model="fuso" value="{{ $fuso }}" data-fuso-usuario>
 
-            <div>
-                <label for="data_inicio" class="block text-sm font-medium text-stone-700">Data inicial</label>
-                <input id="data_inicio" type="date" wire:model.live="data_inicio" class="mt-1 block w-full rounded-md border-stone-300 text-sm shadow-sm focus:border-institutional focus:ring-institutional">
-            </div>
+            <x-catalog.label for="data_inicio" text="Data inicial">
+                <x-catalog.control id="data_inicio" type="date" wire:model.live="data_inicio" />
+            </x-catalog.label>
 
-            <div>
-                <label for="data_fim" class="block text-sm font-medium text-stone-700">Data final</label>
-                <input id="data_fim" type="date" wire:model.live="data_fim" class="mt-1 block w-full rounded-md border-stone-300 text-sm shadow-sm focus:border-institutional focus:ring-institutional">
-            </div>
+            <x-catalog.label for="data_fim" text="Data final">
+                <x-catalog.control id="data_fim" type="date" wire:model.live="data_fim" />
+            </x-catalog.label>
 
-            <div>
-                <label for="responsavel" class="block text-sm font-medium text-stone-700">Responsável</label>
-                <select id="responsavel" wire:model.live="responsavel" class="mt-1 block w-full rounded-md border-stone-300 text-sm shadow-sm focus:border-institutional focus:ring-institutional">
+            <x-catalog.label for="responsavel" text="Responsável">
+                <x-catalog.control as="select" id="responsavel" wire:model.live="responsavel">
                     <option value="">Todos os responsáveis</option>
                     <option value="system">Sistema/sem usuário</option>
                     @foreach ($usuarios as $usuario)
                         <option value="{{ $usuario->id }}">{{ $usuario->nome }}{{ $usuario->status === 'inativo' ? ' (inativo)' : '' }}</option>
                     @endforeach
-                </select>
-            </div>
+                </x-catalog.control>
+            </x-catalog.label>
 
-            <div>
-                <label for="acao" class="block text-sm font-medium text-stone-700">Ação</label>
-                <select id="acao" wire:model.live="acao" class="mt-1 block w-full rounded-md border-stone-300 text-sm shadow-sm focus:border-institutional focus:ring-institutional">
+            <x-catalog.label for="acao" text="Ação">
+                <x-catalog.control as="select" id="acao" wire:model.live="acao">
                     <option value="">Todas as ações</option>
                     @foreach ($acoes as $acaoOption)
                         <option value="{{ $acaoOption->value }}">{{ $acaoOption->label() }}</option>
                     @endforeach
-                </select>
-            </div>
+                </x-catalog.control>
+            </x-catalog.label>
 
-            <div>
-                <label for="entidade" class="block text-sm font-medium text-stone-700">Entidade</label>
-                <select id="entidade" wire:model.live="entidade" class="mt-1 block w-full rounded-md border-stone-300 text-sm shadow-sm focus:border-institutional focus:ring-institutional">
+            <x-catalog.label for="entidade" text="Entidade">
+                <x-catalog.control as="select" id="entidade" wire:model.live="entidade">
                     <option value="">Todas as entidades</option>
                     @foreach ($entidades as $entidadeOption)
                         <option value="{{ $entidadeOption->value }}">{{ $entidadeOption->label() }}</option>
                     @endforeach
-                </select>
-            </div>
+                </x-catalog.control>
+            </x-catalog.label>
 
-            <div>
-                <label for="entidade_id" class="block text-sm font-medium text-stone-700">ID da entidade</label>
-                <input id="entidade_id" type="text" maxlength="191" wire:model.live.debounce.300ms="entidade_id" placeholder="Ex.: 42" class="mt-1 block w-full rounded-md border-stone-300 text-sm shadow-sm focus:border-institutional focus:ring-institutional">
-                <p class="mt-1 text-xs text-stone-500">Selecione também o tipo da entidade.</p>
-            </div>
+            <x-catalog.label for="entidade_id" text="ID da entidade">
+                <x-catalog.control id="entidade_id" type="text" maxlength="191" wire:model.live.debounce.300ms="entidade_id" placeholder="Ex.: 42" aria-describedby="entidade_id-dica" />
+                <span id="entidade_id-dica" class="text-caption text-fg-subtle">Selecione também o tipo da entidade.</span>
+            </x-catalog.label>
 
             <div class="flex flex-wrap items-center gap-2 md:col-span-2 xl:col-span-3">
-                <button type="submit" class="inline-flex items-center justify-center rounded-md bg-institutional px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-institutional-strong focus:outline-none focus:ring-2 focus:ring-institutional focus:ring-offset-2">Filtrar</button>
-                <button type="button" wire:click="clearFilters" class="inline-flex items-center justify-center rounded-md border border-stone-300 px-4 py-2 text-sm font-semibold text-stone-700 transition hover:bg-stone-100 focus:outline-none focus:ring-2 focus:ring-institutional focus:ring-offset-2">Limpar filtros</button>
-                <p class="text-xs text-stone-500">
-                    Período interpretado no fuso <span class="font-medium text-stone-700">{{ $fusoExibicao }}</span>.
+                <x-catalog.button type="submit" icon="search">Filtrar</x-catalog.button>
+                <x-catalog.button variant="secondary" wire:click="clearFilters">Limpar filtros</x-catalog.button>
+                <p class="text-xs text-fg-subtle">
+                    Período interpretado no fuso <span class="font-medium text-ink-700">{{ $fusoExibicao }}</span>.
                 </p>
             </div>
         </form>
     </section>
 
-    <section class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm" wire:loading.class="opacity-60">
-        @if (! $hasAnyEvents)
-            <div class="px-6 py-16 text-center">
-                <h2 class="text-xl font-semibold text-stone-950">Nenhum evento de auditoria registrado</h2>
-                <p class="mx-auto mt-2 max-w-md text-sm leading-6 text-stone-600">Os eventos aparecerão aqui conforme operações auditáveis forem realizadas.</p>
-            </div>
-        @elseif ($eventos->isEmpty())
-            <div class="px-6 py-16 text-center">
-                <h2 class="text-xl font-semibold text-stone-950">Nenhum evento encontrado</h2>
-                <p class="mx-auto mt-2 max-w-md text-sm leading-6 text-stone-600">Ajuste ou remova os filtros para ampliar os resultados da consulta.</p>
-            </div>
-        @else
-            <x-admin.aviso-rolagem-tabela />
-            <div class="overflow-x-auto">
-                <table class="min-w-[52rem] w-full divide-y divide-stone-200">
-                    <thead class="bg-stone-100">
-                        <tr>
-                            <th scope="col" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-[0.12em] text-stone-600">Data e hora</th>
-                            <th scope="col" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-[0.12em] text-stone-600">Responsável</th>
-                            <th scope="col" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-[0.12em] text-stone-600">Ação</th>
-                            <th scope="col" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-[0.12em] text-stone-600">Entidade afetada</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-stone-200 bg-white">
-                        @foreach ($eventos as $evento)
-                            <tr id="evento-auditoria-{{ $evento->id }}" wire:key="audit-event-{{ $evento->id }}" class="relative hover:bg-stone-50">
-                                <td class="whitespace-nowrap px-5 py-4 text-sm text-stone-700"><x-data-hora :valor="$evento->occurred_at" /></td>
-                                <td class="min-w-52 px-5 py-4">
-                                    <p class="text-sm font-semibold text-stone-950">{{ $evento->actor_name ?: 'Sistema' }}</p>
-                                    <p class="mt-1 text-xs text-stone-500">
-                                        @if ($evento->actor_user_id)
-                                            {{ $evento->actor_role === 'admin' ? 'Administrador' : 'Operador' }} · #{{ $evento->actor_user_id }}
-                                        @else
-                                            Sem usuário responsável
-                                        @endif
-                                    </p>
-                                </td>
-                                <td class="whitespace-nowrap px-5 py-4"><span class="inline-flex rounded-full bg-heritage-100 px-2.5 py-1 text-xs font-medium text-heritage-900">{{ $evento->action->label() }}</span></td>
-                                <td class="min-w-64 px-5 py-4">
-                                    <p class="text-sm font-semibold text-stone-950"><x-admin.link-linha :href="route('admin.auditoria.show', array_merge(['evento' => $evento], $navigationQuery))">{{ $evento->subject_label ?: 'Sem identificação' }}</x-admin.link-linha></p>
-                                    <p class="mt-1 text-xs text-stone-500">{{ $evento->subject_type->label() }} · #{{ $evento->subject_id }}</p>
-                                </td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
+    <x-admin.table table-class="min-w-[52rem]" :paginator="$eventos" :vazia="! $hasAnyEvents || $eventos->isEmpty()" wire:loading.class="opacity-60">
+        <x-slot:vazio>
+            @if (! $hasAnyEvents)
+                <x-ui.empty-state icon="history" title="Nenhum evento de auditoria registrado" description="Os eventos aparecerão aqui conforme operações auditáveis forem realizadas." />
+            @else
+                <x-ui.empty-state icon="search-x" title="Nenhum evento encontrado" description="Ajuste ou remova os filtros para ampliar os resultados da consulta.">
+                    <x-slot:action>
+                        <x-catalog.button variant="secondary" size="sm" wire:click="clearFilters">Limpar filtros</x-catalog.button>
+                    </x-slot:action>
+                </x-ui.empty-state>
+            @endif
+        </x-slot:vazio>
 
-            <div class="border-t border-stone-200 px-5 py-4">{{ $eventos->links() }}</div>
-        @endif
-    </section>
+        <thead>
+            <tr>
+                <th scope="col">Data e hora</th>
+                <th scope="col">Responsável</th>
+                <th scope="col">Ação</th>
+                <th scope="col">Entidade afetada</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach ($eventos as $evento)
+                <tr id="evento-auditoria-{{ $evento->id }}" wire:key="audit-event-{{ $evento->id }}" class="relative">
+                    <td class="whitespace-nowrap text-ink-700"><x-data-hora :valor="$evento->occurred_at" /></td>
+                    <td class="min-w-52">
+                        <p class="font-semibold text-fg">{{ $evento->actor_name ?: 'Sistema' }}</p>
+                        <p class="mt-1 text-xs text-fg-subtle">
+                            @if ($evento->actor_user_id)
+                                {{ $evento->actor_role === 'admin' ? 'Administrador' : 'Operador' }} · #{{ $evento->actor_user_id }}
+                            @else
+                                Sem usuário responsável
+                            @endif
+                        </p>
+                    </td>
+                    <td class="whitespace-nowrap"><x-ui.badge tone="heritage">{{ $evento->action->label() }}</x-ui.badge></td>
+                    <td class="min-w-64">
+                        <p class="font-semibold text-fg"><x-admin.link-linha :href="route('admin.auditoria.show', array_merge(['evento' => $evento], $navigationQuery))">{{ $evento->subject_label ?: 'Sem identificação' }}</x-admin.link-linha></p>
+                        <p class="mt-1 text-xs text-fg-subtle">{{ $evento->subject_type->label() }} · #{{ $evento->subject_id }}</p>
+                    </td>
+                </tr>
+            @endforeach
+        </tbody>
+    </x-admin.table>
 </div>

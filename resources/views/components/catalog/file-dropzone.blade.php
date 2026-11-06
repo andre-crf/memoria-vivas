@@ -3,6 +3,8 @@
     'mimeTypes',
     'extensions',
     'maxKb',
+    // Chave do erro de validação do servidor: com erro, o input recebe aria-invalid e aponta "{name}-erro" (x-catalog.error field).
+    'error' => null,
 ])
 
 @php
@@ -10,6 +12,7 @@
         ->map(fn (string $extension): string => $extension === 'webp' ? 'WebP' : mb_strtoupper($extension))
         ->join(', ', ' ou ');
     $maxLabel = number_format($maxKb / 1024, 0, ',', '.').' MB';
+    $invalido = $error !== null && isset($errors) && $errors->has($error);
     $settings = [
         'extensions' => array_values($extensions),
         'maxBytes' => $maxKb * 1024,
@@ -28,7 +31,7 @@
         @dragover.prevent
         @dragleave.prevent="dragLeave()"
         @drop.prevent="drop($event)"
-        class="group flex cursor-pointer flex-col items-center gap-2 rounded-lg border border-dashed border-mist-400 bg-mist-50 px-6 py-8 text-center transition-colors hover:border-mist-600 hover:bg-white data-dragging:border-institutional data-dragging:bg-institutional-soft has-[input:focus-visible]:outline-2 has-[input:focus-visible]:outline-offset-2 has-[input:focus-visible]:outline-institutional"
+        class="group flex cursor-pointer flex-col items-center gap-2 rounded-lg border border-dashed border-mist-400 bg-mist-50 has-[input[aria-invalid=true]]:border-danger px-6 py-8 text-center transition-colors hover:border-mist-600 hover:bg-white data-dragging:border-institutional data-dragging:bg-institutional-soft has-[input:focus-visible]:outline-2 has-[input:focus-visible]:outline-offset-2 has-[input:focus-visible]:outline-institutional"
     >
         <input
             id="{{ $name }}"
@@ -36,7 +39,8 @@
             type="file"
             accept="{{ implode(',', $mimeTypes) }}"
             class="sr-only"
-            aria-describedby="{{ $name }}-formatos {{ $name }}-publicacao"
+            aria-describedby="{{ $name }}-formatos {{ $name }}-publicacao{{ $invalido ? " {$name}-erro" : '' }}"
+            @if ($invalido) aria-invalid="true" @endif
             @change="change($event)"
         >
         <span class="grid size-11 place-items-center rounded-full bg-white text-institutional ring-1 ring-mist-200 transition-colors group-data-dragging:bg-institutional group-data-dragging:text-white" aria-hidden="true">

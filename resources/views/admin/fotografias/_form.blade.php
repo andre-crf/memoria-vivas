@@ -27,6 +27,30 @@
     ];
 @endphp
 
+@php
+    // Campos com mensagem própria abaixo deles; os demais erros (seletores de autoria, pessoas e classificações) vão no resumo.
+    $camposComMensagem = ['titulo', 'codigo_referencia', 'legenda', 'estado_conservacao', 'status', 'visibilidade', 'tipo_data', ...array_keys($dateInputs), 'local_atual', 'local_epoca', 'evento', 'cedente', 'localizacao_fisica', 'arquivo_original'];
+    $errosSemCampo = collect($errors->getMessages())->except($camposComMensagem)->flatten()->unique();
+    // Campo de data oculto pela precisão (mesmo mapa do historicalDateFields): a mensagem dele não aparece, então vai no resumo.
+    $tipoDataRestaurado = \App\Enums\TipoData::tryFrom((string) $selectedTipoData);
+    $errosDeDataOculta = collect($tipoDataRestaurado?->camposProibidos() ?? [])
+        ->filter(fn (string $campo) => $errors->has($campo))
+        ->map(fn (string $campo) => "{$dateInputs[$campo]['label']} (campo que não aparece com a precisão “{$tipoDataRestaurado->label()}”): {$errors->first($campo)}");
+    $errosSemCampo = $errosSemCampo->concat($errosDeDataOculta);
+@endphp
+
+@if ($errors->any())
+    <x-ui.alert tone="danger" title="Revise os campos destacados." class="mb-4">
+        @if ($errosSemCampo->isNotEmpty())
+            <ul>
+                @foreach ($errosSemCampo as $erro)
+                    <li>{{ $erro }}</li>
+                @endforeach
+            </ul>
+        @endif
+    </x-ui.alert>
+@endif
+
 <form method="POST" action="{{ $action }}" enctype="multipart/form-data" class="grid gap-4">
     @csrf
     <input type="hidden" name="classificacoes_enviadas" value="1">
@@ -37,51 +61,54 @@
     <x-catalog.section title="Dados principais" description="Comece pelas informações que identificam a fotografia.">
         <div class="grid gap-4 sm:grid-cols-2">
             <x-catalog.label for="titulo" text="Título" required class="sm:col-span-full">
-                <x-catalog.control id="titulo" name="titulo" type="text" :value="$value('titulo')" required maxlength="255" />
-                @error('titulo') <x-catalog.error>{{ $message }}</x-catalog.error> @enderror
+                <x-catalog.control id="titulo" name="titulo" type="text" :value="$value('titulo')" required maxlength="255" error="titulo" />
+                <x-catalog.error field="titulo" aria-hidden="true" />
             </x-catalog.label>
 
             <x-catalog.label for="codigo_referencia" text="Código de referência" class="sm:col-span-full">
-                <x-catalog.control id="codigo_referencia" name="codigo_referencia" type="text" :value="$value('codigo_referencia')" maxlength="100" autocomplete="off" aria-describedby="codigo_referencia-dica" />
-                <span id="codigo_referencia-dica" class="text-[0.72rem] leading-relaxed text-ink-500">Identificação utilizada pela instituição. Não corresponde ao ID do sistema nem à localização física.</span>
-                @error('codigo_referencia') <x-catalog.error>{{ $message }}</x-catalog.error> @enderror
+                <x-catalog.control id="codigo_referencia" name="codigo_referencia" type="text" :value="$value('codigo_referencia')" maxlength="100" autocomplete="off" aria-describedby="codigo_referencia-dica" error="codigo_referencia" />
+                <span id="codigo_referencia-dica" class="text-caption leading-relaxed text-fg-subtle" aria-hidden="true">Identificação utilizada pela instituição. Não corresponde ao ID do sistema nem à localização física.</span>
+                <x-catalog.error field="codigo_referencia" aria-hidden="true" />
             </x-catalog.label>
 
             <x-catalog.label for="legenda" text="Legenda/descrição" class="sm:col-span-full" x-data="characterCounter({{ $legendaLength }}, 5000)">
-                <x-catalog.control as="textarea" id="legenda" name="legenda" rows="3" maxlength="5000" x-on:input="update($event.target.value)">{{ $legenda }}</x-catalog.control>
+                <x-catalog.control as="textarea" id="legenda" name="legenda" rows="3" maxlength="5000" x-on:input="update($event.target.value)" aria-describedby="legenda-contador" error="legenda">{{ $legenda }}</x-catalog.control>
+                {{-- Fora do nome do campo (aria-hidden) e lido como descrição: "0/5.000" depois do rótulo, não dentro dele. --}}
                 <span
+                    id="legenda-contador"
+                    aria-hidden="true"
                     class="justify-self-end text-[0.68rem] font-[650] text-ink-400 tabular-nums data-[limit=near]:text-warning data-[limit=over]:text-danger"
                     :data-limit="count > limit ? 'over' : (count >= limit * 0.9 ? 'near' : null)"
                     x-text="formattedCount"
                 >{{ number_format($legendaLength, 0, ',', '.') }}/5.000</span>
-                @error('legenda') <x-catalog.error>{{ $message }}</x-catalog.error> @enderror
+                <x-catalog.error field="legenda" aria-hidden="true" />
             </x-catalog.label>
 
             <x-catalog.label for="estado_conservacao" text="Estado de conservação">
-                <x-catalog.control as="select" id="estado_conservacao" name="estado_conservacao" required>
+                <x-catalog.control as="select" id="estado_conservacao" name="estado_conservacao" required error="estado_conservacao">
                     @foreach ($estadoConservacaoOptions as $optionValue => $label)
                         <option value="{{ $optionValue }}" @selected($selectedEstadoConservacao === $optionValue)>{{ $label }}</option>
                     @endforeach
                 </x-catalog.control>
-                @error('estado_conservacao') <x-catalog.error>{{ $message }}</x-catalog.error> @enderror
+                <x-catalog.error field="estado_conservacao" aria-hidden="true" />
             </x-catalog.label>
 
             <x-catalog.label for="status" text="Status">
-                <x-catalog.control as="select" id="status" name="status" required>
+                <x-catalog.control as="select" id="status" name="status" required error="status">
                     @foreach ($statusOptions as $optionValue => $label)
                         <option value="{{ $optionValue }}" @selected($selectedStatus === $optionValue)>{{ $label }}</option>
                     @endforeach
                 </x-catalog.control>
-                @error('status') <x-catalog.error>{{ $message }}</x-catalog.error> @enderror
+                <x-catalog.error field="status" aria-hidden="true" />
             </x-catalog.label>
 
             <x-catalog.label for="visibilidade" text="Visibilidade">
-                <x-catalog.control as="select" id="visibilidade" name="visibilidade" required>
+                <x-catalog.control as="select" id="visibilidade" name="visibilidade" required error="visibilidade">
                     @foreach ($visibilidadeOptions as $visibilidade)
                         <option value="{{ $visibilidade->value }}" @selected($selectedVisibilidade === $visibilidade->value)>{{ $visibilidade->label() }}</option>
                     @endforeach
                 </x-catalog.control>
-                @error('visibilidade') <x-catalog.error>{{ $message }}</x-catalog.error> @enderror
+                <x-catalog.error field="visibilidade" aria-hidden="true" />
             </x-catalog.label>
         </div>
     </x-catalog.section>
@@ -97,12 +124,12 @@
     >
         <div class="mb-4 grid gap-4 sm:grid-cols-4 lg:grid-cols-[minmax(12rem,1.5fr)_repeat(4,minmax(5rem,0.65fr))]">
             <x-catalog.label for="tipo_data" text="Precisão da data" class="sm:col-span-full lg:col-auto">
-                <x-catalog.control as="select" id="tipo_data" name="tipo_data" required x-model="precision">
+                <x-catalog.control as="select" id="tipo_data" name="tipo_data" required x-model="precision" error="tipo_data">
                     @foreach ($tipoDataOptions as $tipoData)
                         <option value="{{ $tipoData->value }}" @selected($selectedTipoData === $tipoData->value)>{{ $tipoData->label() }}</option>
                     @endforeach
                 </x-catalog.control>
-                @error('tipo_data') <x-catalog.error>{{ $message }}</x-catalog.error> @enderror
+                <x-catalog.error field="tipo_data" aria-hidden="true" />
             </x-catalog.label>
             @foreach ($dateInputs as $field => $input)
                 <x-catalog.label :for="$field" :text="$input['label']" x-show="isVisible('{{ $field }}')">
@@ -119,16 +146,17 @@
                         :maxlength="$input['maxlength'] ?? null"
                         :pattern="$input['pattern'] ?? null"
                         ::disabled="!isVisible('{{ $field }}')"
+                        :error="$field"
                     />
-                    @error($field) <x-catalog.error>{{ $message }}</x-catalog.error> @enderror
+                    <x-catalog.error :field="$field" aria-hidden="true" />
                 </x-catalog.label>
             @endforeach
         </div>
         <div class="grid gap-4 sm:grid-cols-2">
             @foreach (['local_atual' => 'Local atual', 'local_epoca' => 'Local na época', 'evento' => 'Evento relacionado', 'cedente' => 'Cedente'] as $field => $label)
                 <x-catalog.label :for="$field" :text="$label">
-                    <x-catalog.control :id="$field" :name="$field" type="text" :value="$value($field)" maxlength="255" />
-                    @error($field) <x-catalog.error>{{ $message }}</x-catalog.error> @enderror
+                    <x-catalog.control :id="$field" :name="$field" type="text" :value="$value($field)" maxlength="255" :error="$field" />
+                    <x-catalog.error :field="$field" aria-hidden="true" />
                 </x-catalog.label>
             @endforeach
         </div>
@@ -139,9 +167,9 @@
         description="Informe onde o material original está armazenado. Este dado é interno e não aparece no catálogo público."
     >
         <x-catalog.label for="localizacao_fisica" text="Localização física">
-            <x-catalog.control as="textarea" id="localizacao_fisica" name="localizacao_fisica" rows="2" maxlength="1000">{{ $value('localizacao_fisica') }}</x-catalog.control>
-            <span class="text-[0.72rem] leading-relaxed text-ink-500">Diferente dos locais históricos retratados acima; este dado é interno e não aparece no catálogo público.</span>
-            @error('localizacao_fisica') <x-catalog.error>{{ $message }}</x-catalog.error> @enderror
+            <x-catalog.control as="textarea" id="localizacao_fisica" name="localizacao_fisica" rows="2" maxlength="1000" aria-describedby="localizacao_fisica-dica" error="localizacao_fisica">{{ $value('localizacao_fisica') }}</x-catalog.control>
+            <span id="localizacao_fisica-dica" class="text-caption leading-relaxed text-fg-subtle" aria-hidden="true">Diferente dos locais históricos retratados acima; este dado é interno e não aparece no catálogo público.</span>
+            <x-catalog.error field="localizacao_fisica" aria-hidden="true" />
         </x-catalog.label>
     </x-catalog.section>
 
@@ -186,12 +214,13 @@
                 :mime-types="$uploadConfig['mime_types']"
                 :extensions="$uploadConfig['extensions']"
                 :max-kb="$uploadConfig['max_kb']"
+                error="arquivo_original"
             />
         @endif
-        @error('arquivo_original') <x-catalog.error as="p">{{ $message }}</x-catalog.error> @enderror
+        <x-catalog.error field="arquivo_original" as="p" class="mt-2" />
     </x-catalog.section>
 
-    <div class="flex justify-end gap-[0.7rem] rounded-lg border border-mist-200 bg-white/96 px-3 py-[0.8rem] shadow-[0_8px_24px_rgb(24_42_63/0.05)] sm:px-4">
+    <div class="flex justify-end gap-[0.7rem] rounded-lg border border-line bg-white/96 px-3 py-[0.8rem] shadow-card sm:px-4">
         <x-catalog.button variant="secondary" :href="$cancelUrl">Cancelar</x-catalog.button>
         <x-catalog.button type="submit">{{ $submitLabel }}</x-catalog.button>
     </div>

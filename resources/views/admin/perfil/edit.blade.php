@@ -1,96 +1,104 @@
 <x-layouts.admin title="Meu perfil | Memórias Vivas">
-    <div class="mx-auto max-w-5xl px-6 py-8">
-        <section class="mb-6">
-            <p class="text-sm font-medium text-heritage-700">Minha conta</p>
-            <h2 class="mt-1 text-2xl font-semibold text-stone-950">Meu perfil</h2>
-            <p class="mt-2 text-sm leading-6 text-stone-600">Consulte seus dados de acesso e mantenha suas informações pessoais atualizadas.</p>
-        </section>
+    <div class="mx-auto max-w-5xl px-4 py-8 sm:px-6">
+        <x-admin.page-header
+            class="mb-6"
+            eyebrow="Minha conta"
+            title="Meu perfil"
+            description="Consulte seus dados de acesso e mantenha suas informações pessoais atualizadas."
+        />
+
+        @php
+            // Erros em chaves sem campo nesta tela (ex.: tentativa de enviar perfil ou situação) só aparecem no resumo.
+            $errosDadosSemCampo = collect($errors->profileUpdate->getMessages())->except(['nome', 'email'])->flatten();
+            $errosSenhaSemCampo = collect($errors->passwordUpdate->getMessages())->except(['current_password', 'password'])->flatten();
+        @endphp
 
         <div class="grid gap-6 lg:grid-cols-2 lg:items-start">
-            <section class="rounded-lg border border-stone-200 bg-white p-6 shadow-sm">
-                <div class="border-b border-stone-200 pb-5">
-                    <h3 class="text-lg font-semibold text-stone-950">Dados pessoais</h3>
-                    <p class="mt-1 text-sm leading-6 text-stone-600">Atualize o nome e o e-mail associados à sua conta.</p>
-                </div>
-
+            <x-catalog.section title="Dados pessoais" description="Atualize o nome e o e-mail associados à sua conta.">
                 @if ($errors->profileUpdate->any())
-                    <div class="mt-5 rounded-md border border-red-200 bg-red-50 p-4" role="alert">
-                        <p class="text-sm font-medium text-red-800">Os dados pessoais não foram atualizados. Verifique os campos informados.</p>
-                    </div>
+                    <x-ui.alert tone="danger" title="Os dados pessoais não foram atualizados." class="mb-5">
+                        <p>Verifique os campos informados.</p>
+                        @if ($errosDadosSemCampo->isNotEmpty())
+                            <ul>
+                                @foreach ($errosDadosSemCampo as $erro)
+                                    <li>{{ $erro }}</li>
+                                @endforeach
+                            </ul>
+                        @endif
+                    </x-ui.alert>
                 @endif
 
-                <form method="POST" action="{{ route('admin.perfil.update') }}" class="mt-6 space-y-6">
+                <form method="POST" action="{{ route('admin.perfil.update') }}" class="grid gap-5">
                     @csrf
                     @method('PUT')
 
-                    <div>
-                        <label for="nome" class="block text-sm font-medium text-stone-900">Nome</label>
-                        <input id="nome" name="nome" type="text" value="{{ old('nome', $usuario->nome) }}" required maxlength="255" autocomplete="name" autofocus class="mt-2 block w-full rounded-md border border-stone-300 px-3 py-2 text-sm text-stone-900 shadow-sm outline-none transition focus:border-institutional focus:ring-2 focus:ring-institutional">
-                        @error('nome', 'profileUpdate') <p class="mt-2 text-sm text-red-700">{{ $message }}</p> @enderror
+                    <div class="grid gap-1.5">
+                        <x-catalog.label for="nome" text="Nome" required>
+                            <x-catalog.control id="nome" name="nome" type="text" :value="old('nome', $usuario->nome)" required maxlength="255" autocomplete="name" autofocus error="nome" error-bag="profileUpdate" />
+                        </x-catalog.label>
+                        <x-catalog.error field="nome" bag="profileUpdate" as="p" />
                     </div>
 
-                    <div>
-                        <label for="email" class="block text-sm font-medium text-stone-900">E-mail</label>
-                        <input id="email" name="email" type="email" value="{{ old('email', $usuario->email) }}" required maxlength="255" autocomplete="email" class="mt-2 block w-full rounded-md border border-stone-300 px-3 py-2 text-sm text-stone-900 shadow-sm outline-none transition focus:border-institutional focus:ring-2 focus:ring-institutional">
-                        @error('email', 'profileUpdate') <p class="mt-2 text-sm text-red-700">{{ $message }}</p> @enderror
+                    <div class="grid gap-1.5">
+                        <x-catalog.label for="email" text="E-mail" required>
+                            <x-catalog.control id="email" name="email" type="email" :value="old('email', $usuario->email)" required maxlength="255" autocomplete="email" error="email" error-bag="profileUpdate" />
+                        </x-catalog.label>
+                        <x-catalog.error field="email" bag="profileUpdate" as="p" />
                     </div>
 
-                    <dl class="grid gap-4 rounded-md border border-stone-200 bg-stone-50 p-4 sm:grid-cols-2">
-                        <div>
-                            <dt class="text-xs font-semibold uppercase tracking-[0.12em] text-stone-500">Perfil</dt>
-                            <dd class="mt-1 text-sm font-medium text-stone-900">{{ $usuario->isAdmin() ? 'Administrador' : 'Operador' }}</dd>
-                        </div>
-                        <div>
-                            <dt class="text-xs font-semibold uppercase tracking-[0.12em] text-stone-500">Situação</dt>
-                            <dd class="mt-1 text-sm font-medium text-stone-900">{{ $usuario->ativo() ? 'Ativo' : 'Inativo' }}</dd>
-                        </div>
+                    <dl class="grid gap-3 sm:grid-cols-2">
+                        <x-admin.info-block label="Perfil">{{ $usuario->isAdmin() ? 'Administrador' : 'Operador' }}</x-admin.info-block>
+                        <x-admin.info-block label="Situação">{{ $usuario->ativo() ? 'Ativo' : 'Inativo' }}</x-admin.info-block>
                     </dl>
 
-                    <div class="flex justify-end border-t border-stone-200 pt-6">
-                        <button type="submit" class="rounded-md bg-institutional px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-institutional-strong focus:outline-none focus:ring-2 focus:ring-institutional focus:ring-offset-2">Salvar dados pessoais</button>
+                    <div class="flex flex-col-reverse gap-3 border-t border-line pt-5 sm:flex-row sm:justify-end">
+                        <x-catalog.button type="submit">Salvar dados pessoais</x-catalog.button>
                     </div>
                 </form>
-            </section>
+            </x-catalog.section>
 
-            <section class="rounded-lg border border-stone-200 bg-white p-6 shadow-sm">
-                <div class="border-b border-stone-200 pb-5">
-                    <h3 class="text-lg font-semibold text-stone-950">Segurança</h3>
-                    <p class="mt-1 text-sm leading-6 text-stone-600">Confirme sua senha atual antes de definir uma nova senha.</p>
-                </div>
-
+            <x-catalog.section title="Segurança" description="Confirme sua senha atual antes de definir uma nova senha.">
                 @if ($errors->passwordUpdate->any())
-                    <div class="mt-5 rounded-md border border-red-200 bg-red-50 p-4" role="alert">
-                        <p class="text-sm font-medium text-red-800">A senha não foi atualizada. Verifique os campos informados.</p>
-                    </div>
+                    <x-ui.alert tone="danger" title="A senha não foi atualizada." class="mb-5">
+                        <p>Verifique os campos informados.</p>
+                        @if ($errosSenhaSemCampo->isNotEmpty())
+                            <ul>
+                                @foreach ($errosSenhaSemCampo as $erro)
+                                    <li>{{ $erro }}</li>
+                                @endforeach
+                            </ul>
+                        @endif
+                    </x-ui.alert>
                 @endif
 
-                <form method="POST" action="{{ route('admin.perfil.password.update') }}" class="mt-6 space-y-6">
+                <form method="POST" action="{{ route('admin.perfil.password.update') }}" class="grid gap-5">
                     @csrf
                     @method('PUT')
 
-                    <div>
-                        <label for="current_password" class="block text-sm font-medium text-stone-900">Senha atual</label>
-                        <input id="current_password" name="current_password" type="password" required autocomplete="current-password" class="mt-2 block w-full rounded-md border border-stone-300 px-3 py-2 text-sm text-stone-900 shadow-sm outline-none transition focus:border-institutional focus:ring-2 focus:ring-institutional">
-                        @error('current_password', 'passwordUpdate') <p class="mt-2 text-sm text-red-700">{{ $message }}</p> @enderror
+                    <div class="grid gap-1.5">
+                        <x-catalog.label for="current_password" text="Senha atual" required>
+                            <x-catalog.control id="current_password" name="current_password" type="password" required autocomplete="current-password" error="current_password" error-bag="passwordUpdate" />
+                        </x-catalog.label>
+                        <x-catalog.error field="current_password" bag="passwordUpdate" as="p" />
                     </div>
 
-                    <div>
-                        <label for="password" class="block text-sm font-medium text-stone-900">Nova senha</label>
-                        <input id="password" name="password" type="password" required minlength="8" autocomplete="new-password" class="mt-2 block w-full rounded-md border border-stone-300 px-3 py-2 text-sm text-stone-900 shadow-sm outline-none transition focus:border-institutional focus:ring-2 focus:ring-institutional">
-                        <p class="mt-2 text-xs text-stone-500">Use pelo menos 8 caracteres.</p>
-                        @error('password', 'passwordUpdate') <p class="mt-2 text-sm text-red-700">{{ $message }}</p> @enderror
+                    <div class="grid gap-1.5">
+                        <x-catalog.label for="password" text="Nova senha" required>
+                            <x-catalog.control id="password" name="password" type="password" required minlength="8" autocomplete="new-password" aria-describedby="password-dica" error="password" error-bag="passwordUpdate" />
+                        </x-catalog.label>
+                        <p id="password-dica" class="text-caption text-fg-subtle">Use pelo menos 8 caracteres.</p>
+                        <x-catalog.error field="password" bag="passwordUpdate" as="p" />
                     </div>
 
-                    <div>
-                        <label for="password_confirmation" class="block text-sm font-medium text-stone-900">Confirmar nova senha</label>
-                        <input id="password_confirmation" name="password_confirmation" type="password" required minlength="8" autocomplete="new-password" class="mt-2 block w-full rounded-md border border-stone-300 px-3 py-2 text-sm text-stone-900 shadow-sm outline-none transition focus:border-institutional focus:ring-2 focus:ring-institutional">
-                    </div>
+                    <x-catalog.label for="password_confirmation" text="Confirmar nova senha" required>
+                        <x-catalog.control id="password_confirmation" name="password_confirmation" type="password" required minlength="8" autocomplete="new-password" />
+                    </x-catalog.label>
 
-                    <div class="flex justify-end border-t border-stone-200 pt-6">
-                        <button type="submit" class="rounded-md bg-institutional px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-institutional-strong focus:outline-none focus:ring-2 focus:ring-institutional focus:ring-offset-2">Atualizar senha</button>
+                    <div class="flex flex-col-reverse gap-3 border-t border-line pt-5 sm:flex-row sm:justify-end">
+                        <x-catalog.button type="submit">Atualizar senha</x-catalog.button>
                     </div>
                 </form>
-            </section>
+            </x-catalog.section>
         </div>
     </div>
 </x-layouts.admin>

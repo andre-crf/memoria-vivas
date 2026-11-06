@@ -71,7 +71,7 @@
         $focusRing = 'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-institutional';
     @endphp
 
-    <div class="min-h-screen bg-admin-shell text-stone-900">
+    <div class="min-h-screen bg-admin-shell text-fg">
         <header class="sticky top-0 z-40 shadow-[0_3px_18px_rgb(24_42_63/0.08)]">
             <div class="bg-institutional text-white">
                 <div class="mx-auto flex min-h-[4.5rem] w-full max-w-7xl min-w-0 items-center justify-between gap-2 px-4 sm:gap-4 sm:px-6 lg:px-8">
@@ -94,7 +94,8 @@
                         @php
                             $usuario = auth()->user();
                             $papel = $usuario->isAdmin() ? 'Administrador' : 'Operador';
-                            $userMenuItem = 'flex min-h-10 w-full items-center justify-between gap-3 rounded px-3 text-left text-[0.8125rem] font-semibold text-ink-600 hover:bg-institutional-soft hover:text-institutional aria-[current=page]:bg-institutional-soft aria-[current=page]:text-institutional '.$focusRing;
+                            // Itens do menu: .admin-menu-item (app.css), o mesmo do menu de ações do arquivo.
+                            $userMenuItem = 'admin-menu-item justify-between';
                         @endphp
 
                         <div
@@ -129,9 +130,9 @@
                                 x-show="open"
                                 x-cloak
                                 x-transition.origin.top.right
-                                class="absolute top-[calc(100%+0.75rem)] right-0 z-50 w-64 rounded-md border border-mist-200 bg-white p-1.5 text-ink-950 shadow-[0_16px_30px_rgb(24_42_63/0.18)]"
+                                class="admin-menu absolute top-[calc(100%+0.75rem)] right-0 z-50 w-64"
                             >
-                                <div class="border-b border-mist-150 px-3 pt-2 pb-2.5">
+                                <div class="border-b border-line px-3 pt-2 pb-2.5">
                                     <p class="truncate text-[0.8125rem] font-semibold">{{ $usuario->nome }}</p>
                                     <p class="mt-0.5 truncate text-[0.72rem] text-ink-500">{{ $usuario->email }} · {{ $papel }}</p>
                                 </div>
@@ -151,9 +152,9 @@
                                     </a>
                                 </div>
 
-                                <form method="POST" action="{{ route('logout') }}" class="mt-1.5 border-t border-mist-150 pt-1.5">
+                                <form method="POST" action="{{ route('logout') }}" class="mt-1.5 border-t border-line pt-1.5">
                                     @csrf
-                                    <button type="submit" class="{{ $userMenuItem }} cursor-pointer">Sair</button>
+                                    <button type="submit" class="{{ $userMenuItem }}">Sair</button>
                                 </form>
                             </div>
                         </div>
@@ -161,7 +162,7 @@
                         <details class="group/mobile-nav relative md:hidden">
                             <summary class="flex min-h-[2.125rem] cursor-pointer list-none items-center gap-2 rounded-md border border-white/42 px-[0.7rem] py-[0.4rem] text-[0.75rem] font-semibold text-white [&::-webkit-details-marker]:hidden after:text-[0.9rem] after:leading-none after:content-['\2630'] group-open/mobile-nav:after:content-['\00d7'] {{ $focusRing }}">Menu</summary>
 
-                            <nav class="absolute top-[calc(100%+0.75rem)] right-0 grid w-[min(19rem,calc(100vw-2rem))] rounded-md border border-mist-200 bg-white p-1.5 shadow-[0_16px_30px_rgb(24_42_63/0.18)]" aria-label="Navegação administrativa mobile">
+                            <nav class="admin-menu absolute top-[calc(100%+0.75rem)] right-0 grid w-[min(19rem,calc(100vw-2rem))]" aria-label="Navegação administrativa mobile">
                                 @foreach ($navigation as $item)
                                     <x-admin.nav-link :href="route($item['route'])" :active="request()->routeIs($item['active'])" variant="menu">
                                         {{ $item['label'] }}

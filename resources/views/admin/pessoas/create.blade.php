@@ -1,52 +1,41 @@
 <x-layouts.admin title="Nova pessoa | Memórias Vivas">
-    <div class="mx-auto max-w-3xl px-6 py-8">
-        <section class="mb-6">
-            <p class="text-sm font-medium text-heritage-700">Catalogação</p>
-            <h2 class="mt-1 text-2xl font-semibold text-stone-950">Nova pessoa</h2>
-            <p class="mt-2 max-w-2xl text-sm leading-6 text-stone-600">
-                Cadastre uma pessoa identificada nos itens do acervo.
-            </p>
-        </section>
+    <div class="mx-auto max-w-3xl px-4 py-8 sm:px-6">
+        <x-admin.page-header
+            class="mb-6"
+            eyebrow="Catalogação"
+            title="Nova pessoa"
+            description="Cadastre uma pessoa identificada nos itens do acervo."
+        />
 
-        <section class="rounded-lg border border-stone-200 bg-white p-6 shadow-sm">
-            <form method="POST" action="{{ route('admin.pessoas.store') }}" class="space-y-6">
+        <x-catalog.section>
+            @if ($errors->any())
+                <x-ui.alert tone="danger" title="Verifique os dados informados." class="mb-5">
+                    <p>Corrija os campos indicados abaixo.</p>
+                </x-ui.alert>
+            @endif
+
+            <form method="POST" action="{{ route('admin.pessoas.store') }}" class="grid gap-5">
                 @csrf
 
-                <div>
-                    <label for="nome" class="block text-sm font-medium text-stone-900">Nome</label>
-                    <input
-                        id="nome"
-                        name="nome"
-                        type="text"
-                        value="{{ old('nome') }}"
-                        required
-                        maxlength="255"
-                        autofocus
-                        class="mt-2 block w-full rounded-md border border-stone-300 px-3 py-2 text-sm text-stone-900 shadow-sm outline-none transition focus:border-institutional focus:ring-2 focus:ring-institutional"
-                    >
-                    @error('nome')
-                        <p class="mt-2 text-sm text-red-700">{{ $message }}</p>
-                    @enderror
+                <div class="grid gap-1.5">
+                    <x-catalog.label for="nome" text="Nome" required>
+                        <x-catalog.control id="nome" name="nome" type="text" :value="old('nome')" required maxlength="255" autofocus error="nome" />
+                    </x-catalog.label>
+                    <x-catalog.error field="nome" as="p" />
                 </div>
 
-                <div>
-                    <label for="observacao" class="block text-sm font-medium text-stone-900">Observação</label>
-                    <textarea
-                        id="observacao"
-                        name="observacao"
-                        rows="5"
-                        class="mt-2 block w-full rounded-md border border-stone-300 px-3 py-2 text-sm text-stone-900 shadow-sm outline-none transition focus:border-institutional focus:ring-2 focus:ring-institutional"
-                    >{{ old('observacao') }}</textarea>
-                    @error('observacao')
-                        <p class="mt-2 text-sm text-red-700">{{ $message }}</p>
-                    @enderror
+                <div class="grid gap-1.5">
+                    <x-catalog.label for="observacao" text="Observação">
+                        <x-catalog.control as="textarea" id="observacao" name="observacao" rows="5" error="observacao">{{ old('observacao') }}</x-catalog.control>
+                    </x-catalog.label>
+                    <x-catalog.error field="observacao" as="p" />
                 </div>
 
-                <div class="flex items-center justify-end gap-3 border-t border-stone-200 pt-6">
-                    <a href="{{ route('admin.pessoas.index') }}" class="rounded-md border border-stone-300 px-4 py-2 text-sm font-medium text-stone-700 transition hover:bg-stone-100 focus:outline-none focus:ring-2 focus:ring-institutional focus:ring-offset-2">Cancelar</a>
-                    <button type="submit" class="rounded-md bg-institutional px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-institutional-strong focus:outline-none focus:ring-2 focus:ring-institutional focus:ring-offset-2">Cadastrar pessoa</button>
+                <div class="flex flex-col-reverse gap-3 border-t border-line pt-5 sm:flex-row sm:justify-end">
+                    <x-catalog.button variant="secondary" :href="route('admin.pessoas.index')">Cancelar</x-catalog.button>
+                    <x-catalog.button type="submit">Cadastrar pessoa</x-catalog.button>
                 </div>
             </form>
-        </section>
+        </x-catalog.section>
     </div>
 </x-layouts.admin>

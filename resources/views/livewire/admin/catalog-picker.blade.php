@@ -52,7 +52,7 @@
             @keydown.escape.prevent="open = false"
             @keydown.tab="open = false"
             placeholder="{{ $definition['search_placeholder'] }}"
-            class="min-h-[2.35rem] w-full rounded-md border border-mist-300 bg-white py-[0.45rem] pr-3 pl-9 text-[0.82rem] text-ink-950 outline-none transition-[border-color,box-shadow] duration-150 focus:border-institutional focus:shadow-[0_0_0_3px_rgb(23_62_99/0.14)]"
+            class="min-h-[2.35rem] w-full rounded-md border border-mist-300 bg-white py-[0.45rem] pr-3 pl-9 text-[0.82rem] text-ink-950 outline-none transition-[border-color,box-shadow] duration-150 focus:border-institutional focus:shadow-focus"
         >
 
         <ul
@@ -61,7 +61,7 @@
             aria-label="Sugestões de {{ mb_strtolower($definition['label']) }}"
             x-show="open"
             x-cloak
-            class="absolute inset-x-0 top-full z-30 mt-1 max-h-72 overflow-y-auto rounded-md border border-mist-200 bg-white p-1 shadow-[0_16px_30px_rgb(24_42_63/0.16)]"
+            class="absolute inset-x-0 top-full z-30 mt-1 max-h-72 overflow-y-auto rounded-md border border-line bg-white p-1 shadow-popover"
         >
             @foreach ($results as $index => $option)
                 <li

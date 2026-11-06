@@ -5,33 +5,21 @@
         aria-modal="true"
         aria-labelledby="confirmation-dialog-title"
         aria-describedby="confirmation-dialog-message"
-        class="fixed inset-0 m-auto w-[min(32rem,calc(100%-2rem))] rounded-lg border border-stone-200 bg-white p-0 text-stone-950 shadow-2xl backdrop:bg-stone-950/60"
+        class="admin-dialog w-[min(32rem,calc(100%-2rem))]"
         @cancel.prevent="cancel()"
         @close="restoreFocus()"
         @click.self="cancel()"
     >
-        <div class="p-6">
-            <h2 id="confirmation-dialog-title" class="text-xl font-semibold" x-text="title"></h2>
-            <p id="confirmation-dialog-message" class="mt-3 text-sm leading-6 text-stone-600" x-text="message"></p>
+        <div class="px-5 pt-5 pb-4">
+            <h2 id="confirmation-dialog-title" class="text-section font-semibold" x-text="title"></h2>
+            <p id="confirmation-dialog-message" class="mt-2 text-sm leading-6 text-fg-muted" x-text="message"></p>
+        </div>
 
-            <div class="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-                <button
-                    x-ref="cancel"
-                    type="button"
-                    class="inline-flex items-center justify-center rounded-md border border-stone-300 px-4 py-2 text-sm font-semibold text-stone-700 transition hover:bg-stone-100 focus:outline-none focus:ring-2 focus:ring-institutional focus:ring-offset-2"
-                    @click="cancel()"
-                >
-                    Cancelar
-                </button>
-                <button
-                    type="button"
-                    class="inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-semibold text-white shadow-sm transition focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
-                    :class="variant === 'danger' ? 'bg-red-700 hover:bg-red-800 focus:ring-red-700' : 'bg-institutional hover:bg-institutional-strong focus:ring-institutional'"
-                    :disabled="submitting"
-                    @click="approve()"
-                    x-text="confirmLabel"
-                ></button>
-            </div>
+        <div class="flex flex-col-reverse gap-2 border-t border-line px-5 py-4 sm:flex-row sm:justify-end">
+            <x-catalog.button variant="secondary" x-ref="cancel" x-on:click="cancel()">Cancelar</x-catalog.button>
+            {{-- A variante vem do formulário (data-confirm-variant): vermelho cheio para destruir, primário para o resto. --}}
+            <x-catalog.button variant="danger-solid" x-show="variant === 'danger'" x-bind:disabled="submitting" x-on:click="approve()" x-text="confirmLabel" />
+            <x-catalog.button x-show="variant !== 'danger'" x-bind:disabled="submitting" x-on:click="approve()" x-text="confirmLabel" />
         </div>
     </dialog>
 </div>

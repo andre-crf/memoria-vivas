@@ -14,6 +14,7 @@ export const e2eEnvironment = {
     APP_URL: 'http://127.0.0.1:8011',
     APP_DEBUG: 'true',
     APP_DISPLAY_TIMEZONE: 'America/Sao_Paulo',
+    APP_LOCALE: 'pt_BR',
     BCRYPT_ROUNDS: '4',
     CACHE_STORE: 'array',
     DB_CONNECTION: 'sqlite',

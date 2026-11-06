@@ -1,122 +1,53 @@
 <x-layouts.admin title="Editar autor | Memórias Vivas">
+    <div class="mx-auto max-w-3xl px-4 py-8 sm:px-6">
+        <x-admin.page-header
+            class="mb-6"
+            eyebrow="Catalogação"
+            title="Editar autor"
+            description="Atualize os dados do autor."
+        />
 
-    <div class="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:px-8">
-        <div>
-            <p class="text-sm font-medium text-heritage-700">Catalogação</p>
+        <x-catalog.section>
+            @if ($errors->any())
+                <x-ui.alert tone="danger" title="Verifique os dados informados." class="mb-5">
+                    <p>Corrija os campos indicados abaixo.</p>
+                </x-ui.alert>
+            @endif
 
-            <h2 class="mt-1 text-2xl font-semibold text-stone-950">
-                Editar autor
-            </h2>
+            <form method="POST" action="{{ route('admin.autores.update', $autor) }}" class="grid gap-5">
+                @csrf
+                @method('PUT')
 
-            <p class="mt-2 text-sm leading-6 text-stone-600">
-                Atualize os dados do autor.
-            </p>
-        </div>
+                <div class="grid gap-1.5">
+                    <x-catalog.label for="nome" text="Nome" required>
+                        <x-catalog.control id="nome" name="nome" type="text" :value="old('nome', $autor->nome)" required maxlength="255" error="nome" />
+                    </x-catalog.label>
+                    <x-catalog.error field="nome" as="p" />
+                </div>
 
-        @if ($errors->any())
-            <div class="mt-6 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
-                <p class="font-medium">
-                    Verifique os dados informados.
-                </p>
+                <div class="grid gap-1.5">
+                    <x-catalog.label for="tipo" text="Tipo" required>
+                        <x-catalog.control as="select" id="tipo" name="tipo" required error="tipo">
+                            <option value="">Selecione</option>
+                            <option value="pessoa" @selected(old('tipo', $autor->tipo) === 'pessoa')>Pessoa</option>
+                            <option value="instituicao" @selected(old('tipo', $autor->tipo) === 'instituicao')>Instituição</option>
+                        </x-catalog.control>
+                    </x-catalog.label>
+                    <x-catalog.error field="tipo" as="p" />
+                </div>
 
-                <ul class="mt-2 list-disc pl-5">
-                    @foreach ($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
-            </div>
-        @endif
+                <div class="grid gap-1.5">
+                    <x-catalog.label for="observacao" text="Observação">
+                        <x-catalog.control as="textarea" id="observacao" name="observacao" rows="4" error="observacao">{{ old('observacao', $autor->observacao) }}</x-catalog.control>
+                    </x-catalog.label>
+                    <x-catalog.error field="observacao" as="p" />
+                </div>
 
-        <form
-            method="POST"
-            action="{{ route('admin.autores.update', $autor) }}"
-            class="mt-6 space-y-6 rounded-lg border border-stone-200 bg-white p-6 shadow-[0_18px_40px_rgb(28_25_23/0.05)]"
-        >
-            @csrf
-            @method('PUT')
-
-            <div>
-                <label
-                    for="nome"
-                    class="block text-sm font-medium text-stone-700"
-                >
-                    Nome
-                </label>
-
-                <input
-                    id="nome"
-                    name="nome"
-                    type="text"
-                    value="{{ old('nome', $autor->nome) }}"
-                    required
-                    maxlength="255"
-                    class="mt-2 block w-full rounded-md border border-stone-300 px-3 py-2 text-sm text-stone-900 shadow-sm outline-none transition focus:border-institutional focus:ring-2 focus:ring-institutional"
-                >
-            </div>
-
-            <div>
-                <label
-                    for="tipo"
-                    class="block text-sm font-medium text-stone-700"
-                >
-                    Tipo
-                </label>
-
-                <select
-                    id="tipo"
-                    name="tipo"
-                    required
-                    class="mt-2 block w-full rounded-md border border-stone-300 px-3 py-2 text-sm text-stone-900 shadow-sm outline-none transition focus:border-institutional focus:ring-2 focus:ring-institutional"
-                >
-                    <option value="">Selecione</option>
-
-                    <option
-                        value="pessoa"
-                        @selected(old('tipo', $autor->tipo) === 'pessoa')
-                    >
-                        Pessoa
-                    </option>
-
-                    <option
-                        value="instituicao"
-                        @selected(old('tipo', $autor->tipo) === 'instituicao')
-                    >
-                        Instituição
-                    </option>
-                </select>
-            </div>
-
-            <div>
-                <label
-                    for="observacao"
-                    class="block text-sm font-medium text-stone-700"
-                >
-                    Observação
-                </label>
-
-                <textarea
-                    id="observacao"
-                    name="observacao"
-                    rows="4"
-                    class="mt-2 block w-full rounded-md border border-stone-300 px-3 py-2 text-sm text-stone-900 shadow-sm outline-none transition focus:border-institutional focus:ring-2 focus:ring-institutional"
-                >{{ old('observacao', $autor->observacao) }}</textarea>
-            </div>
-
-            <div class="flex items-center justify-end gap-3 border-t border-stone-200 pt-6">
-                <a
-                    href="{{ route('admin.autores.index') }}"
-                    class="rounded-md border border-stone-300 px-4 py-2 text-sm font-medium text-stone-700 hover:bg-stone-50"
-                >
-                    Cancelar
-                </a>
-
-                <button
-                    type="submit"
-                    class="rounded-md bg-institutional px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-institutional-strong focus:outline-none focus:ring-2 focus:ring-institutional focus:ring-offset-2"
-                >
-                    Salvar alterações
-                </button>
-            </div>
-        </form>
+                <div class="flex flex-col-reverse gap-3 border-t border-line pt-5 sm:flex-row sm:justify-end">
+                    <x-catalog.button variant="secondary" :href="route('admin.autores.index')">Cancelar</x-catalog.button>
+                    <x-catalog.button type="submit">Salvar alterações</x-catalog.button>
+                </div>
+            </form>
+        </x-catalog.section>
     </div>
 </x-layouts.admin>

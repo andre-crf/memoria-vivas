@@ -131,6 +131,6 @@ class AdminAutorListingTest extends TestCase
             ->actingAs($this->usuarioInterno())
             ->get(route('admin.autores.index'))
             ->assertOk()
-            ->assertSee('Nenhum autor cadastrado.');
+            ->assertSee('Nenhum autor cadastrado');
     }
 }

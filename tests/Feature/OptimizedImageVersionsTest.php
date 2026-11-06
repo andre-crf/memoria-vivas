@@ -296,14 +296,26 @@ class OptimizedImageVersionsTest extends TestCase
         $tiff->setImageFormat('tiff');
         $bytes = $tiff->getImageBlob();
         $tiff->clear();
+        unset($tiff);
 
         [$item, $original] = $this->itemWithOriginal($bytes, 'image/tiff', 5000, 3500);
-        $originalBytes = Storage::disk('local')->get($original->storage_path);
+
+        // Integridade do original por tamanho e SHA-256 lidos do disco (hash_file lê em partes). Comparar o
+        // conteúdo inteiro mantinha três cópias de ~52 MB na memória do PHP ao mesmo tempo, além do limite.
+        $tamanhoOriginal = strlen($bytes);
+        $sha256Original = hash('sha256', $bytes);
+        unset($bytes);
+        $caminhoOriginal = Storage::disk('local')->path($original->storage_path);
+        $this->assertSame($tamanhoOriginal, filesize($caminhoOriginal));
+        $this->assertSame($sha256Original, hash_file('sha256', $caminhoOriginal));
 
         $result = $this->generate($item, $original);
 
         $this->assertSame([], $result->failedVersions);
-        $this->assertSame($originalBytes, Storage::disk('local')->get($original->storage_path));
+        clearstatcache(true, $caminhoOriginal);
+        $this->assertSame($tamanhoOriginal, filesize($caminhoOriginal));
+        $this->assertSame($sha256Original, hash_file('sha256', $caminhoOriginal));
+        $this->assertSame($sha256Original, $original->fresh()->sha256);
         $this->assertSame([1920, 1344], [$this->derivatives($item)['large']->width, $this->derivatives($item)['large']->height]);
         $this->assertLessThanOrEqual(128 * 1024 * 1024, Imagick::getResourceLimit(Imagick::RESOURCETYPE_MEMORY));
         $this->assertLessThanOrEqual(256 * 1024 * 1024, Imagick::getResourceLimit(Imagick::RESOURCETYPE_MAP));

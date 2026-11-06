@@ -62,6 +62,42 @@
     --color-error-ink: #6e332b;
     --color-danger: #b42318;
     --color-warning: #9a6700;
+
+    /*
+     * Tons de estado para badges e alertas (x-ui.badge, x-ui.alert). O texto escuro de cada tom passa de
+     * 4,5:1 sobre o fundo suave correspondente; "warning-ink" existe porque o warning acima fica abaixo disso.
+     */
+    --color-success: #2d6a4f;
+    --color-success-soft: #ebf4ee;
+    --color-warning-ink: #7a5200;
+    --color-warning-soft: #fbf4e1;
+
+    /*
+     * Aliases semânticos (Design System). Apontam para os tokens acima e nomeiam o papel da cor
+     * nos componentes: texto, borda e superfície. A cor da marca continua sendo "institutional";
+     * perigo continua sendo "danger" (texto) e "error-soft" (fundo). Os tokens de escala seguem
+     * válidos; o Style Guide (/admin/_style-guide) mostra qual usar em cada caso.
+     */
+    --color-fg: var(--color-ink-950);
+    --color-fg-muted: var(--color-ink-600);
+    --color-fg-subtle: var(--color-ink-500);
+    --color-line: var(--color-mist-200);
+    --color-line-strong: var(--color-mist-300);
+    --color-surface-muted: var(--color-mist-50);
+
+    /* Escala tipográfica da interface administrativa (valores já usados pelos componentes x-catalog.*). */
+    --text-caption: 0.72rem;
+    --text-caption--line-height: 1.4;
+    --text-label: 0.78rem;
+    --text-ui: 0.8rem;
+    --text-section: 1.05rem;
+    --text-section--line-height: 1.3;
+
+    /* Sombras recorrentes: blocos, menus suspensos, diálogos e o anel de foco dos campos. */
+    --shadow-card: 0 10px 28px rgb(24 42 63 / 0.045);
+    --shadow-popover: 0 16px 30px rgb(24 42 63 / 0.18);
+    --shadow-modal: 0 24px 64px rgb(15 23 42 / 0.28);
+    --shadow-focus: 0 0 0 3px rgb(23 62 99 / 0.14);
 }
 
 /* Gradiente de várias camadas do fundo do admin: ilegível como classe arbitrária. */
@@ -93,6 +129,11 @@
         overflow-wrap: normal;
     }
 
+    /* Links e botões dentro de .truncate (ex.: título da linha da tabela) herdam o nowrap: sem isso, a regra acima de button/a quebrava a linha e as reticências nunca apareciam. */
+    .admin-main :where(.truncate a, .truncate button) {
+        white-space: inherit;
+    }
+
     .admin-main :where(table) {
         table-layout: auto;
     }
@@ -105,10 +146,93 @@
         scrollbar-width: thin;
     }
 
+    /*
+     * Cabeçalhos e células das tabelas do x-admin.table. Fica no CSS, e não num componente de <th>,
+     * porque vale também para o x-admin.coluna-ordenavel. O :where() não soma especificidade:
+     * uma classe na própria célula (text-right, whitespace-nowrap, max-w-*) sempre prevalece.
+     */
+    .admin-table :where(thead) {
+        @apply bg-surface-muted;
+    }
+
+    /*
+     * Nas tabelas, palavras não são partidas: com o overflow-wrap:anywhere do .admin-main, o navegador
+     * espremia as colunas de texto até uma letra por linha no celular. O excesso vai para a rolagem do contêiner.
+     */
+    .admin-table :where(th, td, th *, td *) {
+        overflow-wrap: normal;
+    }
+
+    .admin-table :where(thead th) {
+        @apply px-5 py-3 text-left text-xs font-semibold tracking-[0.12em] text-ink-600 uppercase;
+    }
+
+    .admin-table :where(tbody td) {
+        @apply px-5 py-4;
+    }
+
+    .admin-table :where(tbody tr + tr) {
+        @apply border-t border-line;
+    }
+
+    .admin-table :where(tbody tr:hover) {
+        @apply bg-surface-muted;
+    }
+
+    /*
+     * Casca dos <dialog> do admin (confirmação, substituição do original, cadastro rápido). É uma classe, e não
+     * um componente, porque cada diálogo tem atributos próprios de Alpine e Livewire no próprio <dialog>.
+     * A largura fica em cada um (w-[min(…)]): o conteúdo de cada diálogo pede uma.
+     */
+    .admin-dialog {
+        @apply fixed top-1/2 left-1/2 m-0 box-border max-h-[calc(100dvh-2rem)] -translate-x-1/2 -translate-y-1/2 rounded-lg border border-line bg-white p-0 text-fg shadow-modal;
+    }
+
+    .admin-dialog::backdrop {
+        background-color: rgb(15 23 42 / 0.55);
+    }
+
+    /* Menus suspensos do admin: menu do usuário e ações do arquivo da fotografia. */
+    .admin-menu {
+        @apply rounded-md border border-line bg-white p-1.5 text-fg shadow-popover;
+    }
+
+    .admin-menu-item {
+        @apply flex min-h-10 w-full cursor-pointer items-center gap-2.5 rounded px-3 text-left text-[0.8125rem] font-semibold text-ink-700 hover:bg-institutional-soft hover:text-institutional focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-institutional aria-[current=page]:bg-institutional-soft aria-[current=page]:text-institutional disabled:cursor-not-allowed disabled:bg-transparent disabled:text-ink-500;
+    }
+
+    /*
+     * Referência de foco (focus-visible):
+     * - Admin: "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-institutional"
+     *   em botões e links; campos usam "focus:border-institutional focus:shadow-focus".
+     * - Público: a regra abaixo, com contorno de 3px, vale para toda a área.
+     * Os "focus:ring-*" das telas antigas continuam até a migração de cada tela.
+     */
     /* Foco por teclado de todos os links, botões e campos da área pública. */
-    .public-shell :where(a, button, summary, input):focus-visible {
+    .public-shell :where(a, button, summary, input, select, textarea):focus-visible {
         outline: 3px solid var(--color-institutional);
         outline-offset: 3px;
+    }
+
+    /*
+     * Campos dos formulários públicos (colaboração e download). Maiores e mais espaçados que os do admin
+     * (x-catalog.control), na linguagem editorial do site; o foco é o da regra acima.
+     */
+    .public-label {
+        @apply text-[0.85rem] font-bold text-ink-850;
+    }
+
+    /* Asterisco de obrigatório: decorativo (aria-hidden); o campo leva required e a legenda explica o sinal. */
+    .public-required {
+        @apply text-error;
+    }
+
+    .public-control {
+        @apply w-full min-w-0 rounded border border-mist-400 bg-white px-4 py-3 text-[0.92rem] text-institutional aria-invalid:border-error-strong disabled:cursor-not-allowed disabled:bg-mist-100 disabled:text-ink-500;
+    }
+
+    .public-field-error {
+        @apply text-[0.82rem] leading-[1.5] text-error-strong;
     }
 
     /* Esconde elementos do Alpine até a inicialização. */

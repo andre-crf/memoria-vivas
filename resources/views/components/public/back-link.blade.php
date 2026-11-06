@@ -1,1 +1,2 @@
-<a {{ $attributes->class('inline-flex text-[0.82rem] font-bold text-institutional focus-visible:outline-institutional/45') }}>{{ $slot }}</a>
+{{-- Retorno à página anterior do percurso (ex.: da página de download para a fotografia). O foco é o da área pública. --}}
+<a {{ $attributes->class('group inline-flex items-center gap-1.5 text-[0.85rem] font-semibold text-institutional') }}><span aria-hidden="true">&larr;</span><span class="underline decoration-mist-500 underline-offset-4 group-hover:decoration-institutional">{{ $slot }}</span></a>
