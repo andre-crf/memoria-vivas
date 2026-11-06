@@ -30,8 +30,9 @@
                         <p class="mx-auto mt-2 max-w-md text-sm leading-6 text-stone-600">Quando houver palavras-chave cadastradas, elas aparecerão nesta listagem.</p>
                     </div>
                 @else
+                    <x-admin.aviso-rolagem-tabela />
                     <div class="overflow-x-auto">
-                        <table class="min-w-full divide-y divide-stone-200">
+                        <table class="min-w-[42rem] w-full divide-y divide-stone-200">
                             <thead class="bg-stone-100">
                                 <tr>
                                     <x-admin.coluna-ordenavel rotulo="Termo" chave="termo" :ordenacao="$ordenacao" :action="route('admin.palavras-chave.index')" :parametros="$parametros" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-[0.12em] text-stone-600" />
@@ -42,7 +43,7 @@
                             <tbody class="divide-y divide-stone-200 bg-white">
                                 @foreach ($palavrasChave as $palavraChave)
                                     <tr id="palavra-chave-{{ $palavraChave->id }}" class="relative hover:bg-stone-50">
-                                        <td class="max-w-lg px-5 py-4">
+                                        <td class="min-w-56 max-w-lg px-5 py-4">
                                             <p class="truncate text-sm font-semibold text-stone-950"><x-admin.link-linha :href="route('admin.palavras-chave.edit', $palavraChave)">{{ $palavraChave->termo }}</x-admin.link-linha></p>
                                             <p class="mt-1 text-xs text-stone-500">#{{ $palavraChave->id }}</p>
                                         </td>

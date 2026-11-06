@@ -47,12 +47,13 @@
                     </p>
                 </div>
             @else
+                <x-admin.aviso-rolagem-tabela />
                 <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-stone-200">
+                    <table class="min-w-[72rem] w-full divide-y divide-stone-200">
                         <thead class="bg-stone-100">
                             <tr>
                                 <th scope="col" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-[0.12em] text-stone-600">Imagem</th>
-                                <x-admin.coluna-ordenavel rotulo="Título" chave="titulo" :ordenacao="$ordenacao" :action="route('admin.fotografias.trashed')" :parametros="$filtros->parametros()" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-[0.12em] text-stone-600" />
+                                <x-admin.coluna-ordenavel rotulo="Título" chave="titulo" :ordenacao="$ordenacao" :action="route('admin.fotografias.trashed')" :parametros="$filtros->parametros()" class="min-w-64 whitespace-nowrap px-5 py-3 text-left text-xs font-semibold uppercase tracking-[0.12em] text-stone-600" />
                                 <x-admin.coluna-ordenavel rotulo="Data" chave="data" :ordenacao="$ordenacao" :action="route('admin.fotografias.trashed')" :parametros="$filtros->parametros()" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-[0.12em] text-stone-600" />
                                 <x-admin.coluna-ordenavel rotulo="Status" chave="status" :ordenacao="$ordenacao" :action="route('admin.fotografias.trashed')" :parametros="$filtros->parametros()" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-[0.12em] text-stone-600" />
                                 <x-admin.coluna-ordenavel rotulo="Visibilidade" chave="visibilidade" :ordenacao="$ordenacao" :action="route('admin.fotografias.trashed')" :parametros="$filtros->parametros()" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-[0.12em] text-stone-600" />
@@ -80,7 +81,7 @@
                                             </div>
                                         @endif
                                     </td>
-                                    <td class="max-w-md px-5 py-4">
+                                    <td class="min-w-64 max-w-md px-5 py-4">
                                         <p class="truncate text-sm font-semibold text-stone-950" title="{{ $fotografia->titulo }}">{{ $fotografia->titulo }}</p>
                                         <p class="mt-1 text-xs text-stone-500">#{{ $fotografia->id }}</p>
                                     </td>

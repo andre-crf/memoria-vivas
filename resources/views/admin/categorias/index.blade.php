@@ -48,8 +48,9 @@
                         </p>
                     </div>
                 @else
+                    <x-admin.aviso-rolagem-tabela />
                     <div class="overflow-x-auto">
-                        <table class="min-w-full divide-y divide-stone-200">
+                        <table class="min-w-[60rem] w-full divide-y divide-stone-200">
                             <thead class="bg-stone-100">
                                 <tr>
                                     <x-admin.coluna-ordenavel rotulo="Título" chave="titulo" :ordenacao="$ordenacao" :action="route('admin.categorias.index')" :parametros="$parametros" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-[0.12em] text-stone-600" />
@@ -78,7 +79,7 @@
                                         id="categoria-{{ $categoria->id }}"
                                         class="relative hover:bg-stone-50"
                                     >
-                                        <td class="max-w-sm px-5 py-4">
+                                        <td class="min-w-56 max-w-sm px-5 py-4">
                                             <p class="truncate text-sm font-semibold text-stone-950">
                                                 <x-admin.link-linha :href="route('admin.categorias.edit', $categoria)">{{ $categoria->titulo }}</x-admin.link-linha>
                                             </p>
@@ -88,7 +89,7 @@
                                             </p>
                                         </td>
 
-                                        <td class="max-w-lg px-5 py-4">
+                                        <td class="min-w-64 max-w-lg px-5 py-4">
                                             <p class="text-sm text-stone-700">
                                                 {{ $categoria->descricao ?: 'Sem descrição' }}
                                             </p>
