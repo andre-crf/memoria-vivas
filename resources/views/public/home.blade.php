@@ -42,8 +42,8 @@
                 <x-public.heading class="max-w-[42rem] {{ $h2 }}">Histórias que permanecem acessíveis</x-public.heading>
             </div>
             <div class="grid max-w-160 gap-4 text-[1rem] leading-[1.75] text-ink-600">
-                <p>A área pública está sendo preparada para apresentar fotografias e documentos catalogados, com contexto e informações que ajudam a reconhecer cada registro.</p>
-                <p>Os conteúdos serão disponibilizados conforme as etapas de organização e revisão do acervo forem concluídas.</p>
+                <p>Consulte as fotografias publicadas com informações sobre datas, lugares, pessoas e acontecimentos que ajudam a reconhecer cada registro.</p>
+                <p>O catálogo cresce conforme novos registros são organizados e revisados pela equipe do projeto.</p>
             </div>
         </x-public.container>
     </x-public.section>
@@ -88,7 +88,7 @@
                         <button type="button" class="left-4 md:left-0 {{ $carouselControl }}" data-carousel-prev aria-label="Fotografia anterior">&larr;</button>
                     @endif
                     <div class="overflow-hidden">
-                        <div class="flex transition-transform duration-220 ease-[ease]" data-carousel-track>
+                        <div class="flex transition-transform duration-220 ease-[ease] motion-reduce:transition-none" data-carousel-track>
                             @foreach ($fotografias as $fotografia)
                                 @php($imagem = $fotografia->imagemAdministrativa(['medium', 'thumbnail', 'large']))
                                 <article

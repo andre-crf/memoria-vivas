@@ -91,6 +91,24 @@ test('public carousel keeps only the visible photograph interactive', async ({ p
     await page.keyboard.press('ArrowRight');
     await expect(slides.nth(2)).toHaveAttribute('aria-hidden', 'false');
     await expect(secondSlide).toHaveAttribute('inert', '');
+
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await expect(carousel.locator('[data-carousel-track]')).toHaveCSS('transition-property', 'none');
+});
+
+test('root and footer lead to the public home, catalog and full project page', async ({ page }) => {
+    await page.goto('/');
+    await expect(page.getByRole('heading', { level: 1, name: 'Memórias Vivas de Umuarama' })).toBeVisible();
+    await expect(page.getByText('O catálogo cresce conforme novos registros são organizados')).toBeVisible();
+
+    const footer = page.getByRole('contentinfo');
+    await footer.getByRole('link', { name: 'Sobre o projeto' }).click();
+    await expect(page).toHaveURL(/\/sobre$/);
+    await expect(page.getByRole('heading', { level: 1, name: 'Umuarama também se conta pelas suas memórias.' })).toBeVisible();
+
+    await page.getByRole('banner').getByRole('link', { name: 'Catálogo' }).click();
+    await expect(page).toHaveURL(/\/catalogo$/);
+    await expect(page.getByRole('heading', { level: 1, name: 'Explore o acervo' })).toBeVisible();
 });
 
 test('unknown pages offer a clear route back into the public area', async ({ page }) => {
@@ -100,6 +118,20 @@ test('unknown pages offer a clear route back into the public area', async ({ pag
     await expect(page.getByRole('heading', { name: 'Esta página não foi encontrada' })).toBeVisible();
     await expect(page.getByRole('link', { name: 'Ir para o início' })).toHaveAttribute('href', /^https?:\/\/[^/]+\/?$/);
     await expect(page.getByRole('link', { name: 'Abrir o catálogo' })).toHaveAttribute('href', /\/catalogo$/);
+});
+
+test('public pages fit narrow, mobile, tablet and desktop viewports', async ({ page }) => {
+    const pages = ['/', '/catalogo', '/fotografias/1', '/sobre', '/colaborar', '/contato'];
+
+    for (const width of [320, 390, 768, 1280]) {
+        await page.setViewportSize({ width, height: 844 });
+        for (const path of pages) {
+            await page.goto(path);
+            await page.evaluate(() => document.fonts.ready);
+            const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+            expect(overflow, `${path} at ${width}px`).toBeLessThanOrEqual(1);
+        }
+    }
 });
 
 test.describe('catálogo', () => {

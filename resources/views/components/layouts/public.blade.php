@@ -112,7 +112,7 @@
                         class="text-[0.85rem] leading-normal {{ $footerLink }}">Início</a>
                     <a href="{{ route('public.catalogo') }}"
                         class="text-[0.85rem] leading-normal {{ $footerLink }}">Catálogo de fotografias</a>
-                    <a href="{{ route('public.home') }}#sobre"
+                    <a href="{{ route('public.sobre') }}"
                         class="text-[0.85rem] leading-normal {{ $footerLink }}">Sobre o projeto</a>
                 </nav>
                 <div>
