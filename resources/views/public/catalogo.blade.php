@@ -53,7 +53,7 @@
                                 <span class="sr-only">(remover filtro)</span>
                             </a>
                         @endforeach
-                        <a href="{{ route('public.catalogo', $filtros->parametrosDaPesquisa()) }}" class="ml-1 text-[0.8rem] font-semibold text-institutional underline decoration-mist-500 underline-offset-4 hover:decoration-institutional">Limpar todos</a>
+                        <x-public.text-link :href="route('public.catalogo', $filtros->parametrosDaPesquisa())" class="ml-1">Limpar todos</x-public.text-link>
                     </div>
                 @endif
 
@@ -149,7 +149,7 @@
                     @if ($filtros->termo !== '')
                         <p>
                             <span>Resultados para “{{ $filtros->termo }}”.</span>
-                            <a href="{{ $semParametro('q') }}" class="ml-1 font-semibold text-institutional underline decoration-mist-500 underline-offset-4 hover:decoration-institutional">Limpar pesquisa</a>
+                            <x-public.text-link :href="$semParametro('q')" class="ml-1">Limpar pesquisa</x-public.text-link>
                         </p>
                     @endif
                 </div>
