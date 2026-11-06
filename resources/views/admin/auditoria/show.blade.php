@@ -35,8 +35,9 @@
                             </p>
                         </div>
                     @else
+                        <x-admin.aviso-rolagem-tabela />
                         <div class="overflow-x-auto">
-                            <table class="min-w-full divide-y divide-stone-200">
+                            <table class="min-w-[44rem] w-full divide-y divide-stone-200">
                                 <thead class="bg-stone-100">
                                     <tr>
                                         <th scope="col" class="min-w-48 px-5 py-3 text-left text-xs font-semibold uppercase tracking-[0.12em] text-stone-600">Campo</th>

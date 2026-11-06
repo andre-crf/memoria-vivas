@@ -44,8 +44,9 @@
             </div>
         @else
             <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-[0_18px_40px_rgb(28_25_23/0.05)]">
+                <x-admin.aviso-rolagem-tabela />
                 <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-stone-200">
+                    <table class="min-w-[52rem] w-full divide-y divide-stone-200">
                         <thead class="bg-stone-50">
                             <tr>
                                 <x-admin.coluna-ordenavel rotulo="Nome" chave="nome" :ordenacao="$ordenacao" :action="route('admin.autores.index')" :parametros="$parametros" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wide text-stone-500" />
@@ -63,7 +64,7 @@
                         <tbody class="divide-y divide-stone-200">
                             @foreach ($autores as $autor)
                                 <tr class="relative hover:bg-stone-50">
-                                    <td class="px-6 py-4 text-sm font-medium text-stone-900">
+                                    <td class="min-w-56 px-6 py-4 text-sm font-medium text-stone-900">
                                         <x-admin.link-linha :href="route('admin.autores.edit', $autor)">{{ $autor->nome }}</x-admin.link-linha>
                                     </td>
 

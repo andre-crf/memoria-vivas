@@ -30,8 +30,9 @@
                         <p class="mx-auto mt-2 max-w-md text-sm leading-6 text-stone-600">Quando houver assuntos cadastrados, eles aparecerão nesta listagem.</p>
                     </div>
                 @else
+                    <x-admin.aviso-rolagem-tabela />
                     <div class="overflow-x-auto">
-                        <table class="min-w-full divide-y divide-stone-200">
+                        <table class="min-w-[60rem] w-full divide-y divide-stone-200">
                             <thead class="bg-stone-100">
                                 <tr>
                                     <x-admin.coluna-ordenavel rotulo="Título" chave="titulo" :ordenacao="$ordenacao" :action="route('admin.assuntos.index')" :parametros="$parametros" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-[0.12em] text-stone-600" />
@@ -43,11 +44,11 @@
                             <tbody class="divide-y divide-stone-200 bg-white">
                                 @foreach ($assuntos as $assunto)
                                     <tr id="assunto-{{ $assunto->id }}" class="relative hover:bg-stone-50">
-                                        <td class="max-w-sm px-5 py-4">
+                                        <td class="min-w-56 max-w-sm px-5 py-4">
                                             <p class="truncate text-sm font-semibold text-stone-950"><x-admin.link-linha :href="route('admin.assuntos.edit', $assunto)">{{ $assunto->titulo }}</x-admin.link-linha></p>
                                             <p class="mt-1 text-xs text-stone-500">#{{ $assunto->id }}</p>
                                         </td>
-                                        <td class="max-w-lg px-5 py-4"><p class="text-sm text-stone-700">{{ $assunto->descricao ?: 'Sem descrição' }}</p></td>
+                                        <td class="min-w-64 max-w-lg px-5 py-4"><p class="text-sm text-stone-700">{{ $assunto->descricao ?: 'Sem descrição' }}</p></td>
                                         <td class="whitespace-nowrap px-5 py-4"><span class="inline-flex rounded-full bg-heritage-100 px-2.5 py-1 text-xs font-medium text-heritage-900">{{ $assunto->itens_acervo_count }}</span></td>
                                         <td class="px-5 py-4">
                                             <div class="relative z-10 flex justify-end gap-2">

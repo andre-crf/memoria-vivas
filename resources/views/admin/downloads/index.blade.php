@@ -162,10 +162,12 @@
                     <a href="{{ route('admin.downloads.export', array_filter($filtros)) }}" class="inline-flex min-h-9 items-center rounded-md border border-institutional px-3 text-xs font-bold text-institutional hover:bg-institutional-soft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-institutional">Exportar CSV</a>
                 </div>
             </div>
-        <div class="mt-4 overflow-x-auto rounded-md border border-stone-200 bg-white">
+        <div class="mt-4 overflow-hidden rounded-md border border-stone-200 bg-white">
             @if ($registros->isEmpty())
                 <p class="px-6 py-12 text-center text-sm text-stone-600">Nenhum download encontrado{{ $filtros['q'] || $filtros['de'] || $filtros['ate'] ? ' para os filtros selecionados' : ' ainda' }}.</p>
             @else
+                <x-admin.aviso-rolagem-tabela />
+                <div class="overflow-x-auto">
                 <table class="min-w-[65rem] w-full divide-y divide-stone-200 text-left text-sm">
                     <thead class="bg-stone-50 text-xs font-semibold uppercase tracking-wide text-stone-600">
                         <tr>
@@ -181,7 +183,7 @@
                         @foreach ($registros as $registro)
                             <tr class="align-top hover:bg-stone-50">
                                 <td class="whitespace-nowrap px-5 py-4 text-stone-700"><x-data-hora :valor="$registro->created_at" formato="curto" /></td>
-                                <td class="max-w-64 px-5 py-4">
+                                <td class="min-w-56 max-w-64 px-5 py-4">
                                     @if ($registro->itemAcervo && ! $registro->itemAcervo->trashed())
                                         <a href="{{ route('admin.fotografias.show', $registro->itemAcervo) }}" class="font-semibold text-institutional underline underline-offset-2">{{ $registro->itemAcervo->titulo }}</a>
                                     @else
@@ -209,6 +211,7 @@
                         @endforeach
                     </tbody>
                 </table>
+                </div>
             @endif
         </div>
         <div class="mt-6">{{ $registros->links() }}</div>

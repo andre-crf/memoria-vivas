@@ -29,8 +29,9 @@
                     <p class="mx-auto mt-2 max-w-md text-sm leading-6 text-stone-600">Quando houver usuários cadastrados, eles aparecerão nesta listagem.</p>
                 </div>
             @else
+                <x-admin.aviso-rolagem-tabela />
                 <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-stone-200">
+                    <table class="min-w-[56rem] w-full divide-y divide-stone-200">
                         <thead class="bg-stone-100">
                             <tr>
                                 <x-admin.coluna-ordenavel rotulo="Nome" chave="nome" :ordenacao="$ordenacao" :action="route('admin.usuarios.index')" :parametros="$parametros" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-[0.12em] text-stone-600" />
@@ -43,7 +44,7 @@
                         <tbody class="divide-y divide-stone-200 bg-white">
                             @foreach ($usuarios as $usuario)
                                 <tr id="usuario-{{ $usuario->id }}" class="relative hover:bg-stone-50">
-                                    <td class="max-w-sm px-5 py-4">
+                                    <td class="min-w-56 max-w-sm px-5 py-4">
                                         <p class="truncate text-sm font-semibold text-stone-950"><x-admin.link-linha :href="route('admin.usuarios.edit', $usuario)">{{ $usuario->nome }}</x-admin.link-linha></p>
                                         <p class="mt-1 text-xs text-stone-500">#{{ $usuario->id }}</p>
                                     </td>

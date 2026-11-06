@@ -88,8 +88,9 @@
                 <p class="mx-auto mt-2 max-w-md text-sm leading-6 text-stone-600">Ajuste ou remova os filtros para ampliar os resultados da consulta.</p>
             </div>
         @else
+            <x-admin.aviso-rolagem-tabela />
             <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-stone-200">
+                <table class="min-w-[52rem] w-full divide-y divide-stone-200">
                     <thead class="bg-stone-100">
                         <tr>
                             <th scope="col" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-[0.12em] text-stone-600">Data e hora</th>

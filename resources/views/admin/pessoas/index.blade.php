@@ -39,8 +39,9 @@
                     </p>
                 </div>
             @else
+                <x-admin.aviso-rolagem-tabela />
                 <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-stone-200">
+                    <table class="min-w-[60rem] w-full divide-y divide-stone-200">
                         <thead class="bg-stone-100">
                             <tr>
                                 <x-admin.coluna-ordenavel rotulo="Nome" chave="nome" :ordenacao="$ordenacao" :action="route('admin.pessoas.index')" :parametros="$parametros" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-[0.12em] text-stone-600" />
@@ -53,12 +54,12 @@
                         <tbody class="divide-y divide-stone-200 bg-white">
                             @foreach ($pessoas as $pessoa)
                                 <tr id="pessoa-{{ $pessoa->id }}" class="relative hover:bg-stone-50">
-                                    <td class="max-w-sm px-5 py-4">
+                                    <td class="min-w-56 max-w-sm px-5 py-4">
                                         <p class="truncate text-sm font-semibold text-stone-950"><x-admin.link-linha :href="route('admin.pessoas.edit', $pessoa)">{{ $pessoa->nome }}</x-admin.link-linha></p>
                                         <p class="mt-1 text-xs text-stone-500">#{{ $pessoa->id }}</p>
                                     </td>
 
-                                    <td class="max-w-lg px-5 py-4">
+                                    <td class="min-w-64 max-w-lg px-5 py-4">
                                         <p class="text-sm text-stone-700">{{ $pessoa->observacao ?: 'Sem observação' }}</p>
                                     </td>
 
