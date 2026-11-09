@@ -4,7 +4,10 @@ namespace App\Http\Controllers\Publico;
 
 use App\Http\Controllers\Controller;
 use App\Models\Arquivo;
+use App\Models\Estado;
 use App\Models\MotivoDownload;
+use App\Models\Municipio;
+use App\Models\Pais;
 use App\Models\PerfilDownload;
 use App\Models\RegistroDownload;
 use App\Queries\Publico\ConsultaFotografiasPublicas;
@@ -29,6 +32,17 @@ class DownloadFotografiaController extends Controller
             'imagem' => $this->imagemParaDownload($item->arquivos),
             'motivos' => MotivoDownload::query()->where('ativo', true)->orderBy('titulo')->get(['id', 'titulo']),
             'perfis' => PerfilDownload::query()->where('ativo', true)->orderBy('titulo')->get(['id', 'titulo']),
+            // Brasil primeiro; os demais em ordem alfabética.
+            'paises' => Pais::query()
+                ->where('ativo', true)
+                ->orderByRaw("CASE WHEN codigo = 'BR' THEN 0 ELSE 1 END")
+                ->orderBy('nome')
+                ->get(['id', 'codigo', 'nome']),
+            'estados' => Estado::query()->orderBy('nome')->get(['id', 'sigla', 'nome']),
+            // Depois de um erro, a cidade escolhida volta já com a lista do estado.
+            'municipios' => filter_var(old('estado_id'), FILTER_VALIDATE_INT)
+                ? Municipio::query()->where('estado_id', (int) old('estado_id'))->orderBy('nome')->get(['id', 'nome'])
+                : collect(),
         ]);
     }
 
@@ -50,15 +64,23 @@ class DownloadFotografiaController extends Controller
         }
         abort_unless(is_file($path) && is_readable($path), Response::HTTP_NOT_FOUND);
 
+        // Estado e cidade só existem para o Brasil; fora dele, o registro guarda apenas o país.
+        $brasilId = Pais::query()->where('codigo', 'BR')->value('id');
+        $doBrasil = $brasilId !== null && (string) $request->input('pais_id') === (string) $brasilId;
+
         $dados = $request->validate([
             'nome' => ['required', 'string', 'max:120'],
             'email' => ['required', 'email', 'max:255'],
             'perfil_download_id' => ['required', 'integer', Rule::exists('perfis_download', 'id')->where('ativo', true)],
             'motivo_download_id' => ['required', 'integer', Rule::exists('motivos_download', 'id')->where('ativo', true)],
             'finalidade' => ['required', 'string', 'min:10', 'max:1000'],
+            'pais_id' => ['required', 'integer', Rule::exists('paises', 'id')->where('ativo', true)],
+            'estado_id' => [Rule::excludeIf(! $doBrasil), 'required', 'integer', Rule::exists('estados', 'id')],
+            'municipio_id' => [Rule::excludeIf(! $doBrasil), 'required', 'integer', Rule::exists('municipios', 'id')->where('estado_id', (int) $request->input('estado_id'))],
             'aceite' => ['accepted'],
         ], [
             'aceite.accepted' => 'Confirme as condições de uso para baixar a fotografia.',
+            'municipio_id.exists' => 'Selecione uma cidade do estado escolhido.',
         ]);
 
         RegistroDownload::create([
@@ -69,6 +91,9 @@ class DownloadFotografiaController extends Controller
             'versao_arquivo' => $imagem->versao_arquivo,
             'motivo_download_id' => $dados['motivo_download_id'],
             'perfil_download_id' => $dados['perfil_download_id'],
+            'pais_id' => $dados['pais_id'],
+            'estado_id' => $dados['estado_id'] ?? null,
+            'municipio_id' => $dados['municipio_id'] ?? null,
             'nome' => $dados['nome'],
             'email' => $dados['email'],
             'finalidade' => $dados['finalidade'],

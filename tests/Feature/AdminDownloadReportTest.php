@@ -26,6 +26,9 @@ class AdminDownloadReportTest extends TestCase
         $this->actingAs($admin)->get(route('admin.downloads.index'))
             ->assertOk()
             ->assertSee('Relatório de downloads')
+            ->assertSee('Ainda não há downloads neste intervalo.');
+        $this->actingAs($admin)->get(route('admin.downloads.index', ['aba' => 'registros']))
+            ->assertOk()
             ->assertSee('Nenhum download encontrado ainda');
     }
 
@@ -48,6 +51,13 @@ class AdminDownloadReportTest extends TestCase
             ->assertSee('Mais baixadas')
             ->assertSee('Exportar CSV')
             ->assertSee('Praça central')
+            ->assertDontSee('Bruno Costa');
+        $this->actingAs($admin)
+            ->get(route('admin.downloads.index', ['q' => 'Praça', 'de' => '2026-11-03', 'ate' => '2026-11-03', 'aba' => 'registros']))
+            ->assertOk()
+            ->assertDontSee('Downloads ao longo do tempo')
+            ->assertSee('Exportar CSV')
+            ->assertSee('Praça central')
             ->assertSee('Bruno Costa')
             ->assertSee('bruno@example.test')
             ->assertSee('Pesquisa sobre a história local')
@@ -61,7 +71,7 @@ class AdminDownloadReportTest extends TestCase
         $this->assertSame($foto->id, $resposta->viewData('fotografiasAgrupadas')->first()->item_acervo_id);
 
         $this->actingAs($admin)
-            ->get(route('admin.downloads.index', ['q' => '#'.$outra->id]))
+            ->get(route('admin.downloads.index', ['q' => '#'.$outra->id, 'aba' => 'registros']))
             ->assertOk()
             ->assertSee('Carla Souza')
             ->assertDontSee('Bruno Costa');

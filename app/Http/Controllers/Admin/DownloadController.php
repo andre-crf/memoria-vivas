@@ -3,10 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\ItemAcervo;
-use App\Models\MotivoDownload;
-use App\Models\PerfilDownload;
 use App\Models\RegistroDownload;
+use App\Queries\Admin\EstatisticasDownloads;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
@@ -15,92 +13,53 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class DownloadController extends Controller
 {
-    private const FUSO_ACERVO = 'America/Sao_Paulo';
+    private const FUSO_ACERVO = EstatisticasDownloads::FUSO;
+
+    /** Abas do relatório: cada uma é uma página e só consulta o que mostra. A primeira é a padrão. */
+    public const ABAS = ['estatisticas' => 'Estatísticas', 'registros' => 'Registros'];
+
+    public function __construct(private readonly EstatisticasDownloads $estatisticas) {}
 
     public function __invoke(Request $request): View
     {
         [$query, $filtros] = $this->consulta($request);
+        $aba = array_key_exists((string) $request->query('aba'), self::ABAS) ? (string) $request->query('aba') : array_key_first(self::ABAS);
+        $comum = [
+            'aba' => $aba,
+            'abas' => self::ABAS,
+            'filtros' => ['q' => $filtros['q'] ?? '', 'de' => $filtros['de'] ?? '', 'ate' => $filtros['ate'] ?? ''],
+        ];
 
-        $total = (clone $query)->count();
-        $fotografiasDistintas = (clone $query)->distinct()->count('item_acervo_id');
-        $motivosAgrupados = (clone $query)
-            ->selectRaw('motivo_download_id, COUNT(*) as total')
-            ->groupBy('motivo_download_id')
-            ->orderByDesc('total')
-            ->get();
-        $titulosMotivos = MotivoDownload::query()
-            ->whereIn('id', $motivosAgrupados->pluck('motivo_download_id'))
-            ->pluck('titulo', 'id');
-        $perfisAgrupados = (clone $query)
-            ->selectRaw('perfil_download_id, COUNT(*) as total')
-            ->groupBy('perfil_download_id')
-            ->orderByDesc('total')
-            ->get();
-        $titulosPerfis = PerfilDownload::query()
-            ->whereIn('id', $perfisAgrupados->pluck('perfil_download_id'))
-            ->pluck('titulo', 'id');
-        $fotografiasAgrupadas = (clone $query)
-            ->selectRaw('item_acervo_id, COUNT(*) as total')
-            ->groupBy('item_acervo_id')
-            ->orderByDesc('total')
-            ->limit(5)
-            ->get();
-        $fotografiasRanking = ItemAcervo::withTrashed()
-            ->whereIn('id', $fotografiasAgrupadas->pluck('item_acervo_id'))
-            ->get(['id', 'titulo', 'deleted_at'])
-            ->keyBy('id');
-
-        $inicio = isset($filtros['de'])
-            ? Carbon::createFromFormat('!Y-m-d', $filtros['de'], self::FUSO_ACERVO)->startOfDay()
-            : (isset($filtros['ate'])
-                ? Carbon::createFromFormat('!Y-m-d', $filtros['ate'], self::FUSO_ACERVO)->subDays(13)->startOfDay()
-                : Carbon::now(self::FUSO_ACERVO)->subDays(13)->startOfDay());
-        $fim = isset($filtros['ate'])
-            ? Carbon::createFromFormat('!Y-m-d', $filtros['ate'], self::FUSO_ACERVO)->endOfDay()
-            : Carbon::now(self::FUSO_ACERVO)->endOfDay();
-        if ($inicio->greaterThan($fim)) {
-            $fim = $inicio->copy()->endOfDay();
-        }
-        $dias = (int) $inicio->diffInDays($fim->copy()->startOfDay()) + 1;
-        $passo = max(1, (int) ceil($dias / 14));
-        $serie = [];
-        for ($deslocamento = 0; $deslocamento < $dias; $deslocamento += $passo) {
-            $de = $inicio->copy()->addDays($deslocamento);
-            $ate = $de->copy()->addDays($passo - 1)->min($fim);
-            $serie[] = [
-                'rotulo' => $passo === 1 ? $de->format('d/m') : $de->format('d/m').'–'.$ate->format('d/m'),
-                'total' => 0,
-            ];
-        }
-
-        foreach ((clone $query)->whereBetween('created_at', [$inicio->copy()->utc(), $fim->copy()->utc()])->select('created_at')->cursor() as $registro) {
-            $dia = $registro->created_at->copy()->timezone(self::FUSO_ACERVO)->startOfDay();
-            $indice = intdiv((int) $inicio->diffInDays($dia), $passo);
-            if (isset($serie[$indice])) {
-                $serie[$indice]['total']++;
-            }
-        }
-
-        return view('admin.downloads.index', [
-            'registros' => (clone $query)
-                ->with(['itemAcervo:id,titulo,codigo_referencia,deleted_at', 'arquivo:id,versao_arquivo', 'perfilDownload:id,titulo', 'motivoDownload:id,titulo'])
+        if ($aba === 'registros') {
+            $registros = (clone $query)
+                ->with(['itemAcervo:id,titulo,codigo_referencia,deleted_at', 'arquivo:id,versao_arquivo', 'perfilDownload:id,titulo', 'motivoDownload:id,titulo', 'pais:id,nome,codigo', 'estado:id,sigla', 'municipio:id,nome'])
                 ->orderByDesc('created_at')
                 ->orderByDesc('id')
                 ->paginate(20)
-                ->withQueryString(),
-            'total' => $total,
-            'fotografiasDistintas' => $fotografiasDistintas,
-            'ultimoDownload' => (clone $query)->orderByDesc('created_at')->first(['created_at'])?->created_at,
-            'serie' => $serie,
-            'maiorDia' => max(array_column($serie, 'total')),
-            'periodoSerie' => $inicio->format('d/m/Y').' a '.$fim->format('d/m/Y'),
-            'motivosAgrupados' => $motivosAgrupados,
-            'titulosMotivos' => $titulosMotivos,
-            'perfisAgrupados' => $perfisAgrupados,
-            'titulosPerfis' => $titulosPerfis,
-            'fotografiasAgrupadas' => $fotografiasAgrupadas,
-            'fotografiasRanking' => $fotografiasRanking,
-            'filtros' => ['q' => $filtros['q'] ?? '', 'de' => $filtros['de'] ?? '', 'ate' => $filtros['ate'] ?? ''],
+                ->withQueryString();
+
+            return view('admin.downloads.index', $comum + [
+                'registros' => $registros,
+                'total' => $registros->total(),
+            ]);
+        }
+
+        $serie = $this->estatisticas->serie($query, $filtros['de'] ?? null, $filtros['ate'] ?? null);
+
+        return view('admin.downloads.index', $comum + [
+            'total' => $this->estatisticas->total($query),
+            'fotografiasDistintas' => $this->estatisticas->fotografiasDistintas($query),
+            'ultimoDownload' => $this->estatisticas->ultimoDownload($query),
+            'serie' => $serie['serie'],
+            'maiorDia' => $serie['maiorDia'],
+            'periodoSerie' => $serie['periodo'],
+            'perfisAgrupados' => $this->estatisticas->perfis($query),
+            'motivosAgrupados' => $this->estatisticas->motivos($query),
+            'fotografiasAgrupadas' => $this->estatisticas->maisBaixadas($query),
+            'paisesAgrupados' => $this->estatisticas->paises($query, 10),
+            'estadosAgrupados' => $this->estatisticas->estados($query, 10),
+            'municipiosAgrupados' => $this->estatisticas->municipios($query, 10),
+            'perfisPorPais' => $this->estatisticas->perfisPorPais($query),
         ]);
     }
 
@@ -111,10 +70,10 @@ class DownloadController extends Controller
         return response()->streamDownload(function () use ($query): void {
             $saida = fopen('php://output', 'wb');
             fwrite($saida, "\xEF\xBB\xBF");
-            fputcsv($saida, ['Data (Umuarama)', 'Fotografia', 'Registro', 'Código de referência', 'Situação', 'Solicitante', 'E-mail', 'Perfil', 'Motivo', 'Finalidade', 'Versão'], ';', '"', '');
+            fputcsv($saida, ['Data (Umuarama)', 'Fotografia', 'Registro', 'Código de referência', 'Situação', 'Solicitante', 'E-mail', 'Perfil', 'Motivo', 'Finalidade', 'Versão', 'País', 'Estado', 'Município'], ';', '"', '');
 
             (clone $query)
-                ->with(['itemAcervo:id,titulo,codigo_referencia,deleted_at', 'arquivo:id,versao_arquivo', 'perfilDownload:id,titulo', 'motivoDownload:id,titulo'])
+                ->with(['itemAcervo:id,titulo,codigo_referencia,deleted_at', 'arquivo:id,versao_arquivo', 'perfilDownload:id,titulo', 'motivoDownload:id,titulo', 'pais:id,nome', 'estado:id,sigla', 'municipio:id,nome'])
                 ->chunkById(500, function ($registros) use ($saida): void {
                     foreach ($registros as $registro) {
                         fputcsv($saida, [
@@ -133,6 +92,9 @@ class DownloadController extends Controller
                             $this->csvSeguro($registro->motivoDownload?->titulo),
                             $this->csvSeguro($registro->finalidade),
                             $registro->rotuloVersaoEntregue() ?? '',
+                            $this->csvSeguro($registro->pais?->nome),
+                            $registro->estado?->sigla ?? '',
+                            $this->csvSeguro($registro->municipio?->nome),
                         ], ';', '"', '');
                     }
                 });
@@ -156,32 +118,7 @@ class DownloadController extends Controller
             'ate' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:de'],
         ]);
 
-        $busca = trim($filtros['q'] ?? '');
-        $query = RegistroDownload::query();
-
-        if ($busca !== '') {
-            $query->where(function (Builder $registros) use ($busca): void {
-                $termo = "%{$busca}%";
-                $registros
-                    ->where('nome', 'like', $termo)
-                    ->orWhere('email', 'like', $termo)
-                    ->orWhereHas('itemAcervo', fn (Builder $itens) => $itens->where('titulo', 'like', $termo))
-                    // Fotografias excluídas definitivamente só têm o título gravado no download.
-                    ->orWhere(fn (Builder $excluidas) => $excluidas->whereNull('item_acervo_id')->where('titulo_item', 'like', $termo));
-
-                if (preg_match('/^#?(\d+)$/', $busca, $matches) === 1) {
-                    $registros->orWhere('item_acervo_id', (int) $matches[1]);
-                }
-            });
-        }
-        if (isset($filtros['de'])) {
-            $query->where('created_at', '>=', Carbon::createFromFormat('!Y-m-d', $filtros['de'], self::FUSO_ACERVO)->startOfDay()->utc());
-        }
-        if (isset($filtros['ate'])) {
-            $query->where('created_at', '<=', Carbon::createFromFormat('!Y-m-d', $filtros['ate'], self::FUSO_ACERVO)->endOfDay()->utc());
-        }
-
-        return [$query, $filtros];
+        return [$this->estatisticas->consulta($filtros['q'] ?? '', $filtros['de'] ?? null, $filtros['ate'] ?? null), $filtros];
     }
 
     private function csvSeguro(?string $valor): string

@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Arquivo;
 use App\Models\ItemAcervo;
 use App\Models\MotivoDownload;
+use App\Models\Pais;
 use App\Models\PerfilDownload;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
@@ -108,6 +109,7 @@ class PublicDownloadFotografiaTest extends TestCase
             'perfil_download_id' => PerfilDownload::query()->where('titulo', 'Pesquisador(a)')->value('id'),
             'motivo_download_id' => MotivoDownload::query()->where('titulo', 'Pesquisa acadêmica')->value('id'),
             'finalidade' => 'Pesquisa sobre a história de Umuarama',
+            'pais_id' => Pais::firstOrCreate(['codigo' => 'PT'], ['nome' => 'Portugal'])->id,
             'aceite' => '1',
         ];
     }

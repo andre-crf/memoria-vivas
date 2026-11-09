@@ -7,6 +7,7 @@ import registerToaster from './toaster.js';
 import registerDrawer from './drawer.js';
 import registerHeroCarousel from './hero-carousel.js';
 import registerPasswordField from './password-field.js';
+import registerLocalidadeDownload from './localidade-download.js';
 import './data-hora.js';
 
 registerConfirmationDialog(Alpine);
@@ -17,5 +18,6 @@ registerToaster(Alpine);
 registerDrawer(Alpine);
 registerHeroCarousel(Alpine);
 registerPasswordField(Alpine);
+registerLocalidadeDownload(Alpine);
 
 Livewire.start();

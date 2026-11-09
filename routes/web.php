@@ -21,6 +21,7 @@ use App\Http\Controllers\Publico\DownloadFotografiaController;
 use App\Http\Controllers\Publico\FotografiaController as PublicFotografiaController;
 use App\Http\Controllers\Publico\HomeController as PublicHomeController;
 use App\Http\Controllers\Publico\ImagemPublicaController;
+use App\Http\Controllers\Publico\LocalidadeController;
 use Illuminate\Support\Facades\Route;
 
 // Site público: fica na raiz; o prefixo de URL é reservado ao admin.
@@ -48,6 +49,12 @@ Route::name('public.')->group(function (): void {
         });
 
     Route::get('/acervo/imagens/{arquivo}', ImagemPublicaController::class)->name('imagens.show');
+
+    // Cidades do estado escolhido no formulário de download (Brasil).
+    Route::get('/localidades/estados/{estado}/municipios', [LocalidadeController::class, 'municipios'])
+        ->whereNumber('estado')
+        ->middleware('throttle:60,1')
+        ->name('localidades.municipios');
 });
 
 Route::prefix('login')

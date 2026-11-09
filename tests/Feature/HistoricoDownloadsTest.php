@@ -9,6 +9,7 @@ use App\Models\Arquivo;
 use App\Models\AuditEvent;
 use App\Models\ItemAcervo;
 use App\Models\MotivoDownload;
+use App\Models\Pais;
 use App\Models\PerfilDownload;
 use App\Models\RegistroDownload;
 use App\Models\User;
@@ -33,7 +34,7 @@ class HistoricoDownloadsTest extends TestCase
         Storage::fake('local');
     }
 
-    public function test_download_is_recorded_without_country_and_with_snapshots(): void
+    public function test_download_from_abroad_records_only_the_country_and_snapshots(): void
     {
         $fotografia = $this->publishedPhotograph($this->admin());
         $large = $this->derivative($fotografia, 'large');
@@ -41,14 +42,13 @@ class HistoricoDownloadsTest extends TestCase
         $this->download($fotografia)->assertOk()->assertDownload();
 
         $registro = RegistroDownload::query()->sole();
-        $this->assertNull($registro->pais_id);
+        $this->assertSame(Pais::where('codigo', 'PT')->value('id'), $registro->pais_id);
         $this->assertNull($registro->estado_id);
         $this->assertNull($registro->municipio_id);
         $this->assertSame($large->id, $registro->arquivo_id);
         $this->assertSame('large', $registro->versao_arquivo);
         $this->assertSame('Praça central', $registro->titulo_item);
         $this->assertSame('MV-0001', $registro->codigo_referencia_item);
-        $this->assertDatabaseCount('paises', 0);
     }
 
     public function test_delivered_version_survives_sync_regeneration_and_replacement(): void
@@ -73,7 +73,7 @@ class HistoricoDownloadsTest extends TestCase
         $this->assertSame(['large', 'large'], RegistroDownload::query()->orderBy('id')->pluck('versao_arquivo')->all());
         $this->assertSame(0, RegistroDownload::query()->whereNotNull('arquivo_id')->count());
 
-        $this->actingAs($admin)->get(route('admin.downloads.index'))
+        $this->actingAs($admin)->get(route('admin.downloads.index', ['aba' => 'registros']))
             ->assertOk()
             ->assertSee('Grande')
             ->assertDontSee('Não informado</td>', false);
@@ -141,13 +141,18 @@ class HistoricoDownloadsTest extends TestCase
 
         $resposta = $this->actingAs($admin)->get(route('admin.downloads.index'));
         $resposta->assertOk()
-            ->assertSee('Praça central')
-            ->assertSee('MV-0001')
-            ->assertSee('Excluída definitivamente')
             ->assertSee('Fotografias excluídas')
             ->assertSee(route('admin.fotografias.show', $mantida), false)
             ->assertDontSee(route('admin.fotografias.show', $removida->id), false);
         $this->assertSame(2, $resposta->viewData('total'));
+        $registros = $this->actingAs($admin)->get(route('admin.downloads.index', ['aba' => 'registros']));
+        $registros->assertOk()
+            ->assertSee('Praça central')
+            ->assertSee('MV-0001')
+            ->assertSee('Excluída definitivamente')
+            ->assertSee(route('admin.fotografias.show', $mantida), false)
+            ->assertDontSee(route('admin.fotografias.show', $removida->id), false);
+        $this->assertSame(2, $registros->viewData('total'));
 
         // A busca pelo título ainda encontra o registro da fotografia excluída.
         $busca = $this->actingAs($admin)->get(route('admin.downloads.index', ['q' => 'Praça']));
@@ -155,7 +160,7 @@ class HistoricoDownloadsTest extends TestCase
 
         $csv = substr($this->csv($admin), 3); // sem o BOM UTF-8
         $linhas = array_map(fn (string $linha) => str_getcsv($linha, ';', '"', ''), array_filter(explode("\n", trim($csv))));
-        $this->assertSame(['Data (Umuarama)', 'Fotografia', 'Registro', 'Código de referência', 'Situação', 'Solicitante', 'E-mail', 'Perfil', 'Motivo', 'Finalidade', 'Versão'], $linhas[0]);
+        $this->assertSame(['Data (Umuarama)', 'Fotografia', 'Registro', 'Código de referência', 'Situação', 'Solicitante', 'E-mail', 'Perfil', 'Motivo', 'Finalidade', 'Versão', 'País', 'Estado', 'Município'], $linhas[0]);
         $porTitulo = collect(array_slice($linhas, 1))->keyBy(1);
         $this->assertSame(['', 'MV-0001', 'Excluída definitivamente', 'Grande'], [$porTitulo['Praça central'][2], $porTitulo['Praça central'][3], $porTitulo['Praça central'][4], $porTitulo['Praça central'][10]]);
         $this->assertSame([(string) $mantida->id, 'MV-0002', 'No acervo', 'Grande'], [$porTitulo['Avenida Paraná'][2], $porTitulo['Avenida Paraná'][3], $porTitulo['Avenida Paraná'][4], $porTitulo['Avenida Paraná'][10]]);
@@ -212,6 +217,7 @@ class HistoricoDownloadsTest extends TestCase
             'perfil_download_id' => PerfilDownload::query()->where('titulo', 'Pesquisador(a)')->value('id'),
             'motivo_download_id' => MotivoDownload::query()->where('titulo', 'Pesquisa acadêmica')->value('id'),
             'finalidade' => 'Pesquisa sobre a história de Umuarama',
+            'pais_id' => Pais::firstOrCreate(['codigo' => 'PT'], ['nome' => 'Portugal'])->id,
             'aceite' => '1',
         ]);
     }

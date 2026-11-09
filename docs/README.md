@@ -498,16 +498,21 @@ Ao mudar o `--timeout` no `compose.yaml`, ajuste também o `DB_QUEUE_RETRY_AFTER
 ### Como funciona
 
 - A página pública da fotografia leva ao formulário de download, em `/fotografias/{id}/baixar`.
-- O formulário pede nome, e-mail, perfil, motivo, finalidade e o aceite das condições de uso. O envio é limitado a 10 por hora por IP.
+- O formulário pede nome, e-mail, perfil, motivo, localidade, finalidade e o aceite das condições de uso. O envio é limitado a 10 por hora por IP.
 - **O que pode ser baixado:** só fotografias publicadas e públicas que já tenham versões otimizadas, porque o download usa a mesma consulta do catálogo público.
 - **O que é entregue:** a versão Grande; se não existir, a Média; se não existir, a Miniatura. O original nunca é entregue.
 - **Durante o processamento:** enquanto uma fotografia está pendente no modo assíncrono, ela não pode ser baixada, assim como não aparece no catálogo.
-- Cada download fica registrado em `registro_downloads`. O formulário não pede localização, então `pais_id`, `estado_id` e `municipio_id` ficam vazios (`null`). Não se cria país fictício na tabela sincronizada com o IBGE.
+- Cada download fica registrado em `registro_downloads`.
+- **Localidade (obrigatória):** o país sempre; para o Brasil, também o estado e a cidade (`pais_id`, `estado_id`, `municipio_id`). Fora do Brasil, estado e cidade ficam vazios. As cidades do estado escolhido são carregadas por `GET /localidades/estados/{estado}/municipios` (60 por minuto por IP). Downloads anteriores à coleta da localidade ficam com os três campos vazios e aparecem como "Não informado" no relatório. Não se cria país fictício na tabela sincronizada com o IBGE.
+- **Pré-requisito:** as tabelas `paises`, `estados` e `municipios` vêm do IBGE. Rode `php artisan localidades:sync` uma vez em cada ambiente (inclusive produção) **antes** de publicar esta versão; sem países ativos, o formulário não pode ser enviado. O comando pode ser repetido para atualizar a lista.
 
 ### Relatório
 
 - Fica em **Downloads** no painel, só para administradores.
-- Tem filtros por texto e período, gráficos, percentuais e exportação CSV com os registros filtrados.
+- Tem filtros por texto e período, que valem para as duas abas:
+  - **Estatísticas** (padrão): indicadores, gráfico, percentuais por perfil, motivo e fotografia, e a origem dos solicitantes (países, estados, cidades e perfis por país);
+  - **Registros** (`?aba=registros`): a lista paginada, com a localidade de cada solicitante.
+- A exportação CSV leva os registros filtrados, com as colunas País, Estado e Município.
 
 ### Histórico preservado
 
@@ -528,7 +533,7 @@ Com isso, o histórico não muda quando os arquivos ou a fotografia mudam:
 
 ### Dados pessoais
 
-- O histórico guarda só os dados do formulário e a identificação da fotografia. Nada novo é coletado de quem baixa.
+- O histórico guarda só os dados do formulário (incluindo a localidade) e a identificação da fotografia.
 - Nome, e-mail e finalidade continuam visíveis apenas para administradores, no relatório e no CSV.
 
 ---

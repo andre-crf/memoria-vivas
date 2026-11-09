@@ -166,7 +166,7 @@ class ListagensAdministrativasTest extends TestCase
     {
         $this->actingAs($this->admin());
 
-        $xpath = $this->dom($this->get(route('admin.downloads.index'))->assertOk());
+        $xpath = $this->dom($this->get(route('admin.downloads.index', ['aba' => 'registros']))->assertOk());
         $this->assertCabecalho($xpath, 'Relatório de downloads', 'downloads');
         $this->assertSame(0, $xpath->query('//main//*[contains(@class, "font-serif")]')->length, 'Admin é sans-serif');
         $this->assertSame(['Nenhum download encontrado ainda'], $this->textos($xpath, '//main//h3'));
@@ -174,9 +174,10 @@ class ListagensAdministrativasTest extends TestCase
 
         // Com filtros: o estado vazio diz isso e oferece limpar; a exportação leva os mesmos filtros.
         $filtros = ['q' => 'Inexistente', 'de' => '2026-01-01'];
-        $xpath = $this->dom($this->get(route('admin.downloads.index', $filtros))->assertOk());
+        $xpath = $this->dom($this->get(route('admin.downloads.index', $filtros + ['aba' => 'registros']))->assertOk());
         $this->assertSame(['Nenhum download encontrado para os filtros selecionados'], $this->textos($xpath, '//main//h3'));
-        $this->assertSame(route('admin.downloads.index'), $xpath->query('//main//a[normalize-space()="Limpar filtros"]')->item(0)?->getAttribute('href'));
+        // Limpar filtros mantém a aba de registros.
+        $this->assertSame(route('admin.downloads.index', ['aba' => 'registros']), $xpath->query('//main//a[normalize-space()="Limpar filtros"]')->item(0)?->getAttribute('href'));
         $this->assertSame(route('admin.downloads.export', $filtros), $xpath->query('//a[normalize-space()="Exportar CSV"]')->item(0)?->getAttribute('href'));
     }
 

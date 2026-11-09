@@ -37,7 +37,7 @@ export function resetDatabase(extraSeeders = []) {
     writeFileSync(databasePath, '');
     artisan(['migrate:fresh', '--force', '--seed']);
 
-    for (const seeder of ['E2ePublicCarouselSeeder', ...extraSeeders]) {
+    for (const seeder of ['E2ePublicCarouselSeeder', 'E2eLocalidadesSeeder', ...extraSeeders]) {
         artisan(['db:seed', `--class=Database\\Seeders\\${seeder}`, '--force']);
     }
 }

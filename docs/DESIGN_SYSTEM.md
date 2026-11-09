@@ -212,6 +212,11 @@ As regras **obrigatórias** protegem acessibilidade e contratos; as **preferênc
 - Preferência: `x-catalog.section` para blocos de formulário e painéis de detalhes; `x-admin.info-block` para dados somente leitura; superfícies novas com `rounded-lg border border-line bg-white shadow-card`.
 - Não crie um componente de "card" genérico: os cartões de indicadores do painel e do relatório de downloads compartilham apenas os tokens.
 
+### Abas
+
+- Quando cada aba é uma visão própria da página (ex.: Estatísticas e Registros no relatório de downloads), use **navegação por links**, não `role="tablist"`: `<nav aria-label="…">` com uma lista de `<a>`, a aba atual com `aria-current="page"` e o estado visual em `aria-[current=page]:` (borda inferior `institutional`). A aba fica na URL (`?aba=…`, a padrão sem parâmetro), os filtros são preservados nos links e a paginação usa `withQueryString()`.
+- Cada aba consulta só o que mostra. Hoje há um único uso (`admin/downloads/index.blade.php`); extraia um componente só quando surgir o segundo.
+
 ### Modais e menus
 
 - **Obrigatório**: diálogos com `<dialog>` nativo, título ligado por `aria-labelledby`, fechar com nome acessível, Escape funcionando e foco devolvido a quem abriu.

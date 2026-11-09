@@ -1,6 +1,14 @@
 <x-layouts.public :title="'Baixar '.$fotografia->titulo.' | Memórias Vivas'">
     @php
         $imagemUrl = route('public.imagens.show', $imagem);
+        $localidade = [
+            'brasilId' => $paises->firstWhere('codigo', 'BR')?->id,
+            'urlMunicipios' => route('public.localidades.municipios', ['estado' => '__ESTADO__']),
+            'pais' => old('pais_id', ''),
+            'estado' => old('estado_id', ''),
+            'municipio' => old('municipio_id', ''),
+            'municipios' => $municipios->map(fn ($municipio) => ['id' => $municipio->id, 'nome' => $municipio->nome])->values(),
+        ];
     @endphp
 
     <section class="bg-white py-12 md:py-18" aria-labelledby="download-title">
@@ -59,6 +67,50 @@
                                 @error('motivo_download_id') <p id="download-reason-error" class="public-field-error mt-1">{{ $message }}</p> @enderror
                             </div>
                         </div>
+                        <fieldset class="grid gap-5 sm:grid-cols-2" x-data="localidadeDownload(@js($localidade))" aria-describedby="download-location-hint">
+                            <legend class="public-label mb-2">De onde você acessa o acervo?</legend>
+                            <p id="download-location-hint" class="text-[0.82rem] leading-[1.5] text-ink-600 sm:col-span-2">Usada só para as estatísticas de acesso. Para o Brasil, informe também o estado e a cidade.</p>
+                            <div class="sm:col-span-2">
+                                <label for="download-country" class="public-label mb-2 block">País <span class="public-required" aria-hidden="true">*</span></label>
+                                <select id="download-country" name="pais_id" required x-model="pais" class="public-control" @error('pais_id') aria-invalid="true" aria-describedby="download-country-error" @enderror>
+                                    <option value="">Selecione</option>
+                                    @foreach ($paises as $pais)
+                                        <option value="{{ $pais->id }}" @selected((string) old('pais_id') === (string) $pais->id)>{{ $pais->nome }}</option>
+                                    @endforeach
+                                </select>
+                                @error('pais_id') <p id="download-country-error" class="public-field-error mt-1">{{ $message }}</p> @enderror
+                            </div>
+                            <div x-show="brasil" x-cloak>
+                                <label for="download-state" class="public-label mb-2 block">Estado <span class="public-required" aria-hidden="true">*</span></label>
+                                <select id="download-state" name="estado_id" x-model="estado" x-on:change="carregarMunicipios()" x-bind:disabled="!brasil" x-bind:required="brasil" class="public-control" @error('estado_id') aria-invalid="true" aria-describedby="download-state-error" @enderror>
+                                    <option value="">Selecione</option>
+                                    @foreach ($estados as $estado)
+                                        <option value="{{ $estado->id }}" @selected((string) old('estado_id') === (string) $estado->id)>{{ $estado->nome }}</option>
+                                    @endforeach
+                                </select>
+                                @error('estado_id') <p id="download-state-error" class="public-field-error mt-1">{{ $message }}</p> @enderror
+                            </div>
+                            <div x-show="brasil" x-cloak>
+                                <label for="download-city" class="public-label mb-2 block">Cidade <span class="public-required" aria-hidden="true">*</span></label>
+                                <select
+                                    id="download-city"
+                                    name="municipio_id"
+                                    x-model="municipio"
+                                    x-bind:disabled="!brasil || !estado || carregando"
+                                    x-bind:required="brasil"
+                                    class="public-control"
+                                    aria-describedby="download-city-status @error('municipio_id') download-city-error @enderror"
+                                    @error('municipio_id') aria-invalid="true" @enderror
+                                >
+                                    <option value="" x-text="estado ? 'Selecione' : 'Escolha o estado primeiro'">Selecione</option>
+                                    <template x-for="cidade in municipios" :key="cidade.id">
+                                        <option x-bind:value="cidade.id" x-text="cidade.nome" x-bind:selected="String(cidade.id) === municipio"></option>
+                                    </template>
+                                </select>
+                                <p id="download-city-status" class="mt-1 text-[0.82rem] leading-[1.5] text-ink-600 empty:hidden" aria-live="polite" x-text="statusCidades"></p>
+                                @error('municipio_id') <p id="download-city-error" class="public-field-error mt-1">{{ $message }}</p> @enderror
+                            </div>
+                        </fieldset>
                         <div>
                             <label for="download-purpose" class="public-label mb-2 block">Como pretende usar a fotografia? <span class="public-required" aria-hidden="true">*</span></label>
                             <textarea id="download-purpose" name="finalidade" rows="4" minlength="10" maxlength="1000" required placeholder="Ex.: pesquisa escolar sobre a história do bairro" class="public-control resize-y" @error('finalidade') aria-invalid="true" aria-describedby="download-purpose-error" @enderror>{{ old('finalidade') }}</textarea>
@@ -67,7 +119,7 @@
                         <div class="border-l-[3px] border-institutional bg-institutional-soft px-5 py-4 text-[0.88rem] leading-[1.65] text-ink-800">
                             <h2 class="font-bold text-institutional">Condições de uso</h2>
                             <p class="mt-2">Ao citar ou divulgar esta imagem, identifique o autor quando informado e cite “Memórias Vivas de Umuarama”, o título e o número do registro. O download não transfere direitos autorais nem autoriza, por si só, publicação ou uso comercial; confirme as permissões necessárias para o uso pretendido.</p>
-                            <p class="mt-2">Nome, e-mail, perfil e finalidade são armazenados para registrar esta solicitação de acesso ao acervo.</p>
+                            <p class="mt-2">Nome, e-mail, perfil, localidade (país e, no Brasil, estado e cidade) e finalidade são armazenados para registrar esta solicitação de acesso ao acervo.</p>
                         </div>
                         <div>
                             <label for="download-accept" class="flex items-start gap-3 text-[0.88rem] leading-[1.55] text-ink-800">

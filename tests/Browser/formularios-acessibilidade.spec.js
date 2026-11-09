@@ -236,3 +236,55 @@ for (const [nome, viewport] of Object.entries(viewports)) {
         await expectNoHorizontalScroll(page);
     });
 }
+
+// Download: localidade obrigatória. País sempre; estado e cidade só para o Brasil, com as cidades carregadas do estado.
+
+for (const [nome, viewport] of Object.entries(viewports)) {
+    test(`download: localidade em cascata e restaurada após erro (${nome})`, async ({ page }) => {
+        await page.setViewportSize(viewport);
+        await page.goto('/catalogo');
+        const fotografia = page.locator('main ul[aria-label="Fotografias do acervo"] a').first();
+        test.skip(await fotografia.count() === 0, 'Sem fotografia pública no banco de e2e');
+        await page.goto(await fotografia.getAttribute('href'));
+        const baixar = page.getByRole('link', { name: /Baixar/ }).first();
+        test.skip(await baixar.count() === 0, 'Fotografia pública sem versão para download');
+        await baixar.click();
+
+        const pais = page.getByLabel('País');
+        const estado = page.getByLabel('Estado');
+        const cidade = page.getByLabel('Cidade');
+        await expect(pais).toHaveAccessibleName('País');
+        await expect(estado).toBeHidden();
+        await expect(cidade).toBeHidden();
+
+        // Estrangeiro: só o país.
+        await pais.selectOption({ label: 'Portugal' });
+        await expect(estado).toBeHidden();
+        await expect(cidade).toBeHidden();
+
+        // Brasil: estado e cidade aparecem; a cidade espera o estado e carrega só as dele.
+        await pais.selectOption({ label: 'Brasil' });
+        await expect(estado).toBeVisible();
+        await expect(cidade).toBeVisible();
+        await expect(cidade).toBeDisabled();
+        await estado.selectOption({ label: 'Paraná' });
+        await expect(cidade).toBeEnabled();
+        await expect(cidade.locator('option')).toHaveText(['Selecione', 'Curitiba', 'Umuarama']);
+        await cidade.selectOption({ label: 'Umuarama' });
+        await expectNoHorizontalScroll(page);
+
+        // Erro em outro campo: país, estado e cidade voltam preenchidos.
+        await page.locator('form[action$="/baixar"]').evaluate((form) => { form.noValidate = true; });
+        await page.locator('#download-name').fill('Ana Silva');
+        await page.getByRole('button', { name: /Confirmar e baixar/ }).click();
+        await expect(page.getByRole('alert').filter({ hasText: 'Confira os campos indicados antes de continuar.' })).toBeVisible();
+        await expect(pais.locator('option:checked')).toHaveText('Brasil');
+        await expect(estado.locator('option:checked')).toHaveText('Paraná');
+        await expect(cidade.locator('option:checked')).toHaveText('Umuarama');
+
+        // Trocar de estado limpa a cidade.
+        await estado.selectOption({ label: 'São Paulo' });
+        await expect(cidade.locator('option')).toHaveText(['Selecione', 'Campinas']);
+        await expect(cidade).toHaveValue('');
+    });
+}

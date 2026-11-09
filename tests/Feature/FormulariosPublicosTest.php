@@ -65,6 +65,7 @@ class FormulariosPublicosTest extends TestCase
             'email' => ['download-email', 'input', ['type' => 'email', 'autocomplete' => 'email', 'maxlength' => '255']],
             'perfil_download_id' => ['download-profile', 'select', []],
             'motivo_download_id' => ['download-reason', 'select', []],
+            'pais_id' => ['download-country', 'select', []],
             'finalidade' => ['download-purpose', 'textarea', ['minlength' => '10', 'maxlength' => '1000']],
         ];
         foreach ($campos as $nome => [$id, $tag, $atributos]) {
@@ -97,7 +98,7 @@ class FormulariosPublicosTest extends TestCase
         $this->assertStringContainsString('Confira os campos indicados antes de continuar.', $resumo->textContent);
         $this->assertContains('bg-error-soft', $this->classes($resumo));
 
-        foreach (['email' => 'download-email-error', 'perfil_download_id' => 'download-profile-error', 'motivo_download_id' => 'download-reason-error', 'finalidade' => 'download-purpose-error', 'aceite' => 'download-accept-error'] as $nome => $idErro) {
+        foreach (['email' => 'download-email-error', 'perfil_download_id' => 'download-profile-error', 'motivo_download_id' => 'download-reason-error', 'pais_id' => 'download-country-error', 'finalidade' => 'download-purpose-error', 'aceite' => 'download-accept-error'] as $nome => $idErro) {
             $this->assertCampoInvalido($xpath, $nome, $idErro);
         }
         $this->assertFalse($this->campo($xpath, 'nome')->hasAttribute('aria-invalid'));
