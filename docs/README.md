@@ -513,6 +513,7 @@ Ao mudar o `--timeout` no `compose.yaml`, ajuste também o `DB_QUEUE_RETRY_AFTER
   - **Estatísticas** (padrão): indicadores, gráfico, percentuais por perfil, motivo e fotografia, e a origem dos solicitantes (países, estados, cidades e perfis por país);
   - **Registros** (`?aba=registros`): a lista paginada, com a localidade de cada solicitante.
 - A exportação CSV leva os registros filtrados, com as colunas País, Estado e Município.
+- O painel inicial mostra aos administradores um resumo dos últimos 30 dias, com link para o relatório.
 
 ### Histórico preservado
 

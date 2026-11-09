@@ -1,16 +1,18 @@
 @php
+    $admin = auth()->user()->isAdmin();
+    // emPreparacao: cartão sem destino porque o módulo ainda não existe. Usuários tem destino, mas só para o admin.
     $cards = [
         ['label' => 'Itens do acervo', 'value' => $totalItens, 'href' => route('admin.fotografias.index'), 'icon' => 'archive'],
         ['label' => 'Fotografias', 'value' => $totalFotografias, 'href' => route('admin.fotografias.index'), 'icon' => 'images'],
-        ['label' => 'Arquivos digitais', 'value' => $totalArquivos, 'href' => null, 'icon' => 'file-image'],
-        ['label' => 'Usuários ativos', 'value' => $usuariosAtivos, 'href' => null, 'icon' => 'users'],
+        ['label' => 'Arquivos digitais', 'value' => $totalArquivos, 'href' => null, 'icon' => 'file-image', 'emPreparacao' => true],
+        ['label' => 'Usuários ativos', 'value' => $usuariosAtivos, 'href' => $admin ? route('admin.usuarios.index') : null, 'icon' => 'users'],
     ];
     $distribuicoes = [
         ['titulo' => 'Tipos de arquivos', 'itens' => $tiposArquivo, 'vazio' => 'Nenhum arquivo digital cadastrado.', 'barra' => 'bg-institutional'],
         ['titulo' => 'Itens por década', 'itens' => $itensPorDecada->take(6), 'vazio' => 'Ainda não há itens com data cadastrada.', 'barra' => 'bg-heritage-700'],
     ];
 
-    $perfil = auth()->user()->isAdmin() ? 'Administrador' : 'Operador';
+    $perfil = $admin ? 'Administrador' : 'Operador';
 @endphp
 
 <x-layouts.admin title="Admin | Memórias Vivas">
@@ -20,7 +22,13 @@
             eyebrow="Dashboard"
             :title="'Olá, '.$perfil.'!'"
             description="Acompanhe o estado real da catalogação e acesse os fluxos administrativos já disponíveis."
-        />
+        >
+            @can('create', App\Models\ItemAcervo::class)
+                <x-slot:actions>
+                    <x-catalog.button icon="plus" :href="route('admin.fotografias.create')">Cadastrar fotografia</x-catalog.button>
+                </x-slot:actions>
+            @endcan
+        </x-admin.page-header>
 
         {{-- Indicadores: a mesma superfície e o mesmo número dos cartões do relatório de downloads. --}}
         <section class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4" aria-label="Indicadores do acervo">
@@ -43,12 +51,53 @@
                         >
                             Ver todos<span class="sr-only">: {{ mb_strtolower($card['label']) }}</span>
                         </a>
-                    @else
+                    @elseif ($card['emPreparacao'] ?? false)
                         <p class="mt-5 text-sm text-fg-subtle">Módulo em preparação</p>
                     @endif
                 </article>
             @endforeach
         </section>
+
+        @if ($resumoDownloads)
+            <x-catalog.section class="mt-6" title="Downloads" title-id="dashboard-downloads-title" :description="'Pedidos de download feitos no site público nos últimos '.$resumoDownloads['dias'].' dias.'">
+                <x-slot:actions>
+                    <x-catalog.button variant="secondary" size="sm" icon="chart-column" :href="route('admin.downloads.index')">Ver relatório</x-catalog.button>
+                </x-slot:actions>
+
+                @if ($resumoDownloads['ultimo'] === null)
+                    <div class="rounded-lg border border-dashed border-line-strong bg-surface-muted">
+                        <x-ui.empty-state heading="h3" icon="download" title="Nenhum download registrado" description="Os pedidos de download feitos no site público aparecerão aqui." />
+                    </div>
+                @else
+                    <dl class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                        <x-admin.info-block :label="'Últimos '.$resumoDownloads['dias'].' dias'">
+                            <span class="text-2xl font-semibold text-fg tabular-nums">{{ number_format($resumoDownloads['total'], 0, ',', '.') }}</span>
+                            <span class="text-sm text-fg-muted">{{ $resumoDownloads['total'] === 1 ? 'download' : 'downloads' }}</span>
+                        </x-admin.info-block>
+                        <x-admin.info-block label="Último download">
+                            <x-data-hora :valor="$resumoDownloads['ultimo']" formato="curto" />
+                        </x-admin.info-block>
+                        <x-admin.info-block label="Perfil mais frequente" :empty="$resumoDownloads['perfil'] === null">
+                            @if ($resumoDownloads['perfil'])
+                                {{ $resumoDownloads['perfil']->rotulo }} <span class="text-fg-muted tabular-nums">({{ $resumoDownloads['perfil']->total }})</span>
+                            @else
+                                Sem downloads no período
+                            @endif
+                        </x-admin.info-block>
+                        <x-admin.info-block label="Fotografia mais baixada" :empty="$resumoDownloads['fotografia'] === null">
+                            @if ($resumoDownloads['fotografia']?->item && ! $resumoDownloads['fotografia']->item->trashed())
+                                <a href="{{ route('admin.fotografias.show', $resumoDownloads['fotografia']->item) }}" class="rounded font-semibold text-institutional hover:text-institutional-strong hover:underline hover:underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-institutional">{{ $resumoDownloads['fotografia']->rotulo }}</a>
+                                <span class="text-fg-muted tabular-nums">({{ $resumoDownloads['fotografia']->total }})</span>
+                            @elseif ($resumoDownloads['fotografia'])
+                                {{ $resumoDownloads['fotografia']->rotulo }} <span class="text-fg-muted tabular-nums">({{ $resumoDownloads['fotografia']->total }})</span>
+                            @else
+                                Sem downloads no período
+                            @endif
+                        </x-admin.info-block>
+                    </dl>
+                @endif
+            </x-catalog.section>
+        @endif
 
         <div class="mt-6 grid gap-6 xl:grid-cols-2">
             @foreach ($distribuicoes as $distribuicao)

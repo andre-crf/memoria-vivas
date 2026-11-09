@@ -209,19 +209,31 @@ class DetalhesAdministrativosTest extends TestCase
         $this->assertCabecalho($xpath, 'Olá, Administrador!', 'Dashboard');
         $indicadores = $xpath->query('//section[@aria-label="Indicadores do acervo"]/article');
         $this->assertSame(4, $indicadores->length);
-        $this->assertSame(['Ver todos: itens do acervo', 'Ver todos: fotografias'], $this->textos($xpath, '//section[@aria-label="Indicadores do acervo"]//a'));
-        foreach ($xpath->query('//section[@aria-label="Indicadores do acervo"]//a') as $link) {
-            $this->assertSame(route('admin.fotografias.index'), $link->getAttribute('href'));
-        }
-        $this->assertSame(['Módulo em preparação', 'Módulo em preparação'], $this->textos($xpath, '//section[@aria-label="Indicadores do acervo"]//article/p[last()]'));
-        $this->assertSame(['Tipos de arquivos', 'Itens por década', 'Itens mais recentes'], $this->textos($xpath, '//main//section/header//h2'));
-        $this->assertSame(['Nenhum item cadastrado'], $this->textos($xpath, '//main//section//h3'));
+        $this->assertSame(['Ver todos: itens do acervo', 'Ver todos: fotografias', 'Ver todos: usuários ativos'], $this->textos($xpath, '//section[@aria-label="Indicadores do acervo"]//a'));
+        $this->assertSame(
+            [route('admin.fotografias.index'), route('admin.fotografias.index'), route('admin.usuarios.index')],
+            array_map(fn (DOMElement $link): string => $link->getAttribute('href'), iterator_to_array($xpath->query('//section[@aria-label="Indicadores do acervo"]//a'))),
+        );
+        // Só arquivos digitais ainda não tem módulo próprio.
+        $this->assertSame(['Módulo em preparação'], $this->textos($xpath, '//section[@aria-label="Indicadores do acervo"]//article/p[normalize-space()="Módulo em preparação"]'));
+        $cadastrar = $xpath->query('//main//header[div/h1]//a[normalize-space()="Cadastrar fotografia"]')->item(0);
+        $this->assertInstanceOf(DOMElement::class, $cadastrar, 'Ação de cadastrar fotografia no cabeçalho do painel');
+        $this->assertSame(route('admin.fotografias.create'), $cadastrar->getAttribute('href'));
+        $this->assertSame(['Downloads', 'Tipos de arquivos', 'Itens por década', 'Itens mais recentes'], $this->textos($xpath, '//main//section/header//h2'));
+        $this->assertSame(['Nenhum download registrado', 'Nenhum item cadastrado'], $this->textos($xpath, '//main//section//h3'));
+        $this->assertSame(route('admin.downloads.index'), $xpath->query('//main//section/header//a[normalize-space()="Ver relatório"]')->item(0)?->getAttribute('href'));
         $this->assertSame(route('admin.fotografias.index'), $xpath->query('//main//section/header//a[normalize-space()="Ver fotografias"]')->item(0)?->getAttribute('href'));
 
         $operador = User::factory()->create(['role' => 'operador', 'status' => 'ativo']);
         $this->fotografiaComOriginal($admin, ['status' => 'em_revisao']);
         $xpath = $this->dom($this->actingAs($operador)->get(route('admin.dashboard'))->assertOk());
         $this->assertSame(['Olá, Operador!'], $this->textos($xpath, '//h1'));
+        $this->assertNotContains('Downloads', $this->textos($xpath, '//main//section/header//h2'));
+        // O operador cadastra fotografias, mas não gerencia usuários: o cartão fica sem link e sem "em preparação".
+        $this->assertSame(['Ver todos: itens do acervo', 'Ver todos: fotografias'], $this->textos($xpath, '//section[@aria-label="Indicadores do acervo"]//a'));
+        $this->assertSame([], $this->textos($xpath, '//section[@aria-label="Indicadores do acervo"]//a[@href="'.route('admin.usuarios.index').'"]'));
+        $this->assertSame(1, $xpath->query('//section[@aria-label="Indicadores do acervo"]//article/p[normalize-space()="Módulo em preparação"]')->length);
+        $this->assertSame(route('admin.fotografias.create'), $xpath->query('//main//header[div/h1]//a[normalize-space()="Cadastrar fotografia"]')->item(0)?->getAttribute('href'));
         $this->assertContains('bg-institutional-soft', $this->classes($xpath->query('//main//li//span[normalize-space()="Em revisão"]')->item(0)));
         $this->assertMarcacaoAntigaAusente($xpath);
     }

@@ -6,12 +6,18 @@ use App\Http\Controllers\Controller;
 use App\Models\Arquivo;
 use App\Models\ItemAcervo;
 use App\Models\User;
+use App\Queries\Admin\EstatisticasDownloads;
+use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\View\View;
 
 class DashboardController extends Controller
 {
-    public function __invoke(): View
+    /** Período do resumo de downloads, em dias contados até hoje (horário de Umuarama). */
+    private const DIAS_RESUMO_DOWNLOADS = 30;
+
+    public function __invoke(Request $request, EstatisticasDownloads $estatisticas): View
     {
         $tiposArquivo = Arquivo::query()
             ->selectRaw('tipo_arquivo, COUNT(*) as total')
@@ -64,7 +70,28 @@ class DashboardController extends Controller
                 ->latest('id')
                 ->limit(5)
                 ->get(),
+            // O relatório de downloads é só do admin: para o operador, nada é consultado.
+            'resumoDownloads' => $request->user()->isAdmin() ? $this->resumoDownloads($estatisticas) : null,
         ]);
+    }
+
+    /**
+     * @return array{dias: int, total: int, ultimo: ?Carbon, perfil: ?object, fotografia: ?object, desde: string}
+     */
+    private function resumoDownloads(EstatisticasDownloads $estatisticas): array
+    {
+        $desde = Carbon::now(EstatisticasDownloads::FUSO)->subDays(self::DIAS_RESUMO_DOWNLOADS - 1)->format('Y-m-d');
+        $periodo = $estatisticas->consulta(de: $desde);
+
+        return [
+            'dias' => self::DIAS_RESUMO_DOWNLOADS,
+            'desde' => $desde,
+            'total' => $estatisticas->total($periodo),
+            // O último download de todos, mesmo fora do período.
+            'ultimo' => $estatisticas->ultimoDownload($estatisticas->consulta()),
+            'perfil' => $estatisticas->perfis($periodo, 1)->first(),
+            'fotografia' => $estatisticas->maisBaixadas($periodo, 1)->first(),
+        ];
     }
 
     private function decadeBucket(ItemAcervo $item): string
