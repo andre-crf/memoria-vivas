@@ -48,8 +48,8 @@ class AuditUserIntegrationTest extends TestCase
                 'nome' => 'Nova operadora',
                 'email' => 'nova@example.test',
                 'role' => 'operador',
-                'password' => 'senha-inicial-segura',
-                'password_confirmation' => 'senha-inicial-segura',
+                'password' => 'Senha-Inicial-Segura-1',
+                'password_confirmation' => 'Senha-Inicial-Segura-1',
             ])
             ->assertRedirect(route('admin.usuarios.index'));
 
@@ -81,7 +81,7 @@ class AuditUserIntegrationTest extends TestCase
             (string) $stored->metadata,
         ]);
 
-        $this->assertStringNotContainsString('senha-inicial-segura', $serialized);
+        $this->assertStringNotContainsString('Senha-Inicial-Segura-1', $serialized);
         $this->assertStringNotContainsString($usuario->password, $serialized);
         $this->assertStringNotContainsString('remember_token', $serialized);
     }
@@ -268,15 +268,15 @@ class AuditUserIntegrationTest extends TestCase
         $this->actingAs($usuario)
             ->put(route('admin.perfil.password.update'), [
                 'current_password' => 'password',
-                'password' => 'nova-senha-segura',
-                'password_confirmation' => 'nova-senha-segura',
+                'password' => 'Nova-Senha-Segura-1',
+                'password_confirmation' => 'Nova-Senha-Segura-1',
             ])
             ->assertRedirect(route('admin.perfil.edit'));
 
         $usuario->refresh();
         $event = AuditEvent::query()->firstOrFail();
 
-        $this->assertTrue(Hash::check('nova-senha-segura', $usuario->password));
+        $this->assertTrue(Hash::check('Nova-Senha-Segura-1', $usuario->password));
         $this->assertSame(AuditAction::PasswordChanged, $event->action);
         $this->assertNull($event->old_values);
         $this->assertNull($event->new_values);
@@ -290,7 +290,7 @@ class AuditUserIntegrationTest extends TestCase
             (string) $stored->metadata,
         ]);
 
-        $this->assertStringNotContainsString('nova-senha-segura', $serialized);
+        $this->assertStringNotContainsString('Nova-Senha-Segura-1', $serialized);
         $this->assertStringNotContainsString($oldHash, $serialized);
         $this->assertStringNotContainsString($usuario->password, $serialized);
     }
@@ -298,12 +298,14 @@ class AuditUserIntegrationTest extends TestCase
     public function test_same_password_and_invalid_current_password_do_not_generate_events(): void
     {
         $usuario = $this->operador();
+        // A senha atual precisa ser forte para que a repetição passe na validação e chegue à regra de "mesma senha".
+        $usuario->forceFill(['password' => Hash::make('Mesma-Senha-1')])->save();
 
         $this->actingAs($usuario)
             ->put(route('admin.perfil.password.update'), [
-                'current_password' => 'password',
-                'password' => 'password',
-                'password_confirmation' => 'password',
+                'current_password' => 'Mesma-Senha-1',
+                'password' => 'Mesma-Senha-1',
+                'password_confirmation' => 'Mesma-Senha-1',
             ])
             ->assertRedirect(route('admin.perfil.edit'));
 
@@ -313,8 +315,8 @@ class AuditUserIntegrationTest extends TestCase
             ->from(route('admin.perfil.edit'))
             ->put(route('admin.perfil.password.update'), [
                 'current_password' => 'incorreta',
-                'password' => 'outra-senha-segura',
-                'password_confirmation' => 'outra-senha-segura',
+                'password' => 'Outra-Senha-Segura-1',
+                'password_confirmation' => 'Outra-Senha-Segura-1',
             ])
             ->assertRedirect(route('admin.perfil.edit'))
             ->assertSessionHasErrors('current_password', null, 'passwordUpdate');

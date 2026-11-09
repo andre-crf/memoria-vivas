@@ -22,6 +22,7 @@ use App\Support\DataExibicao;
 use App\Support\FusoDoUsuario;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Validation\Rules\Password;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -64,5 +65,9 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Autor::class, SupportCatalogPolicy::class);
         Gate::policy(Colecao::class, SupportCatalogPolicy::class);
         Gate::policy(ConjuntoContextual::class, SupportCatalogPolicy::class);
+
+        // Senha forte para senhas novas (cadastro de usuário e troca no perfil). O login não aplica a regra.
+        // Os mesmos critérios aparecem no checklist de x-catalog.password (resources/js/password-field.js).
+        Password::defaults(fn (): Password => Password::min(8)->mixedCase()->numbers()->symbols());
     }
 }

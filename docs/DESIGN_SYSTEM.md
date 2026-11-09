@@ -67,6 +67,7 @@ Acesso: somente administradores autenticados, nos ambientes `local`, `testing` e
 - `x-catalog.label`: envolve o campo; `required` mostra "obrigatório" (use junto com o `required` do campo).
 - `x-catalog.control`: `as="input|select|textarea"`, `size="md|sm"`. `error="chave"` marca o campo com `aria-invalid` e acrescenta `{id}-erro` ao `aria-describedby` quando há erro nessa chave; `error-bag` para bags nomeados (ex.: `profileUpdate` no perfil).
 - `x-catalog.error`: com `field`, só aparece se houver erro e recebe o id `{for ?? field}-erro`; `bag` para bags nomeados. Sem `field`, mostra o texto do slot.
+- `x-catalog.password`: campo de senha completo (rótulo, controle, botão de mostrar/ocultar e erro). `requisitos` acrescenta o checklist de senha forte (mesmos critérios de `Password::defaults()`); use só em senhas novas. O botão fica fora do `<label>`: em testes de navegador, localize o campo com `getByLabel('Senha', { exact: true })`.
 - A mensagem fica **fora** do `<label>`, para não entrar no nome acessível. Exceção documentada: no formulário de fotografia, a mensagem e o contador da legenda ficam dentro do rótulo com `aria-hidden="true"` (lidos como descrição), para não mexer na estrutura do Alpine (`x-show` dos campos de data, `x-data` do contador).
 
 **`x-catalog.button`**: todos os botões do admin.

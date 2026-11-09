@@ -8,7 +8,7 @@ const unique = (prefix) => `${prefix} ${Date.now()}-${Math.random().toString(16)
 async function login(page) {
     await page.goto('/login');
     await page.getByLabel('E-mail').fill('admin@memorias.test');
-    await page.getByLabel('Senha').fill('password');
+    await page.getByLabel('Senha', { exact: true }).fill('password');
     await page.getByRole('button', { name: 'Entrar no admin' }).click();
     await expect(page).toHaveURL(/\/admin$/);
 }

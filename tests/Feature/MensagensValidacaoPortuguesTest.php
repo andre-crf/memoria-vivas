@@ -44,7 +44,7 @@ class MensagensValidacaoPortuguesTest extends TestCase
             ->assertSee('O valor informado em título já está em uso.');
 
         $this->from(route('admin.usuarios.create'))->followingRedirects()
-            ->post(route('admin.usuarios.store'), ['nome' => 'Ana', 'email' => 'ana@example.test', 'role' => 'operador', 'password' => 'senha-segura', 'password_confirmation' => 'outra'])
+            ->post(route('admin.usuarios.store'), ['nome' => 'Ana', 'email' => 'ana@example.test', 'role' => 'operador', 'password' => 'Senha-Segura-1', 'password_confirmation' => 'outra'])
             ->assertSee('A confirmação do campo senha não corresponde.');
 
         $this->from(route('admin.fotografias.create'))->followingRedirects()

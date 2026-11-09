@@ -41,16 +41,9 @@
                     <x-catalog.error field="role" as="p" />
                 </div>
 
-                <div class="grid gap-1.5">
-                    <x-catalog.label for="password" text="Senha inicial" required>
-                        <x-catalog.control id="password" name="password" type="password" required minlength="8" autocomplete="new-password" error="password" />
-                    </x-catalog.label>
-                    <x-catalog.error field="password" as="p" />
-                </div>
+                <x-catalog.password id="password" label="Senha inicial" autocomplete="new-password" required requisitos minlength="8" />
 
-                <x-catalog.label for="password_confirmation" text="Confirmar senha inicial" required>
-                    <x-catalog.control id="password_confirmation" name="password_confirmation" type="password" required minlength="8" autocomplete="new-password" />
-                </x-catalog.label>
+                <x-catalog.password id="password_confirmation" label="Confirmar senha inicial" autocomplete="new-password" required minlength="8" />
 
                 <div class="flex flex-col-reverse gap-3 border-t border-line pt-5 sm:flex-row sm:justify-end">
                     <x-catalog.button variant="secondary" :href="route('admin.usuarios.index')">Cancelar</x-catalog.button>

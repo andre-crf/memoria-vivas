@@ -45,12 +45,7 @@
                             <x-catalog.error field="email" as="p" />
                         </div>
 
-                        <div class="grid gap-1.5">
-                            <x-catalog.label for="password" text="Senha">
-                                <x-catalog.control id="password" name="password" type="password" autocomplete="current-password" required error="password" />
-                            </x-catalog.label>
-                            <x-catalog.error field="password" as="p" />
-                        </div>
+                        <x-catalog.password id="password" label="Senha" autocomplete="current-password" required :marcador="false" />
 
                         <label class="flex items-center gap-3 text-sm text-ink-700">
                             <input

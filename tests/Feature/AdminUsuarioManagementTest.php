@@ -28,8 +28,8 @@ class AdminUsuarioManagementTest extends TestCase
             'nome' => 'Novo usuário',
             'email' => 'novo@example.test',
             'role' => 'operador',
-            'password' => 'senhainicial123',
-            'password_confirmation' => 'senhainicial123',
+            'password' => 'Senha-Inicial-123',
+            'password_confirmation' => 'Senha-Inicial-123',
         ], $overrides);
     }
 
@@ -93,8 +93,8 @@ class AdminUsuarioManagementTest extends TestCase
         $created = User::where('email', 'novo@example.test')->firstOrFail();
         $this->assertSame('ativo', $created->status);
         $this->assertSame('operador', $created->role);
-        $this->assertNotSame('senhainicial123', $created->password);
-        $this->assertTrue(Hash::check('senhainicial123', $created->password));
+        $this->assertNotSame('Senha-Inicial-123', $created->password);
+        $this->assertTrue(Hash::check('Senha-Inicial-123', $created->password));
     }
 
     public function test_creation_validates_name_email_role_and_password(): void

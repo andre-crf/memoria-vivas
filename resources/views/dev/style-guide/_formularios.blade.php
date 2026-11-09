@@ -38,6 +38,14 @@
             <p class="mt-4 text-caption text-fg-subtle">O contador de caracteres usa o characterCounter real (resources/js/fotografia-form.js), o mesmo da legenda da fotografia.</p>
         </x-dev.specimen>
 
+        <x-dev.specimen title="Senha" component="x-catalog.password" description="Campo de senha com botão de mostrar/ocultar fora do rótulo (não entra no nome acessível). Com requisitos, mostra o checklist de senha forte ligado ao campo por aria-describedby." status="padronizado">
+            <div class="grid gap-4 sm:grid-cols-2">
+                <x-catalog.password id="sg-senha" name="sg-senha" label="Senha" autocomplete="off" />
+                <x-catalog.password id="sg-senha-nova" name="sg-senha-nova" label="Nova senha" autocomplete="off" requisitos />
+            </div>
+            <p class="mt-4 text-caption text-fg-subtle">Os critérios do checklist (resources/js/password-field.js) espelham Password::defaults() no AppServiceProvider: 8+ caracteres, maiúscula e minúscula, número e símbolo. Use requisitos só em senhas novas; login e senha atual ficam sem checklist.</p>
+        </x-dev.specimen>
+
         <div class="grid gap-5 lg:grid-cols-2">
             <x-dev.specimen title="Tamanhos" component="size=md | sm" status="padronizado">
                 <div class="grid gap-4">

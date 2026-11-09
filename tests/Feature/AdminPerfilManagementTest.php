@@ -128,15 +128,15 @@ class AdminPerfilManagementTest extends TestCase
             ->from(route('admin.perfil.edit'))
             ->put(route('admin.perfil.password.update'), [
                 'current_password' => 'incorreta',
-                'password' => 'nova-senha',
-                'password_confirmation' => 'nova-senha',
+                'password' => 'Nova-Senha-1',
+                'password_confirmation' => 'Nova-Senha-1',
             ]);
 
         $this->get(route('admin.perfil.edit'))
             ->assertOk()
             ->assertSee('A senha não foi atualizada')
             ->assertDontSee('Os dados pessoais não foram atualizados')
-            ->assertDontSee('value="nova-senha"', false);
+            ->assertDontSee('value="Nova-Senha-1"', false);
     }
 
     public function test_personal_update_rejects_administrative_password_and_target_fields(): void
@@ -170,9 +170,9 @@ class AdminPerfilManagementTest extends TestCase
         $usuario = $this->usuario();
         $hashOriginal = $usuario->password;
         $cases = [
-            ['payload' => ['current_password' => 'incorreta', 'password' => 'nova-senha', 'password_confirmation' => 'nova-senha'], 'error' => 'current_password'],
+            ['payload' => ['current_password' => 'incorreta', 'password' => 'Nova-Senha-1', 'password_confirmation' => 'Nova-Senha-1'], 'error' => 'current_password'],
             ['payload' => ['current_password' => 'password', 'password' => 'curta', 'password_confirmation' => 'curta'], 'error' => 'password'],
-            ['payload' => ['current_password' => 'password', 'password' => 'nova-senha', 'password_confirmation' => 'diferente'], 'error' => 'password'],
+            ['payload' => ['current_password' => 'password', 'password' => 'Nova-Senha-1', 'password_confirmation' => 'diferente'], 'error' => 'password'],
         ];
 
         foreach ($cases as $case) {
@@ -194,19 +194,19 @@ class AdminPerfilManagementTest extends TestCase
         $this->actingAs($usuario)
             ->put(route('admin.perfil.password.update'), [
                 'current_password' => 'password',
-                'password' => 'nova-senha-segura',
-                'password_confirmation' => 'nova-senha-segura',
+                'password' => 'Nova-Senha-Segura-1',
+                'password_confirmation' => 'Nova-Senha-Segura-1',
             ])
             ->assertRedirect(route('admin.perfil.edit'))
             ->assertSessionHas('password_success', 'Senha atualizada com sucesso.');
 
         $this->assertAuthenticatedAs($usuario);
-        $this->assertTrue(Hash::check('nova-senha-segura', $usuario->fresh()->password));
+        $this->assertTrue(Hash::check('Nova-Senha-Segura-1', $usuario->fresh()->password));
 
         $this->post(route('logout'))->assertRedirect(route('login'));
         $this->post(route('login.store'), [
             'email' => $usuario->email,
-            'password' => 'nova-senha-segura',
+            'password' => 'Nova-Senha-Segura-1',
         ])->assertRedirect(route('admin.dashboard'));
         $this->assertAuthenticatedAs($usuario);
     }
@@ -220,8 +220,8 @@ class AdminPerfilManagementTest extends TestCase
         $this->actingAs($usuario)
             ->put(route('admin.perfil.password.update'), [
                 'current_password' => 'password',
-                'password' => 'nova-senha-segura',
-                'password_confirmation' => 'nova-senha-segura',
+                'password' => 'Nova-Senha-Segura-1',
+                'password_confirmation' => 'Nova-Senha-Segura-1',
                 'nome' => 'Nome indevido',
                 'email' => 'indevido@example.test',
                 'role' => 'operador',

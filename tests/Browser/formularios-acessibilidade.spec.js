@@ -11,7 +11,7 @@ const viewports = { mobile: { width: 390, height: 844 }, desktop: { width: 1280,
 async function login(page) {
     await page.goto('/login');
     await page.getByLabel('E-mail').fill('admin@memorias.test');
-    await page.getByLabel('Senha').fill('password');
+    await page.getByLabel('Senha', { exact: true }).fill('password');
     await page.getByRole('button', { name: 'Entrar no admin' }).click();
     await expect(page).toHaveURL(/\/admin$/);
 }
@@ -132,7 +132,7 @@ for (const [nome, viewport] of Object.entries(viewports)) {
         await page.goto('/login');
         await expectNoHorizontalScroll(page);
         await page.getByLabel('E-mail').fill('ninguem@example.test');
-        await page.getByLabel('Senha').fill('senha-errada');
+        await page.getByLabel('Senha', { exact: true }).fill('senha-errada');
         await page.getByRole('button', { name: 'Entrar no admin' }).click();
 
         const email = page.locator('#email');
@@ -182,6 +182,57 @@ for (const [nome, viewport] of Object.entries(viewports)) {
         const medida = await celula.evaluate((p) => ({ cortado: p.scrollWidth > p.clientWidth, linhas: Math.round(p.getBoundingClientRect().height / parseFloat(getComputedStyle(p).lineHeight)) }));
         expect(medida).toEqual({ cortado: true, linhas: 1 });
         await expect(page.locator('tbody tr').first().getByRole('link', { name: titulo })).toBeVisible();
+        await expectNoHorizontalScroll(page);
+    });
+}
+
+// Senhas: botão de mostrar/ocultar fora do nome do campo e checklist de senha forte (x-catalog.password).
+
+for (const [nome, viewport] of Object.entries(viewports)) {
+    test(`senha: mostrar/ocultar e requisitos de senha forte (${nome})`, async ({ page }) => {
+        await page.setViewportSize(viewport);
+        await page.goto('/login');
+        const senhaLogin = page.locator('#password');
+        await expect(senhaLogin).toHaveAccessibleName('Senha');
+        await expect(page.locator('[data-password-requirements]')).toHaveCount(0);
+
+        await login(page);
+        await page.goto('/admin/perfil');
+
+        const campo = page.locator('#password');
+        const botao = page.locator('button[aria-controls="password"]');
+        await expect(campo).toHaveAccessibleName(/^Nova senha/);
+        await expect(campo).toHaveAttribute('type', 'password');
+        await expect(botao).toHaveAccessibleName('Mostrar senha');
+        await expect(botao).toHaveAttribute('aria-pressed', 'false');
+
+        // O botão fica sobre o campo, dentro da área dele.
+        const caixaCampo = await campo.boundingBox();
+        const caixaBotao = await botao.boundingBox();
+        expect(caixaBotao.x + caixaBotao.width).toBeLessThanOrEqual(caixaCampo.x + caixaCampo.width + 1);
+        expect(caixaBotao.y).toBeGreaterThanOrEqual(caixaCampo.y - 1);
+        expect(caixaBotao.y + caixaBotao.height).toBeLessThanOrEqual(caixaCampo.y + caixaCampo.height + 1);
+
+        await botao.click();
+        await expect(campo).toHaveAttribute('type', 'text');
+        await expect(botao).toHaveAccessibleName('Ocultar senha');
+        await expect(botao).toHaveAttribute('aria-pressed', 'true');
+        await botao.click();
+        await expect(campo).toHaveAttribute('type', 'password');
+
+        const requisito = (chave) => page.locator(`#password-requisitos [data-requisito="${chave}"]`);
+        await expect(page.locator('#password-requisitos [data-ok="true"]')).toHaveCount(0);
+        await campo.fill('senha');
+        await expect(requisito('tamanho')).toHaveAttribute('data-ok', 'false');
+        await campo.fill('senhalonga1');
+        await expect(requisito('tamanho')).toHaveAttribute('data-ok', 'true');
+        await expect(requisito('numero')).toHaveAttribute('data-ok', 'true');
+        await expect(requisito('caixa')).toHaveAttribute('data-ok', 'false');
+        await expect(requisito('simbolo')).toHaveAttribute('data-ok', 'false');
+        await campo.fill('Senha-Longa-1');
+        await expect(page.locator('#password-requisitos [data-ok="true"]')).toHaveCount(4);
+        await expect(campo).toHaveAccessibleDescription(/A senha deve ter:.*Pelo menos 8 caracteres/);
+
         await expectNoHorizontalScroll(page);
     });
 }

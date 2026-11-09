@@ -75,24 +75,11 @@
                     @csrf
                     @method('PUT')
 
-                    <div class="grid gap-1.5">
-                        <x-catalog.label for="current_password" text="Senha atual" required>
-                            <x-catalog.control id="current_password" name="current_password" type="password" required autocomplete="current-password" error="current_password" error-bag="passwordUpdate" />
-                        </x-catalog.label>
-                        <x-catalog.error field="current_password" bag="passwordUpdate" as="p" />
-                    </div>
+                    <x-catalog.password id="current_password" label="Senha atual" autocomplete="current-password" required error-bag="passwordUpdate" />
 
-                    <div class="grid gap-1.5">
-                        <x-catalog.label for="password" text="Nova senha" required>
-                            <x-catalog.control id="password" name="password" type="password" required minlength="8" autocomplete="new-password" aria-describedby="password-dica" error="password" error-bag="passwordUpdate" />
-                        </x-catalog.label>
-                        <p id="password-dica" class="text-caption text-fg-subtle">Use pelo menos 8 caracteres.</p>
-                        <x-catalog.error field="password" bag="passwordUpdate" as="p" />
-                    </div>
+                    <x-catalog.password id="password" label="Nova senha" autocomplete="new-password" required requisitos minlength="8" error-bag="passwordUpdate" />
 
-                    <x-catalog.label for="password_confirmation" text="Confirmar nova senha" required>
-                        <x-catalog.control id="password_confirmation" name="password_confirmation" type="password" required minlength="8" autocomplete="new-password" />
-                    </x-catalog.label>
+                    <x-catalog.password id="password_confirmation" label="Confirmar nova senha" autocomplete="new-password" required minlength="8" error-bag="passwordUpdate" />
 
                     <div class="flex flex-col-reverse gap-3 border-t border-line pt-5 sm:flex-row sm:justify-end">
                         <x-catalog.button type="submit">Atualizar senha</x-catalog.button>

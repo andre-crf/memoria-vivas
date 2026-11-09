@@ -4,6 +4,7 @@ namespace App\Http\Requests\Admin;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Validation\Rules\Password;
 use Override;
 
 class UpdatePerfilPasswordRequest extends FormRequest
@@ -19,7 +20,7 @@ class UpdatePerfilPasswordRequest extends FormRequest
     {
         return [
             'current_password' => ['required', 'string', 'current_password:web'],
-            'password' => ['required', 'string', 'min:8', 'confirmed'],
+            'password' => ['required', 'string', Password::defaults(), 'confirmed'],
             'nome' => ['prohibited'],
             'email' => ['prohibited'],
             'role' => ['prohibited'],

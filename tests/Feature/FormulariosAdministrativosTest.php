@@ -150,7 +150,7 @@ class FormulariosAdministrativosTest extends TestCase
             'nome' => ['input', ['type' => 'text', 'required' => 'required', 'maxlength' => '255']],
             'email' => ['input', ['type' => 'email', 'required' => 'required', 'maxlength' => '255']],
             'role' => ['select', ['required' => 'required']],
-            'password' => ['input', ['type' => 'password', 'required' => 'required', 'minlength' => '8', 'autocomplete' => 'new-password']],
+            'password' => ['input', ['type' => 'password', 'required' => 'required', 'minlength' => '8', 'autocomplete' => 'new-password', 'aria-describedby' => 'password-requisitos']],
             'password_confirmation' => ['input', ['type' => 'password', 'required' => 'required', 'minlength' => '8', 'autocomplete' => 'new-password']],
         ]);
         $this->assertSame('operador', $this->valor($this->campo($xpath, 'role')));
@@ -160,12 +160,12 @@ class FormulariosAdministrativosTest extends TestCase
             'nome' => 'Nova Pessoa',
             'email' => $existente->email,
             'role' => 'admin',
-            'password' => 'senha-segura',
+            'password' => 'Senha-Segura-1',
             'password_confirmation' => 'outra-senha',
         ])->assertOk());
 
         $this->assertCampoInvalido($xpath, 'email');
-        $this->assertCampoInvalido($xpath, 'password');
+        $this->assertCampoInvalido($xpath, 'password', descricaoExtra: 'password-requisitos');
         $this->assertResumoDeErros($xpath);
         $this->assertSame('Nova Pessoa', $this->valor($this->campo($xpath, 'nome')));
         $this->assertSame('admin', $this->valor($this->campo($xpath, 'role')));
@@ -223,21 +223,21 @@ class FormulariosAdministrativosTest extends TestCase
         ]);
         $this->assertCampos($xpath, $senha, [
             'current_password' => ['input', ['type' => 'password', 'required' => 'required', 'autocomplete' => 'current-password']],
-            'password' => ['input', ['type' => 'password', 'required' => 'required', 'minlength' => '8', 'autocomplete' => 'new-password', 'aria-describedby' => 'password-dica']],
+            'password' => ['input', ['type' => 'password', 'required' => 'required', 'minlength' => '8', 'autocomplete' => 'new-password', 'aria-describedby' => 'password-requisitos']],
             'password_confirmation' => ['input', ['type' => 'password', 'required' => 'required', 'minlength' => '8', 'autocomplete' => 'new-password']],
         ]);
-        $this->assertSame('Use pelo menos 8 caracteres.', trim($xpath->query('//*[@id="password-dica"]')->item(0)->textContent));
+        $this->assertStringContainsString('Pelo menos 8 caracteres', $xpath->query('//*[@id="password-requisitos"]')->item(0)->textContent);
         $this->assertSame(['Salvar dados pessoais'], $this->textos($xpath, './/button[@type="submit"]', $dados));
         $this->assertSame(['Atualizar senha'], $this->textos($xpath, './/button[@type="submit"]', $senha));
 
-        // Erro de senha: só o formulário de segurança é marcado; a dica continua descrita antes da mensagem.
+        // Erro de senha: só o formulário de segurança é marcado; os requisitos continuam descritos antes da mensagem.
         $xpath = $this->dom($this->from(route('admin.perfil.edit'))->followingRedirects()->put(route('admin.perfil.password.update'), [
             'current_password' => 'errada',
             'password' => 'curta',
             'password_confirmation' => 'curta',
         ])->assertOk());
         $this->assertCampoInvalido($xpath, 'current_password');
-        $this->assertCampoInvalido($xpath, 'password', descricaoExtra: 'password-dica');
+        $this->assertCampoInvalido($xpath, 'password', descricaoExtra: 'password-requisitos');
         $this->assertFalse($this->campo($xpath, 'nome')->hasAttribute('aria-invalid'));
         $this->assertSame('A senha não foi atualizada.', trim($xpath->query('//main//*[@role="alert"]//p[1]')->item(0)->textContent));
         $this->assertSame(1, $xpath->query('//main//*[@role="alert"]')->length);
@@ -371,8 +371,8 @@ class FormulariosAdministrativosTest extends TestCase
     private function assertAcoes(DOMXPath $xpath, DOMElement $form, string $enviar, string $cancelar): void
     {
         $this->assertSame([$enviar], $this->textos($xpath, './/button[@type="submit"]', $form));
-        // Nenhum outro botão do formulário envia por acidente.
-        $this->assertSame(0, $xpath->query('.//button[not(@type="submit")]', $form)->length);
+        // Nenhum outro botão do formulário envia por acidente: os demais (ex.: mostrar senha) declaram type="button".
+        $this->assertSame(0, $xpath->query('.//button[not(@type="submit") and not(@type="button")]', $form)->length);
         $this->assertSame($cancelar, $xpath->query('.//a[normalize-space()="Cancelar"]', $form)->item(0)?->getAttribute('href'));
     }
 
@@ -390,7 +390,13 @@ class FormulariosAdministrativosTest extends TestCase
         $this->assertNotSame('', trim($mensagem->textContent));
         // Junto ao campo, mas fora do rótulo: não entra no nome acessível, só na descrição.
         $this->assertSame(0, $xpath->query('ancestor::label', $mensagem)->length);
-        $this->assertTrue($mensagem->parentNode->isSameNode($xpath->query('ancestor::label[1]', $campo)->item(0)->parentNode), "{$contexto}: mensagem de {$nome} longe do campo");
+        // O bloco do campo é o pai do rótulo ou, em x-catalog.password, o avô (o rótulo divide um wrapper com o botão de mostrar).
+        $blocos = $xpath->query('ancestor::label[1]/ancestor::*[position() <= 2]', $campo);
+        $proxima = false;
+        foreach ($blocos as $bloco) {
+            $proxima = $proxima || $mensagem->parentNode->isSameNode($bloco);
+        }
+        $this->assertTrue($proxima, "{$contexto}: mensagem de {$nome} longe do campo");
     }
 
     private function assertResumoDeErros(DOMXPath $xpath, string $contexto = ''): void
