@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
@@ -42,6 +43,7 @@ class AdminUsuarioManagementTest extends TestCase
             ['post', route('admin.usuarios.store')],
             ['get', route('admin.usuarios.edit', $target)],
             ['put', route('admin.usuarios.update', $target)],
+            ['put', route('admin.usuarios.password.reset', $target)],
         ];
 
         foreach ($routes as [$method, $route]) {
@@ -303,7 +305,98 @@ class AdminUsuarioManagementTest extends TestCase
         $this->assertTrue(Gate::forUser($operator)->allows('updatePassword', $operator));
         $this->assertFalse(Gate::forUser($operator)->allows('updateIdentity', $admin));
         $this->assertFalse(Gate::forUser($admin)->allows('updatePassword', $operator));
+        $this->assertTrue(Gate::forUser($admin)->allows('resetPassword', $operator));
+        $this->assertFalse(Gate::forUser($admin)->allows('resetPassword', $admin));
+        $this->assertFalse(Gate::forUser($operator)->allows('resetPassword', $admin));
         $this->assertFalse(Gate::forUser($admin)->allows('updateRole', [$admin, 'operador']));
         $this->assertFalse(Gate::forUser($admin)->allows('updateStatus', [$admin, 'inativo']));
+    }
+
+    public function test_admin_can_reset_another_users_password_without_changing_account_data(): void
+    {
+        $admin = $this->admin();
+        $target = $this->operador();
+        $oldHash = $target->password;
+        $oldToken = $target->remember_token;
+
+        $this->actingAs($admin)
+            ->get(route('admin.usuarios.edit', $target))
+            ->assertOk()
+            ->assertSee('Redefinir senha')
+            ->assertSee('name="password"', false);
+
+        $this->actingAs($admin)
+            ->put(route('admin.usuarios.password.reset', $target), [
+                'password' => 'Nova-Senha-Segura-1',
+                'password_confirmation' => 'Nova-Senha-Segura-1',
+            ])
+            ->assertRedirect(route('admin.usuarios.edit', $target))
+            ->assertSessionHas('password_success', 'Senha redefinida com sucesso.');
+
+        $target->refresh();
+        $this->assertNotSame($oldHash, $target->password);
+        $this->assertNotSame($oldToken, $target->remember_token);
+        $this->assertTrue(Hash::check('Nova-Senha-Segura-1', $target->password));
+        $this->assertSame('operador', $target->role);
+        $this->assertSame('ativo', $target->status);
+
+        $this->post(route('logout'));
+        $this->post(route('login.store'), ['email' => $target->email, 'password' => 'password'])
+            ->assertSessionHasErrors('email');
+        $this->post(route('login.store'), ['email' => $target->email, 'password' => 'Nova-Senha-Segura-1'])
+            ->assertRedirect(route('admin.dashboard'));
+    }
+
+    public function test_reset_rejects_invalid_password_extra_fields_and_own_account(): void
+    {
+        $admin = $this->admin();
+        $target = $this->operador();
+        $oldHash = $target->password;
+
+        $this->actingAs($admin)
+            ->from(route('admin.usuarios.edit', $target))
+            ->put(route('admin.usuarios.password.reset', $target), [
+                'password' => 'curta',
+                'password_confirmation' => 'diferente',
+                'role' => 'admin',
+            ])
+            ->assertRedirect(route('admin.usuarios.edit', $target))
+            ->assertSessionHasErrors(['password', 'role'], null, 'adminPasswordReset');
+
+        $this->assertSame($oldHash, $target->fresh()->password);
+        $this->assertSame('operador', $target->fresh()->role);
+
+        $this->actingAs($admin)
+            ->get(route('admin.usuarios.edit', $admin))
+            ->assertDontSee(route('admin.usuarios.password.reset', $admin));
+        $this->actingAs($admin)
+            ->put(route('admin.usuarios.password.reset', $admin), [
+                'password' => 'Nova-Senha-Segura-1',
+                'password_confirmation' => 'Nova-Senha-Segura-1',
+            ])
+            ->assertForbidden();
+    }
+
+    public function test_reset_revokes_existing_database_sessions_of_target(): void
+    {
+        config()->set('session.driver', 'database');
+        $admin = $this->admin();
+        $target = $this->operador();
+        $sessionId = str_repeat('a', 40);
+        DB::table('sessions')->insert([
+            'id' => $sessionId,
+            'user_id' => $target->id,
+            'ip_address' => '127.0.0.1',
+            'user_agent' => 'Teste',
+            'payload' => '',
+            'last_activity' => time(),
+        ]);
+
+        $this->actingAs($admin)->put(route('admin.usuarios.password.reset', $target), [
+            'password' => 'Nova-Senha-Segura-1',
+            'password_confirmation' => 'Nova-Senha-Segura-1',
+        ])->assertRedirect(route('admin.usuarios.edit', $target));
+
+        $this->assertDatabaseMissing('sessions', ['id' => $sessionId]);
     }
 }

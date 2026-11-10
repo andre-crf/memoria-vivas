@@ -5,11 +5,13 @@ namespace App\Http\Controllers\Admin;
 use App\Auditing\AuditContextFactory;
 use App\Http\Controllers\Admin\Concerns\ListagemPesquisavel;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\ResetUsuarioPasswordRequest;
 use App\Http\Requests\Admin\StoreUsuarioRequest;
 use App\Http\Requests\Admin\UpdateUsuarioRequest;
 use App\Models\User;
 use App\Services\Usuarios\AtualizarUsuario;
 use App\Services\Usuarios\CriarUsuario;
+use App\Services\Usuarios\RedefinirSenhaUsuario;
 use App\Support\OrdenacaoListagem;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -88,5 +90,23 @@ class UsuarioController extends Controller
         return redirect()
             ->route('admin.usuarios.index')
             ->with('success', 'Usuário atualizado com sucesso.');
+    }
+
+    public function resetPassword(
+        ResetUsuarioPasswordRequest $request,
+        User $usuario,
+        RedefinirSenhaUsuario $service,
+        AuditContextFactory $contexts,
+    ): RedirectResponse {
+        $service->execute(
+            actor: $request->user(),
+            usuario: $usuario,
+            password: $request->validated('password'),
+            context: $contexts->fromRequest($request),
+        );
+
+        return redirect()
+            ->route('admin.usuarios.edit', $usuario)
+            ->with('password_success', 'Senha redefinida com sucesso.');
     }
 }

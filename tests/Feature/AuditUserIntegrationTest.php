@@ -295,6 +295,34 @@ class AuditUserIntegrationTest extends TestCase
         $this->assertStringNotContainsString($usuario->password, $serialized);
     }
 
+    public function test_admin_password_reset_records_actor_and_target_without_secrets(): void
+    {
+        $admin = $this->admin();
+        $usuario = $this->operador();
+        $oldHash = $usuario->password;
+
+        $this->actingAs($admin)
+            ->put(route('admin.usuarios.password.reset', $usuario), [
+                'password' => 'Nova-Senha-Segura-1',
+                'password_confirmation' => 'Nova-Senha-Segura-1',
+            ])
+            ->assertRedirect(route('admin.usuarios.edit', $usuario));
+
+        $event = AuditEvent::query()->sole();
+        $this->assertSame($admin->id, $event->actor_user_id);
+        $this->assertSame((string) $usuario->id, $event->subject_id);
+        $this->assertSame(AuditAction::PasswordChanged, $event->action);
+        $this->assertSame('admin_password_reset', $event->metadata['operation']);
+        $this->assertNull($event->old_values);
+        $this->assertNull($event->new_values);
+
+        $stored = DB::table('audit_events')->where('id', $event->id)->firstOrFail();
+        $serialized = implode(' ', [(string) $stored->old_values, (string) $stored->new_values, (string) $stored->metadata]);
+        $this->assertStringNotContainsString('Nova-Senha-Segura-1', $serialized);
+        $this->assertStringNotContainsString($oldHash, $serialized);
+        $this->assertStringNotContainsString($usuario->fresh()->password, $serialized);
+    }
+
     public function test_same_password_and_invalid_current_password_do_not_generate_events(): void
     {
         $usuario = $this->operador();

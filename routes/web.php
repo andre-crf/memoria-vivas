@@ -193,5 +193,6 @@ Route::middleware(['auth', 'admin.access'])
                 Route::post('/', [UsuarioController::class, 'store'])->name('store');
                 Route::get('/{usuario}/edit', [UsuarioController::class, 'edit'])->name('edit');
                 Route::put('/{usuario}', [UsuarioController::class, 'update'])->name('update');
+                Route::put('/{usuario}/senha', [UsuarioController::class, 'resetPassword'])->name('password.reset');
             });
     });

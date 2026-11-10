@@ -78,6 +78,11 @@ class UserPolicy
         return $this->internal($user) && $user->is($target);
     }
 
+    public function resetPassword(User $user, User $target): bool
+    {
+        return $this->admin($user) && ! $user->is($target);
+    }
+
     public function resetOwnPassword(User $user): bool
     {
         return $this->internal($user);

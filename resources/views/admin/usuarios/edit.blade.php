@@ -4,7 +4,7 @@
             class="mb-6"
             eyebrow="Administração"
             title="Editar usuário"
-            description="Atualize os dados da conta. Senhas não são alteradas nesta tela."
+            description="Atualize os dados da conta e, se necessário, redefina a senha de outro usuário."
         />
 
         @php
@@ -83,5 +83,38 @@
                 </div>
             </form>
         </x-catalog.section>
+
+        @if ($editandoPropriaConta)
+            <x-catalog.section title="Senha" description="Para alterar sua própria senha, confirme a senha atual no seu perfil." class="mt-6">
+                <x-catalog.button variant="secondary" :href="route('admin.perfil.edit')">Ir para meu perfil</x-catalog.button>
+            </x-catalog.section>
+        @else
+            <x-catalog.section title="Redefinir senha" description="Defina uma nova senha para {{ $usuario->nome }}. A senha atual não é necessária." class="mt-6">
+                @if (session('password_success'))
+                    <x-ui.alert tone="success" class="mb-5">{{ session('password_success') }}</x-ui.alert>
+                @endif
+
+                @if ($errors->adminPasswordReset->any())
+                    <x-ui.alert tone="danger" title="A senha não foi redefinida." class="mb-5">
+                        <p>Verifique os campos informados.</p>
+                        @foreach (collect($errors->adminPasswordReset->getMessages())->except(['password'])->flatten() as $erro)
+                            <p>{{ $erro }}</p>
+                        @endforeach
+                    </x-ui.alert>
+                @endif
+
+                <form method="POST" action="{{ route('admin.usuarios.password.reset', $usuario) }}" class="grid gap-5">
+                    @csrf
+                    @method('PUT')
+
+                    <x-catalog.password id="password" label="Nova senha" autocomplete="new-password" required requisitos minlength="8" error-bag="adminPasswordReset" />
+                    <x-catalog.password id="password_confirmation" label="Confirmar nova senha" autocomplete="new-password" required minlength="8" error-bag="adminPasswordReset" />
+
+                    <div class="flex flex-col-reverse gap-3 border-t border-line pt-5 sm:flex-row sm:justify-end">
+                        <x-catalog.button type="submit">Redefinir senha</x-catalog.button>
+                    </div>
+                </form>
+            </x-catalog.section>
+        @endif
     </div>
 </x-layouts.admin>
