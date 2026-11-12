@@ -156,6 +156,7 @@ final class AuditEventPresenter
         'admin_user_update' => 'Alteração administrativa de usuário',
         'self_profile_update' => 'Alteração do próprio perfil',
         'self_password_change' => 'Alteração da própria senha',
+        'admin_password_reset' => 'Redefinição administrativa de senha',
         'acervo_item_create' => 'Cadastro de item do acervo',
         'acervo_item_update' => 'Alteração de item do acervo',
         'acervo_item_soft_delete' => 'Exclusão de item do acervo',

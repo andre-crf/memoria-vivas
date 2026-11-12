@@ -24,10 +24,10 @@ return [
      */
     'ibge' => [
         'base_url' => env('IBGE_BASE_URL', 'https://servicodados.ibge.gov.br/api/v1/localidades'),
-        'timeout' => (int) env('IBGE_TIMEOUT', 20),
-        'connect_timeout' => (int) env('IBGE_CONNECT_TIMEOUT', 10),
+        'timeout' => (int) env('IBGE_TIMEOUT', 30),
+        'connect_timeout' => (int) env('IBGE_CONNECT_TIMEOUT', 15),
         'tentativas' => (int) env('IBGE_TENTATIVAS', 3),
-        'intervalo_retry' => (int) env('IBGE_INTERVALO_RETRY', 500),
+        'intervalo_retry' => (int) env('IBGE_INTERVALO_RETRY', 1000),
     ],
 
     'resend' => [
