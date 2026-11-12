@@ -1,11 +1,14 @@
 <x-layouts.app title="Entrar | Memórias Vivas">
     <main class="grid min-h-screen lg:grid-cols-[minmax(0,0.92fr)_minmax(480px,0.68fr)]">
-        <section class="hidden bg-institutional text-white lg:flex lg:flex-col lg:justify-between">
-            <div class="px-12 pt-12">
+        <section class="relative isolate hidden overflow-hidden bg-institutional text-white lg:flex lg:flex-col lg:justify-between">
+            <img src="{{ asset('images/login-acervo-historico.jpg') }}" alt="" width="842" height="562" class="absolute inset-0 size-full object-cover object-center" aria-hidden="true">
+            <div class="absolute inset-0 bg-linear-to-t from-institutional-strong via-institutional/75 to-institutional/35" aria-hidden="true"></div>
+
+            <div class="relative px-12 pt-12">
                 <p class="text-sm font-semibold uppercase tracking-[0.18em] text-heritage-300">Memórias Vivas</p>
             </div>
 
-            <div class="px-12 pb-14">
+            <div class="relative px-12 pb-14">
                 <div class="max-w-2xl">
                     <p class="mb-5 inline-flex rounded-full border border-white/20 px-3 py-1 text-xs uppercase tracking-[0.16em] text-institutional-muted">
                         Área administrativa
@@ -20,8 +23,11 @@
             </div>
         </section>
 
-        <section class="flex min-h-screen items-center justify-center px-6 py-10 sm:px-10">
-            <div class="w-full max-w-md">
+        <section class="relative isolate flex min-h-screen items-center justify-center overflow-hidden bg-paper px-6 py-10 sm:px-10">
+            <img src="{{ asset('images/login-album-historico.jpg') }}" alt="" width="1008" height="617" class="absolute inset-0 hidden size-full object-cover object-center opacity-25 grayscale lg:block" aria-hidden="true">
+            <div class="absolute inset-0 hidden bg-linear-to-b from-paper/70 via-paper/85 to-paper/75 lg:block" aria-hidden="true"></div>
+
+            <div class="relative w-full max-w-md">
                 <div class="mb-8 lg:hidden">
                     <p class="text-sm font-semibold uppercase tracking-[0.18em] text-heritage-700">Memórias Vivas</p>
                     <h1 class="mt-4 text-3xl font-semibold text-fg">Área administrativa</h1>
@@ -60,6 +66,7 @@
                         <x-catalog.button type="submit" class="w-full">Entrar no admin</x-catalog.button>
                     </form>
                 </div>
+
             </div>
         </section>
     </main>
